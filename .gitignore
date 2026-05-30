@@ -1,0 +1,41 @@
+# PHP
+/vendor/
+*.log
+.env
+.env.*
+
+# Node
+/node_modules/
+npm-debug.log*
+
+# Laravel
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+/bootstrap/cache/*
+
+# Flutter
+/ios/Pods/
+/android/.gradle/
+/android/app/build/
+/android/build/
+/build/
+.flutter-plugins*
+
+# IDE
+/.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Laravel Octane
+/var/
+
+# Ignore any temporary files
+*.swp
+*.swo
+*~
