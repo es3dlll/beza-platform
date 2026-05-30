@@ -1,14 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\CoreFinancialEngine\Services;
 
 use Modules\CoreFinancialEngine\Contracts\PostingEngineInterface;
 use Modules\CoreFinancialEngine\DTOs\PostingInstructionDto;
 use Modules\CoreFinancialEngine\DTOs\PostingResultDto;
 use Modules\CoreFinancialEngine\Events\TransactionPosted;
-use App\Modules\Ledger\DTOs\JournalLineDto;
-use App\Modules\Ledger\DTOs\PostEntryDto;
-use App\Modules\Ledger\Services\JournalService;
+use Modules\CoreFinancialEngine\Models\CfeTransaction;
+use Modules\CoreFinancialEngine\Models\CfeTransactionLine;
+use Modules\Ledger\DTOs\JournalLineDto;
+use Modules\Ledger\DTOs\PostEntryDto;
+use Modules\Ledger\Services\JournalService;
 use Illuminate\Support\Str;
 
 final class PostingEngine implements PostingEngineInterface
@@ -53,8 +57,34 @@ final class PostingEngine implements PostingEngineInterface
         try {
             $entry = $this->journal->post($postDto);
 
+            $transaction = CfeTransaction::create([
+                'id' => Str::ulid()->toBase32(),
+                'reference_type' => $instruction->referenceType,
+                'reference_id' => $instruction->referenceId,
+                'description' => $instruction->description,
+                'total_amount' => $entry->total_amount,
+                'currency' => 'SYP',
+                'channel' => $instruction->channel,
+                'initiated_by' => $instruction->initiatedBy,
+                'status' => 'completed',
+                'journal_entry_id' => $entry->id,
+                'completed_at' => now(),
+                'metadata' => $instruction->metadata,
+            ]);
+
+            foreach ($instruction->lines as $line) {
+                CfeTransactionLine::create([
+                    'id' => Str::ulid()->toBase32(),
+                    'cfe_transaction_id' => $transaction->id,
+                    'account_id' => $line['account_id'],
+                    'amount' => $line['amount'],
+                    'type' => $line['type'],
+                    'description' => $line['description'] ?? null,
+                ]);
+            }
+
             event(new TransactionPosted(
-                transactionId: $instruction->referenceId,
+                transactionId: $transaction->id,
                 referenceType: $instruction->referenceType,
                 referenceId: $instruction->referenceId,
                 totalAmount: $entry->total_amount,
@@ -64,7 +94,7 @@ final class PostingEngine implements PostingEngineInterface
 
             return new PostingResultDto(
                 success: true,
-                transactionId: $instruction->referenceId,
+                transactionId: $transaction->id,
                 journalEntryId: $entry->id,
                 totalAmount: $entry->total_amount,
                 currency: 'SYP',

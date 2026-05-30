@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\CoreFinancialEngine\Services;
 
 use Modules\CoreFinancialEngine\Contracts\FeeEngineInterface;
@@ -7,47 +9,52 @@ use Modules\CoreFinancialEngine\DTOs\FeeAssessmentDto;
 use Modules\CoreFinancialEngine\DTOs\FeeResultDto;
 use Modules\CoreFinancialEngine\Events\FeeApplied;
 use Modules\CoreFinancialEngine\Exceptions\FeeCalculationException;
-use App\Modules\Ledger\DTOs\JournalLineDto;
-use App\Modules\Ledger\DTOs\PostEntryDto;
-use App\Modules\Ledger\Services\JournalService;
+use Modules\CoreFinancialEngine\Models\FeeRule;
+use Modules\Ledger\DTOs\JournalLineDto;
+use Modules\Ledger\DTOs\PostEntryDto;
+use Modules\Ledger\Services\JournalService;
 
 final class FeeEngine implements FeeEngineInterface
 {
-    private const FEE_RULES = [
-        'transfer_out' => ['type' => 'flat', 'value' => 500, 'account' => '4000-001'],    // تحويل خارجي
-        'transfer_in' => ['type' => 'flat', 'value' => 0, 'account' => '4000-001'],
-        'cash_withdrawal' => ['type' => 'percentage', 'value' => 0.5, 'account' => '4000-002'],
-        'cash_deposit' => ['type' => 'flat', 'value' => 0, 'account' => '4000-002'],
-        'bill_payment' => ['type' => 'flat', 'value' => 200, 'account' => '4000-003'],
-        'wallet_to_wallet' => ['type' => 'flat', 'value' => 0, 'account' => '4000-004'],
-        'agent_cash_out' => ['type' => 'percentage', 'value' => 1.0, 'account' => '4000-005'],
-        'agent_cash_in' => ['type' => 'flat', 'value' => 0, 'account' => '4000-005'],
-    ];
-
-    private const REVENUE_ACCOUNT = '4000-000';
-
     public function __construct(
         private readonly JournalService $journal,
     ) {}
 
     public function calculate(FeeAssessmentDto $dto): FeeResultDto
     {
-        $rule = self::FEE_RULES[$dto->feeType] ?? null;
+        $rule = FeeRule::where('fee_type', $dto->feeType)
+            ->where('is_active', true)
+            ->first();
+
         if (!$rule) {
-            throw new FeeCalculationException("No fee rule for type: {$dto->feeType}");
+            throw new FeeCalculationException("No active fee rule for type: {$dto->feeType}");
         }
 
-        $feeAmount = match ($rule['type']) {
-            'flat' => $rule['value'],
-            'percentage' => (int) round($dto->transactionAmount * ($rule['value'] / 100)),
+        if ($rule->min_amount && $dto->transactionAmount < $rule->min_amount) {
+            return new FeeResultDto(
+                applied: false,
+                feeAmount: 0,
+                currency: $dto->currency,
+                feeAccountId: $rule->fee_account_number,
+                feeRule: $dto->feeType,
+            );
+        }
+
+        $feeAmount = match ($rule->calculation_type) {
+            'flat' => $rule->value,
+            'percentage' => (int) round($dto->transactionAmount * ($rule->value / 10000)),
             default => 0,
         };
+
+        if ($rule->max_cap && $feeAmount > $rule->max_cap) {
+            $feeAmount = $rule->max_cap;
+        }
 
         return new FeeResultDto(
             applied: false,
             feeAmount: $feeAmount,
             currency: $dto->currency,
-            feeAccountId: $rule['account'],
+            feeAccountId: $rule->fee_account_number,
             feeRule: $dto->feeType,
         );
     }
