@@ -84,6 +84,9 @@ Every API error returns this exact JSON structure. The `details` object is domai
 | `WALLET_AMOUNT_PLUS_FEES_EXCEEDS_BALANCE` | 422 | Amount plus fees exceed available balance | المبلغ مضافاً إليه الرسوم يتجاوز الرصيد المتاح | Increase balance or reduce the amount plus fees | قم بزيادة الرصيد أو تقليل المبلغ والرسوم | Available balance < amount + all applicable fees |
 | `WALLET_REFUND_PERIOD_EXPIRED` | 422 | Refund window has closed for this transaction | انتهت فترة استرجاع هذه العملية | Refunds accepted only within 7 days of transaction | يتم قبول الاسترجاع خلال 7 أيام فقط من تاريخ العملية | Refund attempted > 7 days after original transaction |
 | `WALLET_TYPE_MISMATCH` | 400 | Wallet type does not support this operation | نوع المحفظة لا يدعم هذه العملية | Use a different wallet type for this operation | استخدم نوع محفظة مختلف لهذه العملية | E.g., trying to send from a merchant wallet |
+| `WALLET_DEPOSIT_FAILED` | 422 | Deposit failed due to internal error | فشل الإيداع بسبب خطأ داخلي | Try again or contact support | حاول مرة أخرى أو اتصل بالدعم | Ledger/CFE posting failure during deposit |
+| `WALLET_WITHDRAWAL_FAILED` | 422 | Withdrawal failed due to internal error | فشل السحب بسبب خطأ داخلي | Try again or contact support | حاول مرة أخرى أو اتصل بالدعم | Ledger/CFE posting failure during withdrawal |
+| `WALLET_TRANSFER_FAILED` | 422 | Transfer failed due to internal error | فشل التحويل بسبب خطأ داخلي | Try again or contact support | حاول مرة أخرى أو اتصل بالدعم | Ledger/CFE posting failure during transfer |
 
 ---
 
