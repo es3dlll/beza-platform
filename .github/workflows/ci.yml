@@ -39,11 +39,14 @@ jobs:
       - name: Generate key
         run: php artisan key:generate
 
+      - name: PHPStan static analysis
+        run: vendor/bin/phpstan analyse --level=5 --no-progress || true
+
       - name: Run migrations
         run: php artisan migrate --env=testing --force
 
-      - name: Run tests
-        run: php vendor/bin/phpunit --configuration phpunit.xml --coverage-text
+      - name: Run PHPUnit tests
+        run: php vendor/bin/phpunit --configuration phpunit.xml
 
   flutter:
     runs-on: ubuntu-latest

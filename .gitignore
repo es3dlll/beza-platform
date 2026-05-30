@@ -1,27 +1,36 @@
-# PHP
-/vendor/
+# PHP - Backend
+/backend/vendor/
+/backend/.env
+/backend/.env.*
+/backend/storage/framework/cache/data/*
+/backend/storage/framework/sessions/*
+/backend/storage/framework/views/*
+/backend/storage/logs/*
+/backend/bootstrap/cache/*
+/backend/var/
+
+# Laravel Logs
 *.log
-.env
-.env.*
+
+# Frontend - Admin
+/frontend/admin/node_modules/
+/frontend/admin/dist/
+
+# Frontend - Mobile (Flutter)
+/frontend/mobile/build/
+/frontend/mobile/.dart_tool/
+/frontend/mobile/.flutter-plugins*
+/frontend/mobile/ios/Pods/
+/frontend/mobile/android/.gradle/
+/frontend/mobile/android/app/build/
+/frontend/mobile/android/build/
+
+# Stale empty mobile dir
+/mobile/
 
 # Node
 /node_modules/
 npm-debug.log*
-
-# Laravel
-/storage/framework/cache/data/*
-/storage/framework/sessions/*
-/storage/framework/views/*
-/storage/logs/*
-/bootstrap/cache/*
-
-# Flutter
-/ios/Pods/
-/android/.gradle/
-/android/app/build/
-/android/build/
-/build/
-.flutter-plugins*
 
 # IDE
 /.idea/
@@ -32,10 +41,7 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
-# Laravel Octane
-/var/
-
-# Ignore any temporary files
+# Temp
 *.swp
 *.swo
 *~
