@@ -60,10 +60,11 @@ final class AccountService
         $previousBalance = $account->balance;
 
         if ($direction === 'debit') {
-            $account->balance += $amount;
+            $account->debit($amount);
         } else {
-            $account->balance -= $amount;
+            $account->credit($amount);
         }
+        $account->refresh();
 
         $account->available_balance = max(0, $account->balance - $this->holds->totalHeldAmount($accountId));
         $this->accounts->save($account);

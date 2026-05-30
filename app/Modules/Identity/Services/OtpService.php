@@ -15,6 +15,7 @@ class OtpService
     public const PURPOSE_LOGIN = 'login';
     public const PURPOSE_CHANGE_PHONE = 'change_phone';
     public const PURPOSE_FORGOT_PIN = 'forgot_pin';
+    public const PURPOSE_PHONE_VERIFY = 'phone_verify';
 
     public function generateAndSend(string $phone, string $purpose): OtpCode
     {

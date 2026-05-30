@@ -12,6 +12,7 @@ return [
     'pin_created' => 'PIN created successfully',
     'pin_invalid_format' => 'PIN must be 6 digits',
     'pin_incorrect' => 'Incorrect PIN',
+    'password_incorrect' => 'Incorrect password',
     'pin_changed' => 'PIN changed successfully',
     'login_success' => 'Logged in successfully',
     'logout_success' => 'Logged out successfully',

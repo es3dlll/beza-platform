@@ -22,5 +22,7 @@ final class Kernel extends HttpKernel
 
     protected $routeMiddleware = [
         'idempotent' => \App\Http\Middleware\IdempotencyMiddleware::class,
+        'permission' => \Modules\IAM\Middleware\PermissionMiddleware::class,
+        'role' => \Modules\IAM\Middleware\RoleMiddleware::class,
     ];
 }

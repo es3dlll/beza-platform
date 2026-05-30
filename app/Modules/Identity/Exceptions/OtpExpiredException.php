@@ -13,7 +13,7 @@ class OtpExpiredException extends HttpException
         ?\Throwable $previous = null,
         int $code = 0,
     ) {
-        parent::__construct(400, $message, $previous, [], $code);
+        parent::__construct(422, $message, $previous, [], $code);
     }
 
     public function getErrorCode(): string

@@ -19,6 +19,9 @@ return new class extends Migration
             $table->string('currency', 3)->default('SYP');
             $table->bigInteger('total_debit')->default(0);
             $table->bigInteger('total_credit')->default(0);
+            $table->bigInteger('total_amount')->default(0);
+            $table->timestamp('posted_at')->nullable();
+            $table->text('metadata')->nullable();
             $table->enum('status', ['draft', 'posted', 'reversed'])->default('draft');
             $table->ulid('reversal_of')->nullable();
             $table->ulid('created_by')->nullable();

@@ -32,7 +32,10 @@ class User extends Authenticatable implements JWTSubject
         'id',
         'phone',
         'phone_country_code',
+        'first_name',
+        'last_name',
         'email',
+        'password',
         'pin_hash',
         'pin_updated_at',
         'status',
@@ -46,6 +49,7 @@ class User extends Authenticatable implements JWTSubject
 
     protected $hidden = [
         'pin_hash',
+        'password',
     ];
 
     protected $casts = [

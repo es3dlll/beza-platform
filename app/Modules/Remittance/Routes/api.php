@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 use Modules\Remittance\Controllers\RemittanceController;
 
-Route::middleware(['auth:api'])->prefix('remittance')->group(function () {
+Route::middleware(['auth:api'])->prefix('v1/remittance')->group(function () {
     Route::get('corridors', [RemittanceController::class, 'listCorridors']);
     Route::post('corridors', [RemittanceController::class, 'createCorridor']);
 

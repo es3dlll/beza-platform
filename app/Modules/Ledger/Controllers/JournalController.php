@@ -5,6 +5,7 @@ namespace Modules\Ledger\Controllers;
 
 use Modules\Ledger\DTOs\JournalLineDto;
 use Modules\Ledger\DTOs\PostEntryDto;
+use Modules\Ledger\Exceptions\DoubleEntryViolationException;
 use Modules\Ledger\Repositories\JournalEntryRepository;
 use Modules\Ledger\Services\JournalService;
 use Illuminate\Http\JsonResponse;
@@ -37,7 +38,11 @@ final class JournalController
             postedAt: $request->input('posted_at') ? new \DateTime($request->input('posted_at')) : null,
         );
 
-        $entry = $this->journal->post($dto);
+        try {
+            $entry = $this->journal->post($dto);
+        } catch (DoubleEntryViolationException $e) {
+            return response()->json(['error' => 'DOUBLE_ENTRY_VIOLATION', 'message' => $e->getMessage()], 422);
+        }
         return response()->json(['data' => $entry->load('lines')], 201);
     }
 

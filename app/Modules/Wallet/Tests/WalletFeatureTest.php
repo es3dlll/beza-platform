@@ -11,11 +11,15 @@ use Modules\Wallet\DTOs\TransferDto;
 use Modules\Wallet\Exceptions\InsufficientBalanceException;
 use Modules\Wallet\Exceptions\WalletNotFoundException;
 use Modules\Wallet\Models\Wallet;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Identity\Models\User;
 use Modules\Wallet\Services\WalletService;
 use Tests\TestCase;
 
 final class WalletFeatureTest extends TestCase
 {
+    use RefreshDatabase;
+
     private WalletService $service;
 
     protected function setUp(): void
@@ -24,8 +28,26 @@ final class WalletFeatureTest extends TestCase
         $this->service = $this->app->make(WalletService::class);
     }
 
+    private function createUser(string $id): User
+    {
+        return User::factory()->create([
+            'id' => $id,
+            'phone' => '+963' . substr($id, -9),
+            'status' => 'active',
+            'phone_verified_at' => now(),
+        ]);
+    }
+
+    private function ensureUser(string $userId): void
+    {
+        if (!User::find($userId)) {
+            $this->createUser($userId);
+        }
+    }
+
     public function test_can_create_wallet(): void
     {
+        $this->ensureUser('01AR12345678901234567890');
         $dto = new CreateWalletDto(
             userId: '01AR12345678901234567890',
             currency: 'SYP',
@@ -41,6 +63,7 @@ final class WalletFeatureTest extends TestCase
 
     public function test_returns_existing_wallet_on_duplicate(): void
     {
+        $this->ensureUser('01AR12345678901234567891');
         $dto = new CreateWalletDto(userId: '01AR12345678901234567891', currency: 'SYP');
 
         $first = $this->service->create($dto);
@@ -57,6 +80,7 @@ final class WalletFeatureTest extends TestCase
 
     public function test_deposit_updates_balance(): void
     {
+        $this->ensureUser('01AR12345678901234567892');
         $dto = new CreateWalletDto(userId: '01AR12345678901234567892', currency: 'SYP');
         $wallet = $this->service->create($dto);
 
@@ -74,6 +98,7 @@ final class WalletFeatureTest extends TestCase
 
     public function test_multiple_deposits_accumulate(): void
     {
+        $this->ensureUser('01AR12345678901234567893');
         $dto = new CreateWalletDto(userId: '01AR12345678901234567893', currency: 'SYP');
         $wallet = $this->service->create($dto);
 
@@ -87,6 +112,7 @@ final class WalletFeatureTest extends TestCase
 
     public function test_withdrawal_reduces_balance(): void
     {
+        $this->ensureUser('01AR12345678901234567894');
         $dto = new CreateWalletDto(userId: '01AR12345678901234567894', currency: 'SYP');
         $wallet = $this->service->create($dto);
 
@@ -106,6 +132,7 @@ final class WalletFeatureTest extends TestCase
 
     public function test_withdrawal_fails_on_insufficient_balance(): void
     {
+        $this->ensureUser('01AR12345678901234567895');
         $dto = new CreateWalletDto(userId: '01AR12345678901234567895', currency: 'SYP');
         $wallet = $this->service->create($dto);
 
@@ -126,6 +153,8 @@ final class WalletFeatureTest extends TestCase
     {
         $userA = '01AR12345678901234567896';
         $userB = '01AR12345678901234567897';
+        $this->ensureUser($userA);
+        $this->ensureUser($userB);
 
         $walletA = $this->service->create(new CreateWalletDto($userA, 'SYP'));
         $walletB = $this->service->create(new CreateWalletDto($userB, 'SYP'));
@@ -150,6 +179,8 @@ final class WalletFeatureTest extends TestCase
     {
         $userA = '01AR12345678901234567898';
         $userB = '01AR12345678901234567899';
+        $this->ensureUser($userA);
+        $this->ensureUser($userB);
 
         $walletA = $this->service->create(new CreateWalletDto($userA, 'SYP'));
         $walletB = $this->service->create(new CreateWalletDto($userB, 'SYP'));
@@ -168,6 +199,7 @@ final class WalletFeatureTest extends TestCase
 
     public function test_can_get_transaction_history(): void
     {
+        $this->ensureUser('01AR12345678901234567800');
         $dto = new CreateWalletDto(userId: '01AR12345678901234567800', currency: 'SYP');
         $wallet = $this->service->create($dto);
 
@@ -181,6 +213,7 @@ final class WalletFeatureTest extends TestCase
 
     public function test_wallet_balance_includes_all_operations(): void
     {
+        $this->ensureUser('01AR12345678901234567801');
         $dto = new CreateWalletDto(userId: '01AR12345678901234567801', currency: 'SYP');
         $wallet = $this->service->create($dto);
 
@@ -193,6 +226,7 @@ final class WalletFeatureTest extends TestCase
 
     public function test_can_create_usd_wallet(): void
     {
+        $this->ensureUser('01AR12345678901234567802');
         $dto = new CreateWalletDto(
             userId: '01AR12345678901234567802',
             currency: 'USD',
@@ -207,6 +241,7 @@ final class WalletFeatureTest extends TestCase
     public function test_user_can_have_multi_currency_wallets(): void
     {
         $userId = '01AR12345678901234567803';
+        $this->ensureUser($userId);
 
         $syp = $this->service->create(new CreateWalletDto($userId, 'SYP'));
         $usd = $this->service->create(new CreateWalletDto($userId, 'USD'));

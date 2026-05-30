@@ -19,17 +19,19 @@ class LedgerAccount extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = [
-        'id', 'code', 'name', 'name_ar', 'type', 'category',
-        'currency', 'balance', 'balance_usd',
-        'owner_type', 'owner_id', 'is_active', 'is_system',
-        'description', 'module',
+        'id', 'code', 'account_number', 'name', 'name_ar', 'type', 'category',
+        'currency', 'balance', 'available_balance', 'balance_usd',
+        'owner_type', 'owner_id', 'parent_id', 'metadata',
+        'is_active', 'is_system', 'description', 'module',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'is_system' => 'boolean',
         'balance' => 'integer',
+        'available_balance' => 'integer',
         'balance_usd' => 'integer',
+        'metadata' => 'array',
     ];
 
     public function journalLines(): HasMany

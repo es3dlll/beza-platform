@@ -26,8 +26,8 @@ class LoginRequest extends FormRequest
                 'string',
                 'size:6',
             ],
-            'device_id' => 'sometimes|string|max:255',
-            'device_name' => 'sometimes|string|max:255',
+            'device_id' => 'sometimes|nullable|string|max:255',
+            'device_name' => 'sometimes|nullable|string|max:255',
             'device_type' => 'sometimes|string|in:mobile,tablet,web,pos',
             'fcm_token' => 'sometimes|string|max:500',
         ];

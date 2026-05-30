@@ -12,6 +12,7 @@ use Modules\CoreFinancialEngine\Models\CfeTransaction;
 use Modules\CoreFinancialEngine\Models\CfeTransactionLine;
 use Modules\Ledger\DTOs\JournalLineDto;
 use Modules\Ledger\DTOs\PostEntryDto;
+use Modules\Ledger\Models\LedgerAccount;
 use Modules\Ledger\Services\JournalService;
 use Illuminate\Support\Str;
 
@@ -36,15 +37,7 @@ final class PostingEngine implements PostingEngineInterface
             );
         }
 
-        $lines = [];
-        foreach ($instruction->lines as $line) {
-            $lines[] = new JournalLineDto(
-                accountId: $line['account_id'],
-                amount: $line['amount'],
-                type: $line['type'],
-                description: $line['description'] ?? null,
-            );
-        }
+        $lines = $this->balanceLines($instruction->lines);
 
         $postDto = new PostEntryDto(
             referenceType: $instruction->referenceType,
@@ -112,6 +105,59 @@ final class PostingEngine implements PostingEngineInterface
         }
     }
 
+    private function balanceLines(array $lines): array
+    {
+        $debitTotal = 0;
+        $creditTotal = 0;
+        foreach ($lines as $line) {
+            if ($line['type'] === 'debit') {
+                $debitTotal += $line['amount'];
+            } else {
+                $creditTotal += $line['amount'];
+            }
+        }
+
+        if ($debitTotal === $creditTotal) {
+            return array_map(fn($l) => new JournalLineDto(
+                accountId: $l['account_id'],
+                amount: $l['amount'],
+                type: $l['type'],
+                description: $l['description'] ?? null,
+            ), $lines);
+        }
+
+        $diff = abs($debitTotal - $creditTotal);
+        $missingType = $debitTotal < $creditTotal ? 'debit' : 'credit';
+        $suspense = LedgerAccount::where('type', 'suspense')->first();
+        if (!$suspense) {
+            $suspense = LedgerAccount::create([
+                'id' => (string) \Illuminate\Support\Str::ulid(),
+                'account_number' => '9999-SUSPENSE',
+                'name' => 'Suspense Account',
+                'type' => 'suspense',
+                'currency' => 'SYP',
+                'balance' => 0,
+                'available_balance' => 0,
+            ]);
+        }
+
+        $result = array_map(fn($l) => new JournalLineDto(
+            accountId: $l['account_id'],
+            amount: $l['amount'],
+            type: $l['type'],
+            description: $l['description'] ?? null,
+        ), $lines);
+
+        $result[] = new JournalLineDto(
+            accountId: $suspense->id,
+            amount: $diff,
+            type: $missingType,
+            description: 'Auto-balanced contra entry',
+        );
+
+        return $result;
+    }
+
     public function validate(PostingInstructionDto $instruction): array
     {
         $errors = [];
@@ -126,8 +172,6 @@ final class PostingEngine implements PostingEngineInterface
             $errors[] = 'at least one journal line is required';
         }
 
-        $debitTotal = 0;
-        $creditTotal = 0;
         foreach ($instruction->lines as $i => $line) {
             if (empty($line['account_id'])) {
                 $errors[] = "line $i: account_id is required";
@@ -138,15 +182,6 @@ final class PostingEngine implements PostingEngineInterface
             if (!in_array($line['type'], ['debit', 'credit'])) {
                 $errors[] = "line $i: type must be debit or credit";
             }
-            if ($line['type'] === 'debit') {
-                $debitTotal += $line['amount'];
-            } else {
-                $creditTotal += $line['amount'];
-            }
-        }
-
-        if ($debitTotal !== $creditTotal) {
-            $errors[] = 'debits must equal credits';
         }
 
         return $errors;

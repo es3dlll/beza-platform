@@ -22,14 +22,17 @@ class JournalEntry extends Model
 
     protected $fillable = [
         'id', 'reference_type', 'reference_id', 'description', 'description_ar',
-        'entry_date', 'currency', 'total_debit', 'total_credit',
-        'status', 'reversal_of', 'created_by', 'approved_by',
+        'entry_date', 'currency', 'total_debit', 'total_credit', 'total_amount',
+        'status', 'reversal_of', 'created_by', 'approved_by', 'metadata',
     ];
 
     protected $casts = [
         'entry_date' => 'date',
         'total_debit' => 'integer',
         'total_credit' => 'integer',
+        'total_amount' => 'integer',
+        'posted_at' => 'datetime',
+        'metadata' => 'array',
     ];
 
     public function lines(): HasMany

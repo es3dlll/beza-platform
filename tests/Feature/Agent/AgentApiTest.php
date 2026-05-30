@@ -20,13 +20,14 @@ final class AgentApiTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = User::factory()->create([
+        $this->user = User::factory()->verified()->withPin('123456')->create([
             'phone' => '963900000010',
             'status' => 'active',
         ]);
 
         $response = $this->postJson('/api/v1/auth/login', [
             'phone' => '963900000010',
+            'pin' => '123456',
         ]);
 
         $this->token = $response->json('data.token') ?? 'test-token';

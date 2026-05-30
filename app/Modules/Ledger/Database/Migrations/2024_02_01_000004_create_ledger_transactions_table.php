@@ -33,7 +33,7 @@ return new class extends Migration
                 ->on('journal_entries')
                 ->nullOnDelete();
 
-            $table->index(['transactionable_type', 'transactionable_id']);
+            $table->index(['transactionable_type', 'transactionable_id'], 'ledger_txn_type_id_idx');
             $table->index('type');
             $table->index('status');
         });

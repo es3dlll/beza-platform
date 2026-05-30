@@ -21,8 +21,9 @@ final class TrialBalanceService
 
         foreach ($accounts as $account) {
             $balance = $account->balance;
-            $debit = $balance > 0 ? $balance : 0;
-            $credit = $balance < 0 ? abs($balance) : 0;
+            $isDebitNormal = in_array($account->type, ['asset', 'expense']);
+            $debit = $isDebitNormal ? max($balance, 0) : 0;
+            $credit = $isDebitNormal ? 0 : max($balance, 0);
 
             $totalDebit += $debit;
             $totalCredit += $credit;

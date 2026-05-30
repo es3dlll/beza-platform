@@ -24,6 +24,7 @@ final class CfeTransactionLine extends Model
         'amount' => 'integer',
     ];
 
+    public $timestamps = false;
     public $incrementing = false;
     protected $keyType = 'string';
 

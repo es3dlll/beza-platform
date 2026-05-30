@@ -12,5 +12,7 @@ Route::prefix('v1/identity')->group(function () {
     Route::middleware('auth:api')->group(function () {
         Route::get('/profile', [IdentityController::class, 'profile']);
         Route::put('/profile', [IdentityController::class, 'updateProfile']);
+        Route::post('/send-phone-verification-otp', [IdentityController::class, 'sendPhoneVerificationOtp']);
+        Route::post('/verify-phone-otp', [IdentityController::class, 'verifyPhoneOtp']);
     });
 });

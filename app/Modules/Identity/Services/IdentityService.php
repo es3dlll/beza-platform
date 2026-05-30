@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Modules\Identity\Services;
 
+use Illuminate\Support\Facades\Hash;
 use Modules\Identity\DTOs\CreatePinDto;
 use Modules\Identity\DTOs\RegisterUserDto;
 use Modules\Identity\DTOs\VerifyOtpDto;
 use Modules\Identity\Events\DeviceBound;
 use Modules\Identity\Events\UserRegistered;
+use Modules\Identity\Exceptions\EmailAlreadyRegisteredException;
 use Modules\Identity\Exceptions\PhoneAlreadyRegisteredException;
 use Modules\Identity\Models\Device;
 use Modules\Identity\Models\User;
@@ -39,6 +41,27 @@ class IdentityService
             $this->otpService->generateAndSend($dto->phone, OtpService::PURPOSE_REGISTER);
 
             return $existing;
+        }
+
+        if ($dto->email !== null) {
+            $emailExists = $this->users->findByEmail($dto->email);
+            if ($emailExists !== null) {
+                throw new EmailAlreadyRegisteredException(
+                    __('identity::messages.email_already_registered')
+                );
+            }
+        }
+
+        if ($dto->password !== null) {
+            $dto = new RegisterUserDto(
+                phone: $dto->phone,
+                phoneCountryCode: $dto->phoneCountryCode,
+                locale: $dto->locale,
+                firstName: $dto->firstName,
+                lastName: $dto->lastName,
+                email: $dto->email,
+                password: Hash::make($dto->password),
+            );
         }
 
         $user = $this->users->create($dto);
@@ -96,5 +119,33 @@ class IdentityService
             'verified' => $user?->isPhoneVerified() ?? false,
             'has_pin' => $user?->pin_hash !== null ?? false,
         ];
+    }
+
+    public function sendPhoneVerificationOtp(string $userId): void
+    {
+        $user = $this->users->findById($userId);
+
+        if ($user === null) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException();
+        }
+
+        $this->otpService->generate($user->phone, OtpService::PURPOSE_PHONE_VERIFY, $userId);
+    }
+
+    public function verifyPhoneOtp(string $userId, string $code): bool
+    {
+        $user = $this->users->findById($userId);
+
+        if ($user === null) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException();
+        }
+
+        $verified = $this->otpService->verify($user->phone, $code, OtpService::PURPOSE_PHONE_VERIFY);
+
+        if ($verified) {
+            $this->users->markPhoneVerified($userId);
+        }
+
+        return $verified;
     }
 }

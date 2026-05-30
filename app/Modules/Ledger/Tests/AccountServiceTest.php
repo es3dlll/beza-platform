@@ -6,11 +6,14 @@ namespace Modules\Ledger\Tests;
 use Modules\Ledger\DTOs\CreateAccountDto;
 use Modules\Ledger\Exceptions\AccountAlreadyExistsException;
 use Modules\Ledger\Models\LedgerAccount;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Ledger\Services\AccountService;
 use Tests\TestCase;
 
 final class AccountServiceTest extends TestCase
 {
+    use RefreshDatabase;
+
     private AccountService $service;
 
     protected function setUp(): void

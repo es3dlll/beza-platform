@@ -16,6 +16,9 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'first_name' => 'sometimes|string|max:50',
+            'last_name' => 'sometimes|string|max:50',
+            'email' => 'sometimes|email|unique:users,email',
             'phone' => [
                 'required',
                 'string',
@@ -23,6 +26,7 @@ class RegisterRequest extends FormRequest
             ],
             'phone_country_code' => 'sometimes|string|size:3',
             'locale' => 'sometimes|string|in:ar,en',
+            'password' => 'sometimes|string|min:8|confirmed',
         ];
     }
 

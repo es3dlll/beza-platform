@@ -14,12 +14,20 @@ use Modules\Wallet\Http\Requests\WithdrawRequest;
 use Modules\Wallet\Http\Requests\TransferRequest;
 use Modules\Wallet\Services\WalletService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 final class WalletController
 {
     public function __construct(
         private readonly WalletService $wallets,
     ) {}
+
+    public function index(Request $request): JsonResponse
+    {
+        $userId = $request->user()->id;
+        $userWallets = \Modules\Wallet\Models\Wallet::where('user_id', $userId)->get();
+        return response()->json(['data' => $userWallets]);
+    }
 
     public function create(CreateWalletRequest $request): JsonResponse
     {

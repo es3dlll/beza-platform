@@ -1,1 +1,3 @@
-        1 file(s) copied.
+<?php
+
+declare(strict_types=1);

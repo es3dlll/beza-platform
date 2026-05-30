@@ -26,12 +26,21 @@ class UserRepository
         return User::where('phone', $phone)->firstOrFail();
     }
 
+    public function findByEmail(string $email): ?User
+    {
+        return User::where('email', $email)->first();
+    }
+
     public function create(RegisterUserDto $dto): User
     {
         return User::create([
             'id' => (string) Str::ulid(),
             'phone' => $dto->phone,
             'phone_country_code' => $dto->phoneCountryCode,
+            'first_name' => $dto->firstName,
+            'last_name' => $dto->lastName,
+            'email' => $dto->email,
+            'password' => $dto->password,
             'locale' => $dto->locale,
             'status' => 'pending',
             'kyc_tier' => 0,

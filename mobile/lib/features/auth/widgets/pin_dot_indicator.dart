@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_theme.dart';
 
 class PinDotIndicator extends StatelessWidget {
   final int totalDots;
   final int filledDots;
-  final double dotSize;
-  final Color fillColor;
-  final Color emptyColor;
+  final bool hasError;
 
   const PinDotIndicator({
     super.key,
     this.totalDots = 6,
     this.filledDots = 0,
-    this.dotSize = 16,
-    this.fillColor = const Color(0xFF2E7D32),
-    this.emptyColor = const Color(0xFFE0E0E0),
+    this.hasError = false,
   });
 
   @override
@@ -24,16 +21,32 @@ class PinDotIndicator extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(totalDots, (index) {
           final isFilled = index < filledDots;
-          return Container(
-            width: dotSize,
-            height: dotSize,
-            margin: EdgeInsets.symmetric(horizontal: dotSize * 0.4),
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            margin: const EdgeInsets.symmetric(horizontal: 6),
+            width: isFilled ? 14 : 12,
+            height: isFilled ? 14 : 12,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isFilled ? fillColor : emptyColor,
-              border: isFilled
-                  ? null
-                  : Border.all(color: const Color(0xFFBDBDBD), width: 1.5),
+              color: hasError
+                  ? AppTheme.error
+                  : isFilled
+                      ? AppTheme.primary
+                      : AppTheme.inputBorder,
+              border: hasError
+                  ? Border.all(color: AppTheme.error, width: 1.5)
+                  : !isFilled
+                      ? Border.all(color: AppTheme.divider, width: 2)
+                      : null,
+              boxShadow: isFilled
+                  ? [
+                      BoxShadow(
+                        color: AppTheme.primary.withValues(alpha: 0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
             ),
           );
         }),

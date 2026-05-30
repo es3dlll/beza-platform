@@ -43,7 +43,7 @@ final class ReversalTest extends TestCase
     public function test_can_check_reversibility(): void
     {
         $this->postJson('/api/v1/cfe/transactions', [
-            'reference_type' => 'transfer',
+            'reference_type' => 'transaction',
             'reference_id' => 'rev-txn-001',
             'description' => 'To be reversed',
             'lines' => [
@@ -61,7 +61,7 @@ final class ReversalTest extends TestCase
     public function test_can_reverse_transaction(): void
     {
         $this->postJson('/api/v1/cfe/transactions', [
-            'reference_type' => 'transfer',
+            'reference_type' => 'transaction',
             'reference_id' => 'rev-txn-002',
             'description' => 'Will be reversed',
             'lines' => [

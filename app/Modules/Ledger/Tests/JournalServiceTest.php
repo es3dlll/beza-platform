@@ -9,10 +9,13 @@ use Modules\Ledger\DTOs\PostEntryDto;
 use Modules\Ledger\Exceptions\DoubleEntryViolationException;
 use Modules\Ledger\Services\AccountService;
 use Modules\Ledger\Services\JournalService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 final class JournalServiceTest extends TestCase
 {
+    use RefreshDatabase;
+
     private JournalService $journal;
     private AccountService $accounts;
     private string $assetId;

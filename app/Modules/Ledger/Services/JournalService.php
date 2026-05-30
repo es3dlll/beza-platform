@@ -41,6 +41,7 @@ final class JournalService
         $entry->reference_id = $dto->referenceId;
         $entry->description = $dto->description;
         $entry->total_amount = $debitTotal;
+        $entry->entry_date = now();
         $entry->posted_at = $dto->postedAt ?? now();
         $entry->metadata = [];
 

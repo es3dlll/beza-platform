@@ -31,7 +31,7 @@ class AuthorizationTest extends TestCase
         parent::setUp();
 
         $testPermission = Permission::create([
-            'name' => 'test.access',
+            'name' => 'admin.access',
             'module' => 'Test',
             'description' => 'Test access',
         ]);

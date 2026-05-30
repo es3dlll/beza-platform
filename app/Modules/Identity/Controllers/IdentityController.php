@@ -9,7 +9,9 @@ use Illuminate\Routing\Controller;
 use Modules\Identity\DTOs\RegisterUserDto;
 use Modules\Identity\Http\Requests\CheckPhoneRequest;
 use Modules\Identity\Http\Requests\RegisterUserRequest;
+use Modules\Identity\Http\Requests\SendPhoneVerificationOtpRequest;
 use Modules\Identity\Http\Requests\UpdateProfileRequest;
+use Modules\Identity\Http\Requests\VerifyPhoneOtpRequest;
 use Modules\Identity\Services\IdentityService;
 
 class IdentityController extends Controller
@@ -61,6 +63,45 @@ class IdentityController extends Controller
             'success' => true,
             'data' => [
                 'user' => $user->toArray(),
+            ],
+        ]);
+    }
+
+    public function sendPhoneVerificationOtp(SendPhoneVerificationOtpRequest $request): JsonResponse
+    {
+        $this->identityService->sendPhoneVerificationOtp(auth()->id());
+
+        return response()->json([
+            'success' => true,
+            'meta' => [
+                'message' => __('identity::messages.otp_sent'),
+            ],
+        ]);
+    }
+
+    public function verifyPhoneOtp(VerifyPhoneOtpRequest $request): JsonResponse
+    {
+        $verified = $this->identityService->verifyPhoneOtp(
+            auth()->id(),
+            $request->input('code'),
+        );
+
+        if (! $verified) {
+            return response()->json([
+                'success' => false,
+                'meta' => [
+                    'message' => __('identity::messages.invalid_or_expired_otp'),
+                ],
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'phone_verified' => true,
+            ],
+            'meta' => [
+                'message' => __('identity::messages.phone_verified'),
             ],
         ]);
     }

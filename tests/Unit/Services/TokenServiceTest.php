@@ -39,7 +39,7 @@ class TokenServiceTest extends TestCase
 
     public function test_generates_refresh_token(): void
     {
-        $refreshToken = $this->tokenService->generateRefreshToken();
+        $refreshToken = $this->tokenService->generateRefreshToken($this->user);
 
         $this->assertIsString($refreshToken);
         $this->assertNotEmpty($refreshToken);

@@ -6,9 +6,9 @@ namespace Modules\Auth\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
-use Modules\Auth\DTOs\RegisterRequestDto;
 use Modules\Auth\Http\Requests\RegisterRequest;
 use Modules\Auth\Services\AuthService;
+use Modules\Identity\DTOs\RegisterUserDto;
 
 class RegisterController extends Controller
 {
@@ -18,25 +18,31 @@ class RegisterController extends Controller
 
     public function register(RegisterRequest $request): JsonResponse
     {
-        $dto = new RegisterRequestDto(
+        $dto = new RegisterUserDto(
             phone: $request->input('phone'),
             phoneCountryCode: $request->input('phone_country_code', '963'),
             locale: $request->input('locale', 'ar'),
+            firstName: $request->input('first_name'),
+            lastName: $request->input('last_name'),
+            email: $request->input('email'),
+            password: $request->input('password'),
         );
 
-        $user = $this->authService->register($dto);
+        $result = $this->authService->register($dto);
 
         return response()->json([
             'success' => true,
             'data' => [
                 'user' => [
-                    'id' => $user->id,
-                    'phone' => $user->phone,
-                    'status' => $user->status,
+                    'id' => $result['user']->id,
+                    'first_name' => $result['user']->first_name ?? '',
+                    'last_name' => $result['user']->last_name ?? '',
+                    'email' => $result['user']->email ?? '',
+                    'phone' => $result['user']->phone,
+                    'status' => $result['user']->status,
                 ],
-            ],
-            'meta' => [
-                'message' => __('identity::messages.otp_sent'),
+                'token' => $result['token'],
+                'token_type' => 'Bearer',
             ],
         ], 201);
     }

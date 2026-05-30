@@ -1,11 +1,10 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/theme/app_theme.dart';
 import '../widgets/pin_dot_indicator.dart';
-import '../widgets/auth_button.dart';
 import '../providers/auth_provider.dart';
-
-enum PinCreateStep { create, confirm, mismatch, success }
 
 class PinCreateScreen extends ConsumerStatefulWidget {
   const PinCreateScreen({super.key});
@@ -14,282 +13,182 @@ class PinCreateScreen extends ConsumerStatefulWidget {
   ConsumerState<PinCreateScreen> createState() => _PinCreateScreenState();
 }
 
-class _PinCreateScreenState extends ConsumerState<PinCreateScreen>
-    with SingleTickerProviderStateMixin {
-  PinCreateStep _step = PinCreateStep.create;
-  String _firstPin = '';
-  String _confirmPin = '';
-  String? _error;
-  bool _isShaking = false;
-  late AnimationController _shakeController;
-  late Animation<double> _shakeAnimation;
+class _PinCreateScreenState extends ConsumerState<PinCreateScreen> {
+  final List<int> _pin = [];
+  static const int _pinLength = 6;
+  bool _isConfirming = false;
+  final List<int> _firstPin = [];
+  bool _hasError = false;
 
-  final List<int> _shuffledKeys = [];
+  void _onDigitPressed(int digit) {
+    if (_pin.length >= _pinLength) return;
+    HapticFeedback.selectionClick();
+    if (_hasError) setState(() => _hasError = false);
+    setState(() => _pin.add(digit));
 
-  @override
-  void initState() {
-    super.initState();
-    _shakeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
+    if (_pin.length == _pinLength) {
+      if (!_isConfirming) {
+        Future.delayed(const Duration(milliseconds: 200), () {
+          if (!mounted) return;
+          _firstPin.addAll(_pin);
+          _pin.clear();
+          setState(() => _isConfirming = true);
+        });
+      } else {
+        if (_pin.join() == _firstPin.join()) {
+          final pin = _pin.join();
+          ref.read(authProvider.notifier).createPin(pin, pin);
+        } else {
+          HapticFeedback.heavyImpact();
+          setState(() {
+            _hasError = true;
+            _isConfirming = false;
+            _pin.clear();
+            _firstPin.clear();
+          });
+          _showError('الرقم السري غير متطابق. حاول مرة أخرى');
+        }
+      }
+    }
+  }
+
+  void _onDeletePressed() {
+    if (_pin.isNotEmpty) {
+      HapticFeedback.selectionClick();
+      setState(() => _pin.removeLast());
+    }
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Text(message),
+          ],
+        ),
+        backgroundColor: AppTheme.error,
+        duration: const Duration(seconds: 2),
+      ),
     );
-    _shakeAnimation = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 0, end: 15), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: 15, end: -15), weight: 2),
-      TweenSequenceItem(tween: Tween(begin: -15, end: 12), weight: 2),
-      TweenSequenceItem(tween: Tween(begin: 12, end: -12), weight: 2),
-      TweenSequenceItem(tween: Tween(begin: -12, end: 8), weight: 2),
-      TweenSequenceItem(tween: Tween(begin: 8, end: -8), weight: 2),
-      TweenSequenceItem(tween: Tween(begin: -8, end: 4), weight: 2),
-      TweenSequenceItem(tween: Tween(begin: 4, end: 0), weight: 1),
-    ]).animate(_shakeController);
-    _shuffleKeys();
-  }
-
-  void _shuffleKeys() {
-    _shuffledKeys.clear();
-    for (int i = 0; i < 10; i++) _shuffledKeys.add(i);
-    _shuffledKeys.shuffle(Random());
-  }
-
-  @override
-  void dispose() {
-    _shakeController.dispose();
-    super.dispose();
-  }
-
-  bool _isPinValid(String pin) {
-    if (pin.length != 6) return false;
-    if (pin == '000000') return false;
-    if (RegExp(r'^(\d)\1{5}$').hasMatch(pin)) return false;
-    bool sequential = true;
-    for (int i = 1; i < 6; i++) {
-      if (int.parse(pin[i]) != int.parse(pin[i - 1]) + 1) {
-        sequential = false;
-        break;
-      }
-    }
-    if (sequential) return false;
-    sequential = true;
-    for (int i = 1; i < 6; i++) {
-      if (int.parse(pin[i]) != int.parse(pin[i - 1]) - 1) {
-        sequential = false;
-        break;
-      }
-    }
-    return !sequential;
-  }
-
-  void _onKeyPressed(int digit) {
-    if (_step == PinCreateStep.success) return;
-
-    setState(() => _error = null);
-
-    if (_step == PinCreateStep.create) {
-      if (_firstPin.length < 6) {
-        _firstPin += digit.toString();
-        if (_firstPin.length == 6) {
-          if (!_isPinValid(_firstPin)) {
-            setState(() {
-              _error = 'الرقم ضعيف. تجنب الأرقام المتكررة أو المتسلسلة';
-              _isShaking = true;
-            });
-            _shakeController.forward(from: 0);
-            Future.delayed(const Duration(milliseconds: 600), () {
-              if (mounted) setState(() => _isShaking = false);
-            });
-            _firstPin = '';
-            return;
-          }
-          setState(() => _step = PinCreateStep.confirm);
-        }
-      }
-    } else if (_step == PinCreateStep.confirm) {
-      if (_confirmPin.length < 6) {
-        _confirmPin += digit.toString();
-        if (_confirmPin.length == 6) {
-          if (_firstPin != _confirmPin) {
-            setState(() {
-              _error = 'الرمز غير متطابق';
-              _step = PinCreateStep.mismatch;
-              _isShaking = true;
-            });
-            _shakeController.forward(from: 0);
-            Future.delayed(const Duration(milliseconds: 600), () {
-              if (mounted) setState(() => _isShaking = false);
-            });
-            Future.delayed(const Duration(milliseconds: 1200), () {
-              if (mounted) {
-                setState(() {
-                  _step = PinCreateStep.create;
-                  _firstPin = '';
-                  _confirmPin = '';
-                });
-              }
-            });
-          } else {
-            _submitPin();
-          }
-        }
-      }
-    }
-  }
-
-  void _onDelete() {
-    if (_step == PinCreateStep.create && _firstPin.isNotEmpty) {
-      setState(() => _firstPin = _firstPin.substring(0, _firstPin.length - 1));
-    } else if (_step == PinCreateStep.confirm && _confirmPin.isNotEmpty) {
-      setState(
-          () => _confirmPin = _confirmPin.substring(0, _confirmPin.length - 1));
-    }
-  }
-
-  void _submitPin() {
-    ref.read(authProvider.notifier).createPin(_firstPin);
-
-    setState(() => _step = PinCreateStep.success);
-
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (mounted) {
-        ref.read(authProvider.notifier).setBiometricEnabled(false);
-        Navigator.of(context).pushReplacementNamed('/biometric');
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
 
+    ref.listen<AuthState>(authProvider, (prev, next) {
+      if (next.currentStep == AuthStep.biometric && prev?.currentStep != AuthStep.biometric) {
+        context.pushReplacement('/biometric');
+      } else if (next.isAuthenticated && next.currentStep == AuthStep.home) {
+        context.go('/');
+      }
+    });
+
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF212121)),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
       body: SafeArea(
         child: Column(
           children: [
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+            const SizedBox(height: 16),
+            Padding(
+              padding: AppTheme.screenPadding,
+              child: Row(
                 children: [
-                  if (_step == PinCreateStep.success)
-                    _buildSuccessView()
-                  else ...[
-                    Icon(
-                      _step == PinCreateStep.create
-                          ? Icons.lock_outline
-                          : Icons.lock,
-                      size: 40,
-                      color: const Color(0xFF2E7D32),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_rounded),
+                    onPressed: () => context.pop(),
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppTheme.surfaceVariant,
+                      shape: RoundedRectangleBorder(borderRadius: AppTheme.radiusMd),
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      _step == PinCreateStep.create
-                          ? 'أنشئ رمز PIN'
-                          : 'أعد إدخال PIN للتأكيد',
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF212121),
-                        fontFamily: 'NotoNaskhArabic',
-                      ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    'الخطوة ${_isConfirming ? "2" : "1"} من 2',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppTheme.textSecondary,
+                      fontWeight: FontWeight.w500,
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'أدخل 6 أرقام',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[500],
-                        fontFamily: 'NotoNaskhArabic',
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    AnimatedBuilder(
-                      animation: _shakeAnimation,
-                      builder: (context, child) {
-                        return Transform.translate(
-                          offset: Offset(_isShaking ? _shakeAnimation.value : 0, 0),
-                          child: child,
-                        );
-                      },
-                      child: PinDotIndicator(
-                        filledDots: _step == PinCreateStep.create
-                            ? _firstPin.length
-                            : _confirmPin.length,
-                      ),
-                    ),
-                    if (_error != null) ...[
-                      const SizedBox(height: 16),
-                      Text(
-                        _error!,
-                        style: const TextStyle(
-                          color: Colors.red,
-                          fontSize: 14,
-                          fontFamily: 'NotoNaskhArabic',
-                        ),
-                      ),
-                    ],
-                  ],
+                  ),
                 ],
               ),
             ),
-            _buildKeypad(),
-            const SizedBox(height: 16),
+            const Spacer(flex: 1),
+            Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withValues(alpha: 0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.lock_outline_rounded,
+                    size: 36,
+                    color: AppTheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  _isConfirming ? 'أعد إدخال الرقم السري' : 'إنشاء الرقم السري',
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _isConfirming
+                      ? 'أعد إدخال الرقم السري للتأكيد'
+                      : 'اختر 6 أرقام لحماية حسابك',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 48),
+            PinDotIndicator(
+              totalDots: _pinLength,
+              filledDots: _pin.length,
+              hasError: _hasError,
+            ),
+            if (authState.isLoading) ...[
+              const SizedBox(height: 32),
+              const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2.5),
+              ),
+            ],
+            const Spacer(flex: 2),
+            _Numpad(
+              onDigitPressed: _onDigitPressed,
+              onDeletePressed: _onDeletePressed,
+            ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildSuccessView() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: const Color(0xFF2E7D32).withValues(alpha: 0.1),
-          ),
-          child: const Icon(
-            Icons.check_circle,
-            size: 60,
-            color: Color(0xFF2E7D32),
-          ),
-        ),
-        const SizedBox(height: 24),
-        const Text(
-          'تم إنشاء الرمز بنجاح!',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF212121),
-            fontFamily: 'NotoNaskhArabic',
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'يجري الآن نقلك إلى الخطوة التالية...',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[500],
-            fontFamily: 'NotoNaskhArabic',
-          ),
-        ),
-      ],
-    );
-  }
+class _Numpad extends StatelessWidget {
+  final ValueChanged<int> onDigitPressed;
+  final VoidCallback onDeletePressed;
 
-  Widget _buildKeypad() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+  const _Numpad({required this.onDigitPressed, required this.onDeletePressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
       child: Column(
         children: [
           for (int row = 0; row < 3; row++)
@@ -298,8 +197,11 @@ class _PinCreateScreenState extends ConsumerState<PinCreateScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: List.generate(3, (col) {
-                  final digit = _shuffledKeys[row * 3 + col];
-                  return _buildKeyButton(digit);
+                  final digit = row * 3 + col + 1;
+                  return _NumpadButton(
+                    label: '$digit',
+                    onPressed: () => onDigitPressed(digit),
+                  );
                 }),
               ),
             ),
@@ -308,9 +210,16 @@ class _PinCreateScreenState extends ConsumerState<PinCreateScreen>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                const SizedBox(width: 72),
-                _buildKeyButton(_shuffledKeys[9]),
-                _buildDeleteButton(),
+                const SizedBox(width: 76),
+                _NumpadButton(
+                  label: '0',
+                  onPressed: () => onDigitPressed(0),
+                ),
+                _NumpadButton(
+                  label: '⌫',
+                  isDelete: true,
+                  onPressed: onDeletePressed,
+                ),
               ],
             ),
           ),
@@ -318,48 +227,67 @@ class _PinCreateScreenState extends ConsumerState<PinCreateScreen>
       ),
     );
   }
+}
 
-  Widget _buildKeyButton(int digit) {
+class _NumpadButton extends StatefulWidget {
+  final String label;
+  final VoidCallback onPressed;
+  final bool isDelete;
+
+  const _NumpadButton({
+    required this.label,
+    required this.onPressed,
+    this.isDelete = false,
+  });
+
+  @override
+  State<_NumpadButton> createState() => _NumpadButtonState();
+}
+
+class _NumpadButtonState extends State<_NumpadButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => _onKeyPressed(digit),
-      child: Container(
-        width: 72,
-        height: 72,
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) {
+        setState(() => _isPressed = false);
+        widget.onPressed();
+      },
+      onTapCancel: () => setState(() => _isPressed = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 100),
+        width: 76,
+        height: 76,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: const Color(0xFFF5F5F5),
+          color: _isPressed
+              ? AppTheme.primary.withValues(alpha: 0.15)
+              : AppTheme.surfaceVariant,
+          boxShadow: _isPressed
+              ? []
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
         ),
         child: Center(
           child: Text(
-            digit.toString(),
-            style: const TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF212121),
+            widget.label,
+            style: TextStyle(
+              fontSize: widget.isDelete ? 24 : 28,
+              fontWeight: widget.isDelete ? FontWeight.w300 : FontWeight.w500,
+              color: widget.isDelete
+                  ? AppTheme.textSecondary
+                  : AppTheme.textPrimary,
             ),
           ),
         ),
       ),
     );
   }
-
-  Widget _buildDeleteButton() {
-    return GestureDetector(
-      onTap: _onDelete,
-      child: Container(
-        width: 72,
-        height: 72,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: Color(0xFFF5F5F5),
-        ),
-        child: const Center(
-          child: Icon(Icons.backspace_outlined,
-              size: 24, color: Color(0xFF757575)),
-        ),
-      ),
-    );
-  }
 }
-
-

@@ -19,7 +19,8 @@ class LedgerHold extends Model
 
     protected $fillable = [
         'id', 'account_id', 'transaction_id', 'amount', 'currency',
-        'reason', 'expires_at', 'status', 'released_at',
+        'reason', 'reference_type', 'reference_id', 'expires_at',
+        'status', 'released_at', 'release_reason',
     ];
 
     protected $casts = [

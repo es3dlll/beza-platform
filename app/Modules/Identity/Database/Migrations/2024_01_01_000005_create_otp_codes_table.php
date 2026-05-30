@@ -15,7 +15,7 @@ return new class extends Migration
             $table->ulid('user_id')->nullable();
             $table->string('phone', 15);
             $table->string('purpose', 30);
-            $table->string('code', 255);
+            $table->string('code', 255)->nullable();
             $table->unsignedTinyInteger('attempts')->default(0);
             $table->timestamp('expires_at');
             $table->timestamp('verified_at')->nullable();

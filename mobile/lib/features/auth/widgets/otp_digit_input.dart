@@ -1,61 +1,62 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_theme.dart';
 
 class OtpDigitInput extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
-  final bool autoFocus;
-  final void Function(String)? onChanged;
+  final ValueChanged<String> onChanged;
 
   const OtpDigitInput({
     super.key,
     required this.controller,
     required this.focusNode,
-    this.autoFocus = false,
-    this.onChanged,
+    required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 48,
-      height: 60,
+      height: 56,
       child: TextField(
         controller: controller,
         focusNode: focusNode,
-        autofocus: autoFocus,
-        textAlign: TextAlign.center,
+        onChanged: (value) {
+          if (value.length > 1) {
+            controller.text = value.substring(value.length - 1);
+            controller.selection = TextSelection.fromPosition(
+              TextPosition(offset: controller.text.length),
+            );
+          }
+          onChanged(value);
+        },
         keyboardType: TextInputType.number,
+        textAlign: TextAlign.center,
         maxLength: 1,
         style: const TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          fontFamily: 'NotoNaskhArabic',
-          color: Color(0xFF1B5E20),
+          fontSize: 22,
+          fontWeight: FontWeight.w600,
+          color: AppTheme.textPrimary,
+          letterSpacing: 0,
         ),
         decoration: InputDecoration(
           counterText: '',
           filled: true,
-          fillColor: const Color(0xFFF5F5F5),
+          fillColor: AppTheme.surface,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: Color(0xFF2E7D32),
-              width: 2,
-            ),
+            borderSide: const BorderSide(color: AppTheme.inputBorder),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(
-              color: const Color(0xFFBDBDBD).withValues(alpha: 0.5),
-              width: 1,
-            ),
+            borderSide: const BorderSide(color: AppTheme.inputBorder),
           ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppTheme.primary, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 14),
         ),
-        onChanged: onChanged,
       ),
     );
   }

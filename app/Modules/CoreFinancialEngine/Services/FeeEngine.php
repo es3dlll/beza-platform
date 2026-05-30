@@ -12,6 +12,7 @@ use Modules\CoreFinancialEngine\Exceptions\FeeCalculationException;
 use Modules\CoreFinancialEngine\Models\FeeRule;
 use Modules\Ledger\DTOs\JournalLineDto;
 use Modules\Ledger\DTOs\PostEntryDto;
+use Modules\Ledger\Models\LedgerAccount;
 use Modules\Ledger\Services\JournalService;
 
 final class FeeEngine implements FeeEngineInterface
@@ -19,6 +20,12 @@ final class FeeEngine implements FeeEngineInterface
     public function __construct(
         private readonly JournalService $journal,
     ) {}
+
+    private function resolveFeeAccountId(string $accountNumber): string
+    {
+        $account = LedgerAccount::where('account_number', $accountNumber)->first();
+        return $account ? $account->id : $accountNumber;
+    }
 
     public function calculate(FeeAssessmentDto $dto): FeeResultDto
     {
@@ -35,7 +42,7 @@ final class FeeEngine implements FeeEngineInterface
                 applied: false,
                 feeAmount: 0,
                 currency: $dto->currency,
-                feeAccountId: $rule->fee_account_number,
+                feeAccountId: $this->resolveFeeAccountId($rule->fee_account_number),
                 feeRule: $dto->feeType,
             );
         }
@@ -54,7 +61,7 @@ final class FeeEngine implements FeeEngineInterface
             applied: false,
             feeAmount: $feeAmount,
             currency: $dto->currency,
-            feeAccountId: $rule->fee_account_number,
+            feeAccountId: $this->resolveFeeAccountId($rule->fee_account_number),
             feeRule: $dto->feeType,
         );
     }

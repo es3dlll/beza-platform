@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Auth\Services;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Modules\Auth\DTOs\LoginDto;
 use Modules\Auth\DTOs\LogoutDto;
@@ -37,9 +38,16 @@ class AuthService
         private PinService $pinService,
     ) {}
 
-    public function register(RegisterUserDto $dto): User
+    public function register(RegisterUserDto $dto): array
     {
-        return $this->identityService->register($dto);
+        $user = $this->identityService->register($dto);
+
+        $token = $this->tokenService->generateToken($user);
+
+        return [
+            'user' => $user,
+            'token' => $token,
+        ];
     }
 
     public function verifyOtp(string $phone, string $code, string $purpose): User
@@ -58,7 +66,7 @@ class AuthService
     public function createPin(string $userId, string $pin): void
     {
         if (! $this->pinService->validatePinFormat($pin)) {
-            throw new \InvalidArgumentException(__('identity::messages.pin_invalid_format'));
+            throw new \Symfony\Component\HttpKernel\Exception\HttpException(422, __('identity::messages.pin_invalid_format'));
         }
 
         $dto = new CreatePinDto(userId: $userId, pin: $pin);
@@ -74,6 +82,12 @@ class AuthService
         if ($user->isLocked()) {
             throw new \Modules\Auth\Exceptions\AccountLockedException(
                 __('identity::messages.account_locked')
+            );
+        }
+
+        if (! $user->isPhoneVerified()) {
+            throw new \Modules\Auth\Exceptions\AuthenticationException(
+                __('identity::messages.account_pending')
             );
         }
 
@@ -96,7 +110,9 @@ class AuthService
         $token = $this->tokenService->generateToken($user);
         $refreshToken = $this->tokenService->generateRefreshToken();
 
-        $session = $this->createSession($user, $refreshToken, $dto);
+        $session = $this->createSession($user, $refreshToken, $token, $dto);
+
+        $this->enforceMaxSessions($user);
 
         if ($dto->deviceId !== null) {
             $this->identityService->bindDevice(
@@ -123,9 +139,73 @@ class AuthService
         ];
     }
 
-    public function logout(LogoutDto $dto): void
+    public function loginWithPassword(LoginDto $dto): array
     {
-        $session = Session::find($dto->sessionId);
+        $user = $this->users->findByPhoneOrFail($dto->phone);
+
+        if ($user->isLocked()) {
+            throw new \Modules\Auth\Exceptions\AccountLockedException(
+                __('identity::messages.account_locked')
+            );
+        }
+
+        if (! $user->isPhoneVerified()) {
+            throw new \Modules\Auth\Exceptions\AuthenticationException(
+                __('identity::messages.account_pending')
+            );
+        }
+
+        if (! Hash::check($dto->pin, $user->password)) {
+            $user->incrementFailedAttempts();
+
+            throw new \Modules\Auth\Exceptions\AuthenticationException(
+                __('identity::messages.password_incorrect')
+            );
+        }
+
+        $user->resetFailedAttempts();
+
+        $token = $this->tokenService->generateToken($user);
+        $refreshToken = $this->tokenService->generateRefreshToken();
+
+        $session = $this->createSession($user, $refreshToken, $token, $dto);
+
+        $this->enforceMaxSessions($user);
+
+        if ($dto->deviceId !== null) {
+            $this->identityService->bindDevice(
+                $user->id,
+                $dto->deviceId,
+                [
+                    'device_name' => $dto->deviceName ?? 'Unknown',
+                    'device_type' => $dto->deviceType ?? 'mobile',
+                    'fcm_token' => $dto->fcmToken,
+                    'ip_address' => request()->ip(),
+                ]
+            );
+        }
+
+        $this->users->updateLastLogin($user->id);
+
+        UserLoggedIn::dispatch($user->id, $session->id, now());
+
+        return [
+            'user' => $user->fresh(),
+            'token' => $token,
+            'refresh_token' => $refreshToken,
+            'expires_in' => $this->tokenService->getTokenTTL() * 60,
+        ];
+    }
+
+    public function logout(LogoutDto $dto, ?string $bearerToken = null): void
+    {
+        $session = null;
+
+        if ($dto->sessionId !== '') {
+            $session = Session::find($dto->sessionId);
+        } elseif ($bearerToken !== null) {
+            $session = Session::where('token_hash', hash('sha256', $bearerToken))->first();
+        }
 
         if ($session !== null && $session->user_id === $dto->userId) {
             $session->invalidate();
@@ -188,10 +268,21 @@ class AuthService
         return $session->user;
     }
 
-    private function createSession(User $user, string $refreshToken, LoginDto $dto): Session
+    private function enforceMaxSessions(User $user, int $maxSessions = 2): void
     {
-        $token = $this->tokenService->generateToken($user);
+        $activeSessions = Session::where('user_id', $user->id)
+            ->where('expires_at', '>', now())
+            ->orderBy('created_at')
+            ->get();
 
+        while ($activeSessions->count() > $maxSessions) {
+            $oldest = $activeSessions->shift();
+            $oldest->invalidate();
+        }
+    }
+
+    private function createSession(User $user, string $refreshToken, string $token, LoginDto $dto): Session
+    {
         return Session::create([
             'user_id' => $user->id,
             'token_hash' => hash('sha256', $token),

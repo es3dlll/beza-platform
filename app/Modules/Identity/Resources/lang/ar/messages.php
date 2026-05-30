@@ -12,6 +12,7 @@ return [
     'pin_created' => 'تم إنشاء الرمز السري بنجاح',
     'pin_invalid_format' => 'الرمز السري يجب أن يتكون من 6 أرقام',
     'pin_incorrect' => 'الرمز السري غير صحيح',
+    'password_incorrect' => 'كلمة المرور غير صحيحة',
     'pin_changed' => 'تم تغيير الرمز السري بنجاح',
     'login_success' => 'تم تسجيل الدخول بنجاح',
     'logout_success' => 'تم تسجيل الخروج بنجاح',

@@ -12,11 +12,14 @@ return new class extends Migration
         Schema::create('ledger_holds', function (Blueprint $table) {
             $table->ulid('id')->primary();
             $table->ulid('account_id');
-            $table->ulid('transaction_id');
+            $table->string('reference_type', 50)->nullable();
+            $table->string('reference_id', 100)->nullable();
+            $table->ulid('transaction_id')->nullable();
             $table->bigInteger('amount');
             $table->string('currency', 3)->default('SYP');
             $table->string('reason', 200)->nullable();
-            $table->timestamp('expires_at');
+            $table->timestamp('expires_at')->nullable();
+            $table->string('release_reason', 200)->nullable();
             $table->enum('status', ['active', 'released', 'expired', 'captured'])->default('active');
             $table->timestamp('released_at')->nullable();
             $table->timestamps();

@@ -6,6 +6,7 @@ namespace Tests\Feature\Wallet;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Modules\Identity\Models\User;
 use Modules\Wallet\DTOs\CreateWalletDto;
 use Modules\Wallet\DTOs\DepositDto;
 use Modules\Wallet\DTOs\WithdrawDto;
@@ -23,6 +24,15 @@ final class ConcurrencyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        User::create([
+            'id' => '01ARconcurrencyTestUser001',
+            'phone' => '963900000001',
+            'status' => 'active',
+            'pin_hash' => bcrypt('123456'),
+            'phone_verified_at' => now(),
+        ]);
+
         $this->service = $this->app->make(WalletService::class);
 
         $dto = new CreateWalletDto(
@@ -36,6 +46,8 @@ final class ConcurrencyTest extends TestCase
             amount: 10000000,
             referenceId: 'concurrency-initial-deposit',
         ));
+
+        $this->wallet = $this->wallet->fresh();
     }
 
     public function test_sequential_withdrawals_maintain_balance(): void
@@ -102,7 +114,7 @@ final class ConcurrencyTest extends TestCase
             });
         }
 
-        $successCount = count(array_filter($results, fn($r) => $r === true));
+        $successCount = count(array_filter($results, fn($r) => $r === 'success'));
         $walletAfter = Wallet::find($this->wallet->id);
 
         $this->assertEquals($successCount * $amount, $initialBalance - $walletAfter->balance);

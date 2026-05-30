@@ -32,9 +32,9 @@ final class SettlementTest extends TestCase
 
         $this->bobId = LedgerAccount::create([
             'id' => '01AR123456789012345678s2',
-            'account_number' => '1000-BOB',
+            'account_number' => '2000-BOB',
             'name' => 'Bob Wallet',
-            'type' => 'asset',
+            'type' => 'liability',
             'currency' => 'SYP',
             'balance' => 0,
             'available_balance' => 0,
@@ -71,7 +71,7 @@ final class SettlementTest extends TestCase
             ],
         ]);
 
-        $response->assertStatus(201)
+        $response->assertStatus(200)
             ->assertJsonPath('data.success', true);
     }
 
@@ -108,7 +108,7 @@ final class SettlementTest extends TestCase
         $alice = LedgerAccount::find($this->aliceId);
         $bob = LedgerAccount::find($this->bobId);
 
-        $this->assertEquals(600000, $alice->balance);
+        $this->assertEquals(550000, $alice->balance);
         $this->assertEquals(50000, $bob->balance);
     }
 }

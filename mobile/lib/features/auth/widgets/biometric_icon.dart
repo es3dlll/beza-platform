@@ -1,36 +1,41 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_theme.dart';
 
 class BiometricIcon extends StatelessWidget {
   final double size;
   final Color color;
-  final BiometricType type;
 
   const BiometricIcon({
     super.key,
-    this.size = 48,
-    this.color = const Color(0xFF2E7D32),
-    this.type = BiometricType.fingerprint,
+    this.size = 64,
+    this.color = AppTheme.primary,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: size,
-      height: size,
+      width: size * 1.5,
+      height: size * 1.5,
       decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            color.withValues(alpha: 0.1),
+            color.withValues(alpha: 0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         shape: BoxShape.circle,
-        color: color.withValues(alpha: 0.1),
-        border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
+        border: Border.all(
+          color: color.withValues(alpha: 0.15),
+          width: 2,
+        ),
       ),
       child: Icon(
-        type == BiometricType.fingerprint
-            ? Icons.fingerprint
-            : Icons.face,
+        Icons.fingerprint,
+        size: size,
         color: color,
-        size: size * 0.55,
       ),
     );
   }
 }
-
-enum BiometricType { fingerprint, face }

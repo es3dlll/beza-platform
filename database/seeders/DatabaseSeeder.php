@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             LedgerSeeder::class,
             FeeRuleSeeder::class,
             WalletLimitSeeder::class,
+            DemoDataSeeder::class,
         ]);
     }
 }

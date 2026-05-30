@@ -27,6 +27,7 @@ use Modules\Wallet\Exceptions\DailyLimitExceededException;
 use Modules\Wallet\Exceptions\KycTierTooLowException;
 use Modules\Wallet\Models\Wallet;
 use Modules\Wallet\Models\WalletTransaction;
+use Modules\Ledger\Models\LedgerAccount;
 use Modules\Wallet\Repositories\WalletRepository;
 use Illuminate\Support\Str;
 
@@ -60,6 +61,20 @@ final class WalletService implements WalletServiceInterface
 
         $this->wallets->save($wallet);
 
+        $ledgerAccount = LedgerAccount::create([
+            'id' => $wallet->id,
+            'account_number' => 'WALLET-' . substr($wallet->id, -12),
+            'name' => "Wallet {$wallet->id}",
+            'type' => 'liability',
+            'currency' => $dto->currency,
+            'balance' => 0,
+            'available_balance' => 0,
+            'module' => 'wallet',
+        ]);
+
+        $wallet->ledger_account_id = $ledgerAccount->id;
+        $wallet->save();
+
         event(new WalletCreated(
             walletId: $wallet->id,
             userId: $dto->userId,
@@ -74,13 +89,15 @@ final class WalletService implements WalletServiceInterface
         $wallet = $this->findOrFail($dto->walletId);
         $this->assertNotDuplicate($dto->referenceType, $dto->referenceId);
 
+        $ledgerAccountId = $this->ensureLedgerAccount($wallet);
+
         $instruction = new PostingInstructionDto(
             referenceType: $dto->referenceType,
             referenceId: $dto->referenceId ?: Str::ulid()->toBase32(),
             description: $dto->description ?: 'Wallet deposit',
             lines: [
                 [
-                    'account_id' => $wallet->ledger_account_id ?? $wallet->id,
+                    'account_id' => $ledgerAccountId,
                     'amount' => $dto->amount,
                     'type' => 'credit',
                     'description' => "Deposit to wallet {$wallet->id}",
@@ -130,8 +147,10 @@ final class WalletService implements WalletServiceInterface
         $this->assertNotDuplicate('withdrawal', $dto->referenceId ?: 'no-ref');
         $this->validateOperation($wallet, $dto->amount);
 
+        $ledgerAccountId = $this->ensureLedgerAccount($wallet);
+
         $holdDto = new HoldInstructionDto(
-            accountId: $wallet->ledger_account_id ?? $wallet->id,
+            accountId: $ledgerAccountId,
             amount: $dto->amount,
             currency: $dto->currency,
             reason: "Withdrawal hold: {$dto->referenceId}",
@@ -149,7 +168,7 @@ final class WalletService implements WalletServiceInterface
         if ($dto->applyFee) {
             $feeDto = new FeeAssessmentDto(
                 feeType: 'cash_withdrawal',
-                accountId: $wallet->ledger_account_id ?? $wallet->id,
+                accountId: $ledgerAccountId,
                 transactionAmount: $dto->amount,
                 currency: $dto->currency,
                 referenceType: 'withdrawal',
@@ -163,7 +182,7 @@ final class WalletService implements WalletServiceInterface
 
         $lines = [
             [
-                'account_id' => $wallet->ledger_account_id ?? $wallet->id,
+                'account_id' => $ledgerAccountId,
                 'amount' => $dto->amount + $totalFee,
                 'type' => 'debit',
                 'description' => "Withdrawal from wallet {$wallet->id}",
@@ -229,8 +248,11 @@ final class WalletService implements WalletServiceInterface
         $referenceId = $dto->referenceId ?: Str::ulid()->toBase32();
         $this->assertNotDuplicate('transfer', $referenceId);
 
+        $fromLedgerId = $this->ensureLedgerAccount($from);
+        $toLedgerId = $this->ensureLedgerAccount($to);
+
         $holdDto = new HoldInstructionDto(
-            accountId: $from->ledger_account_id ?? $from->id,
+            accountId: $fromLedgerId,
             amount: $dto->amount,
             currency: $dto->currency,
             reason: "Transfer hold: $referenceId",
@@ -248,7 +270,7 @@ final class WalletService implements WalletServiceInterface
         if ($dto->applyFee) {
             $feeDto = new FeeAssessmentDto(
                 feeType: 'wallet_to_wallet',
-                accountId: $from->ledger_account_id ?? $from->id,
+                accountId: $fromLedgerId,
                 transactionAmount: $dto->amount,
                 currency: $dto->currency,
                 referenceType: 'transfer',
@@ -262,13 +284,13 @@ final class WalletService implements WalletServiceInterface
 
         $lines = [
             [
-                'account_id' => $from->ledger_account_id ?? $from->id,
+                'account_id' => $fromLedgerId,
                 'amount' => $dto->amount + $totalFee,
                 'type' => 'debit',
                 'description' => "Transfer out to wallet {$to->id}",
             ],
             [
-                'account_id' => $to->ledger_account_id ?? $to->id,
+                'account_id' => $toLedgerId,
                 'amount' => $dto->amount,
                 'type' => 'credit',
                 'description' => "Transfer in from wallet {$from->id}",
@@ -397,6 +419,32 @@ final class WalletService implements WalletServiceInterface
         if ($existing) {
             throw new \RuntimeException("Duplicate transaction: $referenceType/$referenceId");
         }
+    }
+
+    private function ensureLedgerAccount(Wallet $wallet): string
+    {
+        if ($wallet->ledger_account_id !== null) {
+            return $wallet->ledger_account_id;
+        }
+
+        $account = LedgerAccount::find($wallet->id);
+        if (!$account) {
+            $account = LedgerAccount::create([
+                'id' => $wallet->id,
+                'account_number' => 'WALLET-' . substr($wallet->id, -12),
+                'name' => "Wallet {$wallet->id}",
+                'type' => 'liability',
+                'currency' => $wallet->currency,
+                'balance' => $wallet->balance,
+                'available_balance' => $wallet->available_balance,
+                'module' => 'wallet',
+            ]);
+        }
+
+        $wallet->ledger_account_id = $account->id;
+        $wallet->save();
+
+        return $account->id;
     }
 
     private function recordTransaction(Wallet $wallet, array $data): WalletTransaction

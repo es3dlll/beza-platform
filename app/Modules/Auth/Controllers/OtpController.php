@@ -45,7 +45,17 @@ class OtpController extends Controller
             purpose: $request->input('purpose'),
         );
 
-        $user = $this->authService->verifyOtp($dto->phone, $dto->code, $dto->purpose);
+        try {
+            $user = $this->authService->verifyOtp($dto->phone, $dto->code, $dto->purpose);
+        } catch (\Modules\Identity\Exceptions\OtpExpiredException $e) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'AUTH_INVALID_OTP',
+                    'message' => $e->getMessage(),
+                ],
+            ], 422);
+        }
 
         return response()->json([
             'success' => true,

@@ -23,10 +23,13 @@ final class WalletApiTest extends TestCase
         $this->user = User::factory()->create([
             'phone' => '963900000001',
             'status' => 'active',
+            'pin_hash' => bcrypt('123456'),
+            'phone_verified_at' => now(),
         ]);
 
         $response = $this->postJson('/api/v1/auth/login', [
             'phone' => '963900000001',
+            'pin' => '123456',
         ]);
 
         $this->token = $response->json('data.token') ?? 'test-token';
@@ -156,7 +159,7 @@ final class WalletApiTest extends TestCase
     public function test_can_transfer_via_api(): void
     {
         $fromWallet = Wallet::create([
-            'id' => '01ARwalletTestTransferFrom1',
+            'id' => '01ARwalletTestTransferFrm1',
             'user_id' => $this->user->id,
             'currency' => 'SYP',
             'balance' => 100000,
@@ -164,9 +167,9 @@ final class WalletApiTest extends TestCase
             'daily_reset_at' => now()->endOfDay(),
         ]);
 
-        $toUser = User::factory()->create(['phone' => '963900000002', 'status' => 'active']);
+        $toUser = User::factory()->create(['phone' => '963900000002', 'status' => 'active', 'phone_verified_at' => now()]);
         $toWallet = Wallet::create([
-            'id' => '01ARwalletTestTransferTo001',
+            'id' => '01ARwalletTestTransferTo01',
             'user_id' => $toUser->id,
             'currency' => 'SYP',
             'balance' => 0,

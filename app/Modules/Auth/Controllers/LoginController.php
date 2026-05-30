@@ -9,6 +9,7 @@ use Illuminate\Routing\Controller;
 use Modules\Auth\DTOs\LoginDto;
 use Modules\Auth\DTOs\LogoutDto;
 use Modules\Auth\Http\Requests\LoginRequest;
+use Modules\Auth\Http\Requests\LoginWithPasswordRequest;
 use Modules\Auth\Http\Requests\LogoutRequest;
 use Modules\Auth\Http\Requests\RefreshTokenRequest;
 use Modules\Auth\Services\AuthService;
@@ -49,6 +50,34 @@ class LoginController extends Controller
         ]);
     }
 
+    public function loginWithPassword(LoginWithPasswordRequest $request): JsonResponse
+    {
+        $dto = new LoginDto(
+            phone: $request->input('phone'),
+            pin: $request->input('password'),
+            deviceId: $request->input('device_id'),
+            deviceName: $request->input('device_name'),
+            deviceType: $request->input('device_type', 'mobile'),
+            fcmToken: $request->input('fcm_token'),
+        );
+
+        $result = $this->authService->loginWithPassword($dto);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'user' => $result['user']->toArray(),
+                'token' => $result['token'],
+                'refresh_token' => $result['refresh_token'],
+                'token_type' => 'Bearer',
+                'expires_in' => $result['expires_in'],
+            ],
+            'meta' => [
+                'message' => __('identity::messages.login_success'),
+            ],
+        ]);
+    }
+
     public function logout(LogoutRequest $request): JsonResponse
     {
         $user = auth()->user();
@@ -60,7 +89,7 @@ class LoginController extends Controller
                 sessionId: $sessionId,
             );
 
-            $this->authService->logout($dto);
+            $this->authService->logout($dto, $request->bearerToken());
 
             try {
                 $this->tokenService->invalidateToken(

@@ -1,38 +1,17 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_theme.dart';
 
-class PhoneNumberInput extends StatefulWidget {
+class PhoneNumberInput extends StatelessWidget {
   final TextEditingController controller;
-  final void Function(String)? onChanged;
   final String? errorText;
+  final void Function(String)? onChanged;
 
   const PhoneNumberInput({
     super.key,
     required this.controller,
-    this.onChanged,
     this.errorText,
+    this.onChanged,
   });
-
-  @override
-  State<PhoneNumberInput> createState() => _PhoneNumberInputState();
-}
-
-class _PhoneNumberInputState extends State<PhoneNumberInput> {
-  String _selectedCode = '+963';
-  final List<String> _countryCodes = [
-    '+963',
-    '+966',
-    '+971',
-    '+974',
-    '+965',
-    '+962',
-    '+961',
-    '+970',
-    '+90',
-    '+44',
-    '+1',
-    '+49',
-    '+33',
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -41,109 +20,90 @@ class _PhoneNumberInputState extends State<PhoneNumberInput> {
       children: [
         Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            color: AppTheme.surface,
+            borderRadius: AppTheme.radiusMd,
             border: Border.all(
-              color: widget.errorText != null
-                  ? Colors.red
-                  : const Color(0xFFE0E0E0),
-              width: 1.5,
+              color: errorText != null ? AppTheme.error : AppTheme.inputBorder,
+              width: errorText != null ? 1.5 : 1,
             ),
-            color: const Color(0xFFF9F9F9),
+            boxShadow: AppTheme.shadowMd,
           ),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: DropdownButton<String>(
-                  value: _selectedCode,
-                  underline: const SizedBox(),
-                  icon: const Icon(
-                    Icons.arrow_drop_down,
-                    color: Color(0xFF2E7D32),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                decoration: BoxDecoration(
+                  border: Border(
+                    left: BorderSide(color: AppTheme.divider), // RTL
                   ),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF212121),
-                    fontFamily: 'NotoNaskhArabic',
-                  ),
-                  items: _countryCodes.map((code) {
-                    return DropdownMenuItem(
-                      value: code,
-                      child: Text(code),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _selectedCode = value);
-                      widget.onChanged?.call(_selectedCode + widget.controller.text);
-                    }
-                  },
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.flag, size: 18, color: AppTheme.primary),
+                    const SizedBox(width: 6),
+                    const Text(
+                      '963+',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(Icons.keyboard_arrow_down, size: 18, color: AppTheme.textTertiary),
+                  ],
                 ),
               ),
-              Container(
-                width: 1,
-                height: 30,
-                color: const Color(0xFFE0E0E0),
-              ),
-              const SizedBox(width: 8),
               Expanded(
-                child: TextField(
-                  controller: widget.controller,
+                  child: TextField(
+                  controller: controller,
                   keyboardType: TextInputType.phone,
-                  maxLength: 15,
                   textDirection: TextDirection.ltr,
+                  onChanged: onChanged,
                   textAlign: TextAlign.left,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w500,
-                    letterSpacing: 1.2,
-                    color: Color(0xFF212121),
+                    color: AppTheme.textPrimary,
+                    letterSpacing: 1,
                   ),
                   decoration: InputDecoration(
-                    counterText: '',
                     border: InputBorder.none,
-                    hintText: '09XXXXXXXX',
+                    hintText: '9XXXXXXXX',
                     hintStyle: TextStyle(
-                      color: const Color(0xFFBDBDBD),
-                      fontFamily: 'NotoNaskhArabic',
+                      color: AppTheme.textTertiary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w400,
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 18,
-                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                   ),
-                  onChanged: (value) {
-                    if (value.length <= 15) {
-                      widget.onChanged?.call(_selectedCode + value);
-                    }
-                  },
                 ),
               ),
             ],
           ),
         ),
-        if (widget.errorText != null)
+        if (errorText != null) ...[
+          const SizedBox(height: 8),
           Padding(
-            padding: const EdgeInsets.only(top: 8, right: 4),
+            padding: const EdgeInsets.only(right: 4),
             child: Row(
               children: [
-                const Icon(Icons.error_outline, size: 16, color: Colors.red),
+                const Icon(Icons.error_outline, size: 14, color: AppTheme.error),
                 const SizedBox(width: 6),
                 Text(
-                  widget.errorText!,
+                  errorText!,
                   style: const TextStyle(
-                    color: Colors.red,
-                    fontSize: 13,
-                    fontFamily: 'NotoNaskhArabic',
+                    fontSize: 12,
+                    color: AppTheme.error,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
             ),
           ),
+        ],
       ],
     );
   }
-
-  String get fullPhone => _selectedCode + widget.controller.text;
 }

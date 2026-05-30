@@ -37,8 +37,8 @@ class TokenService
     {
         return Session::create([
             'user_id' => $user->id,
-            'token_hash' => Hash::make($data['token'] ?? ''),
-            'refresh_token_hash' => Hash::make($data['refresh_token'] ?? ''),
+            'token_hash' => hash('sha256', $data['token'] ?? ''),
+            'refresh_token_hash' => hash('sha256', $data['refresh_token'] ?? ''),
             'device_id' => $data['device_id'] ?? null,
             'ip_address' => $data['ip_address'] ?? request()->ip(),
             'user_agent' => $data['user_agent'] ?? request()->userAgent(),
@@ -74,5 +74,16 @@ class TokenService
     public function invalidateAllUserSessions(string $userId): void
     {
         Session::where('user_id', $userId)->delete();
+    }
+
+    public function validateToken(string $token): ?User
+    {
+        try {
+            $payload = auth('api')->setToken($token)->getPayload();
+            $sub = $payload->get('sub');
+            return $sub ? User::find($sub) : null;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 }

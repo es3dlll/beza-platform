@@ -2,7 +2,7 @@
 
 > Complete error taxonomy for ALL Beza platform APIs. Every service, mobile app client, and third-party integration MUST handle every error code listed here. Unknown/unlisted error codes MUST be treated as `SYS_INTERNAL_ERROR`.
 
-**Owner:** API Governance Committee | **Version:** 2.0 | **Last updated:** Platform launch
+**Owner:** API Governance Committee | **Version:** 2.0 | **Last updated:** 2026-05-30 (Sprints 15–19 added)
 
 **See also:** [Error Catalog (numeric codes)](../shared/error-catalog/01-error-catalog.md) — the legacy numeric catalog. This document is the canonical descriptive-code catalog.
 
@@ -279,6 +279,70 @@ Every API error returns this exact JSON structure. The `details` object is domai
 | `FRAUD_DEVICE_BLOCKED` | 403 | Device is blacklisted due to previous fraud activity | الجهاز في القائمة السوداء بسبب نشاط احتيال سابق | Contact support to appeal the device block | اتصل بالدعم للاعتراض على حظر الجهاز | Known fraud device ID attempting transaction |
 | `FRAUD_IP_BLOCKED` | 403 | IP address is associated with fraudulent activity | عنوان IP مرتبط بنشاط احتيال | Use a different network or contact support | استخدم شبكة مختلفة أو اتصل بالدعم | IP in known fraud/abuse database |
 | `FRAUD_RAPID_SUCCESSIVE_TXNS` | 409 | Multiple rapid transactions detected; rate-limited as precaution | تم اكتشاف معاملات سريعة متتالية؛ تم تقييد السرعة كإجراء احترازي | Slow down transaction frequency and try again | قلل من تكرار المعاملات وحاول مرة أخرى | > 5 transactions within 60 seconds on same wallet |
+
+---
+
+## Payroll (PAYROLL_*)
+
+| Code | HTTP | Message | Message (AR) | Resolution | Resolution (AR) | When |
+|------|------|---------|-------------|------------|-----------------|------|
+| `PAYROLL_EMPLOYER_NOT_FOUND` | 404 | Employer not found | صاحب العمل غير موجود | Verify employer ID | تحقق من معرف صاحب العمل | Invalid employer reference |
+| `PAYROLL_BATCH_NOT_FOUND` | 404 | Payroll batch not found | دفعة الرواتب غير موجودة | Verify batch ID | تحقق من معرف الدفعة | Invalid batch reference |
+| `PAYROLL_BATCH_ALREADY_PROCESSED` | 409 | Batch has already been processed | تمت معالجة الدفعة مسبقاً | Cannot modify a processed batch | لا يمكن تعديل دفعة تمت معالجتها | Duplicate process attempt |
+| `PAYROLL_INSUFFICIENT_FUNDS` | 422 | Employer float insufficient for payroll | رصيد صاحب العمل غير كافٍ للرواتب | Deposit funds to the employer wallet | قم بإيداع الأموال في محفظة صاحب العمل | Balance < total batch amount |
+| `PAYROLL_CSV_INVALID` | 422 | CSV file format is invalid | تنسيق ملف CSV غير صالح | Check CSV headers and row format | تحقق من رؤوس CSV وتنسيق الصفوف | Missing or malformed CSV columns |
+| `PAYROLL_DISBURSEMENT_FAILED` | 500 | Individual disbursement within batch failed | فشل صرف فردي ضمن الدفعة | Check employee wallet and retry | تحقق من محفظة الموظف وأعد المحاولة | Wallet service error during disbursement |
+
+---
+
+## Loyalty & Rewards (LOYALTY_*)
+
+| Code | HTTP | Message | Message (AR) | Resolution | Resolution (AR) | When |
+|------|------|---------|-------------|------------|-----------------|------|
+| `LOYALTY_INSUFFICIENT_POINTS` | 422 | Insufficient loyalty points balance | رصيد نقاط ولاء غير كافٍ | Earn more points or choose a lower-tier reward | اربح المزيد من النقاط أو اختر مكافأة بمستوى أقل | Redeem amount > available points |
+| `LOYALTY_TIER_NOT_FOUND` | 404 | Loyalty tier not found | مستوى الولاء غير موجود | Invalid tier reference | مرجع مستوى غير صالح | Tier configuration missing |
+| `LOYALTY_REWARD_OUT_OF_STOCK` | 409 | Reward item is out of stock | المكافأة غير متوفرة في المخزون | Choose a different reward or wait for restock | اختر مكافأة مختلفة أو انتظر إعادة التزويد | Reward stock depleted |
+
+---
+
+## Government Collections (GOV_*)
+
+| Code | HTTP | Message | Message (AR) | Resolution | Resolution (AR) | When |
+|------|------|---------|-------------|------------|-----------------|------|
+| `GOV_PROVIDER_NOT_FOUND` | 404 | Government service provider not found | مزود الخدمة الحكومية غير موجود | Verify provider ID | تحقق من معرف المزود | Invalid provider reference |
+| `GOV_INQUIRY_EXPIRED` | 422 | Payment inquiry has expired | انتهت صلاحية استعلام الدفع | Create a new inquiry | قم بإنشاء استعلام جديد | Inquiry TTL exceeded (30 min) |
+| `GOV_PAYMENT_FAILED` | 500 | Government payment processing failed | فشلت معالجة الدفع الحكومي | Retry or contact support | أعد المحاولة أو اتصل بالدعم | CBS/gateway error during processing |
+
+---
+
+## Education (EDU_*)
+
+| Code | HTTP | Message | Message (AR) | Resolution | Resolution (AR) | When |
+|------|------|---------|-------------|------------|-----------------|------|
+| `EDU_INSTITUTION_NOT_FOUND` | 404 | Educational institution not found | المؤسسة التعليمية غير موجودة | Verify institution ID | تحقق من معرف المؤسسة | Invalid institution reference |
+| `EDU_STUDENT_NOT_FOUND` | 404 | Student record not found | سجل الطالب غير موجود | Verify student ID or register the student | تحقق من معرف الطالب أو سجله | Unregistered student |
+| `EDU_FEE_ALREADY_PAID` | 409 | Fee has already been fully paid | الرسوم مدفوعة بالكامل مسبقاً | No action needed | لا حاجة لإجراء | Duplicate payment attempt |
+
+---
+
+## Humanitarian Aid (HUM_*)
+
+| Code | HTTP | Message | Message (AR) | Resolution | Resolution (AR) | When |
+|------|------|---------|-------------|------------|-----------------|------|
+| `HUM_ORGANIZATION_NOT_FOUND` | 404 | Humanitarian organization not found | المنظمة الإنسانية غير موجودة | Verify organization ID | تحقق من معرف المنظمة | Invalid org reference |
+| `HUM_PROGRAM_NOT_FOUND` | 404 | Humanitarian program not found | البرنامج الإنساني غير موجود | Verify program ID | تحقق من معرف البرنامج | Invalid program reference |
+| `HUM_INSUFFICIENT_BUDGET` | 422 | Program budget is insufficient for disbursement | ميزانية البرنامج غير كافية للصرف | Allocate additional budget to the program | خصص ميزانية إضافية للبرنامج | Requested amount > remaining budget |
+
+---
+
+## Open Finance (OF_*)
+
+| Code | HTTP | Message | Message (AR) | Resolution | Resolution (AR) | When |
+|------|------|---------|-------------|------------|-----------------|------|
+| `OF_APP_NOT_FOUND` | 404 | Third-party app not found | التطبيق الخارجي غير موجود | Verify app/client ID | تحقق من معرف التطبيق | Invalid app reference |
+| `OF_CONSENT_NOT_FOUND` | 404 | User consent not found | موافقة المستخدم غير موجودة | Verify consent ID | تحقق من معرف الموافقة | Invalid or revoked consent |
+| `OF_CONSENT_EXPIRED` | 401 | User consent has expired | انتهت صلاحية موافقة المستخدم | Request new consent from the user | اطلب موافقة جديدة من المستخدم | Consent TTL exceeded |
+| `OF_INVALID_SCOPE` | 400 | Requested scope is not valid or not granted | النطاق المطلوب غير صالح أو غير مصرح به | Request only valid granted scopes | اطلب نطاقات مصرح بها صالحة فقط | Unknown or unapproved scope requested |
 
 ---
 
