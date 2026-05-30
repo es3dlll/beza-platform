@@ -25,6 +25,7 @@
 ## Pipeline
 
 A 4-phase automation script runs tasks from `tasks/` through the full lifecycle.
+
 ```bash
 npm run pipeline          # Full loop over all tasks
 npm run pipeline:phase1   # Planning only
