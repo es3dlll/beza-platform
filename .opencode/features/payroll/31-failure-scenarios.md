@@ -1,304 +1,381 @@
-# 31. Payroll — Failure Scenarios
+# 31. الرواتب — سيناريوهات الفشل (Payroll — Failure Scenarios)
 
-> **Purpose:** Document every failure mode for the Beza Payroll feature — bulk salary disbursement, employer dashboards, employee onboarding, tax deductions, and compliance. Uses real ETB amounts and Arabic/Amharic messaging.
+> **الغرض:** توثيق جميع حالات الفشل المحتملة لميزة الرواتب — صرف الرواتب الجماعي، لوحات تحكم أصحاب العمل، تأهيل الموظفين، استقطاعات الضرائب، والامتثال. يستخدم مبالغ حقيقية بالليرة السورية ورسائل باللغة العربية فقط.
 
 ---
 
-## 1. Network Failures
+## 1. أعطال الشبكة (Network Failures)
 
-### Internet cut during bulk salary disbursement after company debited but before employees credited
-**System Behavior:** The company's wallet is debited for the total payroll of 500,000 ETB. The individual employee credits are marked as `PENDING_BATCH`. The batch is paused mid-execution.
+### انقطاع الإنترنت أثناء صرف الرواتب الجماعي بعد خصم الشركة ولكن قبل إيداع الموظفين
+**System Behavior:** يتم خصم مبلغ من محفظة الشركة لإجمالي الرواتب البالغ 12,000,000 ليرة سورية. يتم وضع علامة على إيداعات الموظفين الفردية كـ `PENDING_BATCH`. تتوقف الدفعة في منتصف التنفيذ.
 
-**User Impact:** The company HR manager sees "تم خصم 500,000 ETB. جاري صرف الرواتب" (500,000 ETB deducted. Processing salaries.) Employees see nothing yet.
+**User Impact:** يرى مدير الموارد البشرية في الشركة "تم خصم 12,000,000 ل.س. جاري صرف الرواتب." لا يرى الموظفون شيئاً بعد.
 
-**Recovery:** The batch processing resumes from the last successful employee credit when the connection is restored. All employees are credited within 5 minutes of recovery. A push notification "تم إيداع راتبك" (Your salary has been deposited) is sent to each employee.
+**Recovery:** يستأنف معالجة الدفعة من آخر إيداع ناجح للموظف عند استعادة الاتصال. يتم إيداع جميع الموظفين في غضون 5 دقائق من الاسترداد. يتم إرسال إشعار دفع "تم إيداع راتبك" لكل موظف.
 
-### API timeout (>5s) during employee list upload (CSV with 1,000 employees)
-**System Behavior:** The upload service processes the CSV file but the connection times out before the confirmation is returned. The service detects the timeout and performs a rollback of the partially processed upload.
+### انتهاء مهلة API (>5 ثوان) أثناء تحميل قائمة الموظفين (CSV مع 1,000 موظف)
+**System Behavior:** تعالج خدمة التحميل ملف CSV ولكن ينتهي مهلة الاتصال قبل إرجاع التأكيد. تكتشف الخدمة انتهاء المهلة وتقوم بالتراجع عن التحميل المعالج جزئياً.
 
-**User Impact:** The HR manager sees "فشل تحميل قائمة الموظفين. حاول مرة أخرى" (Employee list upload failed. Please try again.)
+**User Impact:** يرى مدير الموارد البشرية "فشل تحميل قائمة الموظفين. حاول مرة أخرى."
 
-**Recovery:** The file is rejected entirely to prevent partial processing (atomic operation). The HR manager retries the upload. The system validates the file format before processing.
+**Recovery:** يتم رفض الملف بالكامل لمنع المعالجة الجزئية (عملية ذرية). يعيد مدير الموارد البشرية تحميل الملف. يتحقق النظام من تنسيق الملف قبل المعالجة.
 
-### DNS failure for payroll-api.beza.et
-**System Behavior:** The payroll service is inaccessible because the DNS cannot resolve the API endpoint. All payroll operations — uploading, processing, approving — are blocked.
+### فشل DNS لخدمة الرواتب
+**System Behavior:** خدمة الرواتب غير قابلة للوصول لأن DNS لا يمكنه حل نقطة نهاية API. جميع عمليات الرواتب — التحميل، المعالجة، الموافقة — محظورة.
 
-**User Impact:** The HR dashboard shows "خدمة الرواتب غير متوفرة حالياً" (Payroll service is currently unavailable.)
+**User Impact:** تظهر لوحة تحكم الموارد البشرية "خدمة الرواتب غير متوفرة حالياً."
 
-**Recovery:** Route53 failover to the secondary region is triggered. CloudFront serves a static maintenance page. When DNS resolution is restored, the service resumes automatically.
+**Recovery:** يتم تفعيل التبديل إلى المنطقة الثانوية عبر Route53. يخدم CloudFront صفحة صيانة ثابتة. عند استعادة تحليل DNS، تستأنف الخدمة تلقائياً.
 
-### WebSocket disconnect during real-time payroll status tracking
-**System Behavior:** The dashboard detects the WebSocket disconnection and falls back to REST polling every 10 seconds for batch status updates.
+### انقطاع WebSocket أثناء تتبع حالة الرواتب في الوقت الفعلي
+**System Behavior:** تكتشف لوحة التحكم انقطاع WebSocket وتتحول إلى استقصاء REST كل 10 ثوانٍ لتحديثات حالة الدفعة.
 
-**User Impact:** The HR manager sees "آخر تحديث: منذ 30 ثانية" (Last updated: 30 seconds ago.) on the progress bar instead of real-time updates.
+**User Impact:** يرى مدير الموارد البشرية "آخر تحديث: منذ 30 ثانية." على شريط التقدم بدلاً من التحديثات في الوقت الفعلي.
 
-**Recovery:** The WebSocket reconnects automatically. All missed status events are replayed from the server. The progress bar jumps to the current state.
+**Recovery:** يعيد WebSocket الاتصال تلقائياً. يتم إعادة بث جميع أحداث الحالة الفائتة من الخادم. يقفز شريط التقدم إلى الحالة الحالية.
 
-### SFTP failure for bank file transfer (salary file to CBE/Dashen)
-**System Behavior:** The salary file is generated by Beza but the SFTP transfer to the partner bank fails. The payroll batch is marked as `BANK_FILE_PENDING`.
+### فشل SFTP لنقل ملف الرواتب إلى البنك السوري
+**System Behavior:** يتم إنشاء ملف الرواتب بواسطة المنصة ولكن فشل نقل SFTP إلى البنك الشريك. يتم وضع علامة على دفعة الرواتب كـ `BANK_FILE_PENDING`.
 
-**User Impact:** The company's wallet is debited. Employees are not credited to their bank accounts. The status shows "ملف الرواتب قيد الإرسال إلى البنك" (Salary file pending delivery to bank.)
+**User Impact:** تم خصم مبلغ من محفظة الشركة. لم يتم إيداع الموظفين في حساباتهم المصرفية. تظهر الحالة "ملف الرواتب قيد الإرسال إلى البنك."
 
-**Recovery:** The SFTP transfer is retried every 5 minutes for up to 2 hours. If the transfer continues to fail, the operations team manually uploads the file through the bank's corporate portal.
+**Recovery:** يعاد محاولة نقل SFTP كل 5 دقائق لمدة تصل إلى ساعتين. إذا استمر فشل النقل، يقوم فريق العمليات برفع الملف يدوياً من خلال البوابة الإلكترونية للبنك.
 
-## 2. Transaction Failures
+## 2. أعطال المعاملات (Transaction Failures)
 
-### Insufficient company balance — employer tries to disburse 500,000 ETB but wallet has 450,000 ETB
-**System Behavior:** The pre-validation checks `company_wallet_balance >= total_payroll`. The balance is 50,000 ETB short. The entire payroll is rejected.
+### رصيد شركة غير كافٍ — يحاول صاحب العمل صرف 12,000,000 ليرة سورية ولكن المحفظة بها 10,500,000 ليرة
+**System Behavior:** يتحقق التحقق المسبق من `company_wallet_balance >= total_payroll`. الرصيد أقل بمقدار 1,500,000 ليرة سورية. يتم رفض كشوف الرواتب بالكامل.
 
-**User Impact:** The HR manager sees "رصيد غير كافٍ. الرصيد المتاح: 450,000 ETB. العجز: 50,000 ETB" (Insufficient balance. Available: 450,000 ETB. Shortfall: 50,000 ETB.)
+**User Impact:** يرى مدير الموارد البشرية "رصيد غير كافٍ. الرصيد المتاح: 10,500,000 ل.س. العجز: 1,500,000 ل.س."
 
-**Recovery:** The company must top up their Beza wallet before retrying. Partial disbursement is not supported — it is all-or-nothing to ensure atomicity.
+**Recovery:** يجب على الشركة شحن محفظة المنصة الخاصة بها قبل إعادة المحاولة. الصرف الجزئي غير مدعوم — الكل أو لا شيء لضمان الذرية.
 
-### Partial batch failure — 950 employees credited successfully, 50 failed (invalid account numbers)
-**System Behavior:** The batch processing tracks success and failure per employee. 950 employees are credited. 50 employees fail because their account numbers are invalid. The successful credits are not rolled back.
+### فشل دفعة جزئي — تم إيداع 950 موظفاً بنجاح، فشل 50 موظفاً (أرقام حسابات غير صالحة)
+**System Behavior:** يتتبع معالجة الدفعة النجاح والفشل لكل موظف. تم إيداع 950 موظفاً. فشل 50 موظفاً لأن أرقام حساباتهم غير صالحة. لا يتم التراجع عن الإيداعات الناجحة.
 
-**User Impact:** The company sees "تم صرف رواتب 950 موظف. فشل 50 موظف" (950 employees paid. 50 employees failed.) The 50 employees do not receive their salaries.
+**User Impact:** تظهر الشركة "تم صرف رواتب 950 موظف. فشل 50 موظف." لا يتلقى 50 موظفاً رواتبهم.
 
-**Recovery:** The company corrects the account details for the 50 employees. The failed batch is retried for those employees only. Each affected employee receives a notification "يرجى تحديث معلومات الحساب" (Please update your account information.)
+**Recovery:** تصحح الشركة تفاصيل الحساب للموظفين الخمسين. يعاد محاولة الدفعة الفاشلة لهؤلاء الموظفين فقط. يتلقى كل موظف متأثر إشعاراً "يرجى تحديث معلومات الحساب."
 
-### Duplicate salary run — HR uploads the same payroll file twice
-**System Behavior:** The idempotency key is constructed from `payroll_period + company_id + file_hash`. The second upload returns HTTP 409 Conflict.
+### تشغيل رواتب مكرر — يقوم مدير الموارد البشرية بتحميل نفس ملف الرواتب مرتين
+**System Behavior:** يتم إنشاء مفتاح التكرار من `payroll_period + company_id + file_hash`. يعيد التحميل الثاني HTTP 409 (تعارض).
 
-**User Impact:** The HR manager sees "تمت معالجة كشوف رواتب هذه الفترة مسبقاً" (Payroll for this period has already been processed.)
+**User Impact:** يرى مدير الموارد البشرية "تمت معالجة كشوف رواتب هذه الفترة مسبقاً."
 
-**Recovery:** The second upload is rejected. No double payment occurs. The HR manager can view the existing payroll in the history.
+**Recovery:** يتم رفض التحميل الثاني. لا يحدث دفع مزدوج. يمكن لمدير الموارد البشرية عرض كشوف الرواتب الحالية في السجل.
 
-### Employee account closed between payroll submission and processing
-**System Behavior:** The employee validation step detects that the employee's wallet status is `CLOSED`. The payment for that employee is marked as `PAYMENT_FAILED`.
+### حساب الموظف مغلق بين تقديم الرواتب والمعالجة
+**System Behavior:** تكتشف خطوة التحقق من الموظف أن حالة محفظة الموظف هي `CLOSED`. يتم وضع علامة على الدفع لهذا الموظف كـ `PAYMENT_FAILED`.
 
-**User Impact:** The employee does not receive their salary. The company sees "فشل: حساب موظف #4512 مغلق" (Failed: employee #4512 account is closed.)
+**User Impact:** لا يتلقى الموظف راتبه. تظهر الشركة "فشل: حساب موظف #4512 مغلق."
 
-**Recovery:** The company contacts the employee for new account details. A one-time individual payment is initiated to the new account.
+**Recovery:** تتصل الشركة بالموظف للحصول على تفاصيل حساب جديدة. يتم بدء دفعة فردية لمرة واحدة إلى الحساب الجديد.
 
-### Salary exceeds the single transaction limit (100,000 ETB per employee)
-**System Behavior:** The pre-validation checks each employee's salary against the maximum per-transaction limit. The payroll is rejected with details of which employees exceed the limit.
+### راتب يتجاوز حد المعاملة الواحدة (1,000,000 ليرة سورية لكل موظف)
+**System Behavior:** يتحقق التحقق المسبق من راتب كل موظف مقابل الحد الأقصى لكل معاملة. يتم رفض كشوف الرواتب مع تفاصيل الموظفين الذين تجاوزوا الحد.
 
-**User Impact:** The HR manager sees "راتب الموظف #3201 (120,000 ETB) يتجاوز الحد الأقصى" (Employee #3201's salary of 120,000 ETB exceeds the maximum.)
+**User Impact:** يرى مدير الموارد البشرية "راتب الموظف #3201 (1,500,000 ل.س) يتجاوز الحد الأقصى."
 
-**Recovery:** The company can split the payment into salary (100,000 ETB) plus bonus (20,000 ETB). Alternatively, a limit increase can be requested with compliance approval.
+**Recovery:** يمكن للشركة تقسيم الدفع إلى راتب (1,000,000 ل.س) ومكافأة (500,000 ل.س). بدلاً من ذلك، يمكن طلب زيادة الحد بموافقة الامتثال.
 
-### Tax deduction calculation error — system withholds 50,000 ETB instead of 45,000 ETB
-**System Behavior:** The tax engine applies the wrong tax bracket. The employee is over-withheld by 5,000 ETB.
+### خطأ في حساب استقطاع الضرائب — يستقطع النظام 250,000 ليرة سورية بدلاً من 225,000 ليرة
+**System Behavior:** يطبق محرك الضرائب شريحة ضريبية خاطئة. تم استقطاع مبلغ إضافي قدره 25,000 ليرة سورية من الموظف.
 
-**User Impact:** The employee's net salary is short by 5,000 ETB. The payslip shows "تم خصم ضريبة الدخل: 50,000 ETB" (Income tax deducted: 50,000 ETB.)
+**User Impact:** صافي راتب الموظف أقل بمقدار 25,000 ليرة سورية. يظهر كشف الراتب "تم خصم ضريبة الدخل: 250,000 ل.س."
 
-**Recovery:** The company is notified of the error. The correction is applied in the next payroll cycle. The employee is compensated 5,000 ETB plus a 5% penalty (250 ETB) for the error.
+**Recovery:** يتم إشعار الشركة بالخطأ. يتم تطبيق التصحيح في دورة الرواتب التالية. يتم تعويض الموظف بـ 25,000 ليرة سورية بالإضافة إلى غرامة 5% (1,250 ل.س) للخطأ.
 
-## 3. External Dependency Failures
+### خطأ في حساب اشتراك التأمينات الاجتماعية
+**System Behavior:** يطبق النظام نسبة اشتراك خاطئة للتأمينات الاجتماعية (20% بدلاً من 18%). يتم استقطاع مبلغ إضافي من راتب الموظف.
 
-### CBE (Commercial Bank of Ethiopia) API timeout for direct salary deposits
-**System Behavior:** The real-time API for direct salary deposits into CBE accounts times out. The system switches to SFTP file transfer as a fallback.
+**User Impact:** يرى الموظف استقطاعاً أعلى من المتوقع. "نسبة التأمينات الاجتماعية: 20% — المبلغ المستقطع: 180,000 ل.س."
 
-**User Impact:** Employees with CBE accounts are not credited in real-time. "في انتظار تأكيد البنك" (Awaiting bank confirmation.)
+**Recovery:** يتم اكتشاف الخطأ وتصحيحه في الدورة التالية. يتم رد المبلغ الإضافي المستقطع مع فائدة 2%.
 
-**Recovery:** The SFTP file is sent to CBE. The bank processes the file at the next batch cycle. Employees are credited by the end of the business day.
+## 3. أعطال التبعيات الخارجية (External Dependency Failures)
 
-### SMS provider (InfoBip) unavailable for payslip notifications
-**System Behavior:** The SMS delivery is queued on SQS. A push notification is sent via Firebase Cloud Messaging.
+### انتهاء مهلة API البنك السوري للإيداعات المباشرة للرواتب
+**System Behavior:** تنتهي مهلة API الوقت الفعلي للإيداعات المباشرة للرواتب في الحسابات المصرفية السورية. يتحول النظام إلى نقل ملف SFTP كبديل.
 
-**User Impact:** Employees may not receive the SMS "تم إيداع راتبك" (Your salary has been deposited.) The payslip is available in the Beza app.
+**User Impact:** الموظفون الذين لديهم حسابات مصرفية سورية لم يتم إيداع رواتبهم في الوقت الفعلي. "في انتظار تأكيد البنك."
 
-**Recovery:** The SMS is retried for up to 24 hours. Employees can always view their payslip in the app.
+**Recovery:** يتم إرسال ملف SFTP إلى البنك. يقوم البنك بمعالجة الملف في دورة الدفعة التالية. يتم إيداع الموظفين بحلول نهاية يوم العمل.
 
-### MoF (Ministry of Finance) tax API unavailable for PAYE submission
-**System Behavior:** The PAYE (Pay As You Earn) tax submission to the MoF is queued. The payroll processing itself continues without interruption.
+### مزود SMS غير متاح لإشعارات كشوف الرواتب
+**System Behavior:** يتم وضع تسليم SMS في قائمة انتظار على SQS. يتم إرسال إشعار فوري عبر Firebase Cloud Messaging.
 
-**User Impact:** No immediate impact on employees. The tax filing is delayed. "تقديم الإقرار الضريبي قيد الانتظار" (Tax filing is pending.)
+**User Impact:** قد لا يتلقى الموظفون رسالة SMS "تم إيداع راتبك." كشف الراتب متاح في تطبيق المنصة.
 
-**Recovery:** The tax submission is retried every hour for up to 24 hours. Any late filing penalty is waived by the MoF due to the system outage.
+**Recovery:** يعاد إرسال SMS لمدة تصل إلى 24 ساعة. يمكن للموظفين دائماً عرض كشف الراتب في التطبيق.
 
-### CFE (Ethio Telecom) service down for employee phone verification during onboarding
-**System Behavior:** The new employee onboarding flow pauses at the phone verification step. The CFE API cannot confirm the phone number.
+### API مصلحة الضرائب السورية غير متاح لتقديم ضريبة الدخل
+**System Behavior:** يتم وضع تقديم ضريبة الدخل (PAYE) إلى مصلحة الضرائب في قائمة انتظار. تستمر معالجة كشوف الرواتب نفسها دون انقطاع.
 
-**User Impact:** The new hire sees "تعذر التحقق من رقم الهاتف" (Phone number verification failed.)
+**User Impact:** لا تأثير فوري على الموظفين. تقديم الإقرار الضريبي متأخر. "تقديم الإقرار الضريبي قيد الانتظار."
 
-**Recovery:** The onboarding continues with email-based verification. The phone number is verified later when the CFE service is restored.
+**Recovery:** يعاد محاولة تقديم الضريبة كل ساعة لمدة تصل إلى 24 ساعة. يتم إلغاء أي غرامة تأخير من قبل مصلحة الضرائب بسبب انقطاع النظام.
 
-### Pension fund (Public Servants Social Security Agency) API down
-**System Behavior:** The employer's pension contribution calculation and submission are blocked. The contribution amounts are calculated locally but not submitted.
+### تعطل خدمة مشغل الاتصالات (سيريتل/MTN) للتحقق من هاتف الموظف أثناء التأهيل
+**System Behavior:** يتوقف تدفق تأهيل الموظف الجديد عند خطوة التحقق من الهاتف. لا يمكن لـ API مشغل الاتصالات تأكيد رقم الهاتف.
 
-**User Impact:** The company sees "خدمة التأمينات الاجتماعية غير متوفرة" (Social insurance service is unavailable.)
+**User Impact:** يرى الموظف الجديد "تعذر التحقق من رقم الهاتف."
 
-**Recovery:** The contributions are calculated and stored locally. They are submitted when the API is restored. Any late submission penalty is waived.
+**Recovery:** يستمر التأهيل بالتحقق عبر البريد الإلكتروني. يتم التحقق من رقم الهاتف لاحقاً عند استعادة خدمة مشغل الاتصالات.
 
-## 4. Data Consistency Failures
+### API المؤسسة العامة للتأمينات الاجتماعية غير متاح
+**System Behavior:** يتم حظر حساب وتقديم اشتراكات صاحب العمل في التأمينات الاجتماعية. يتم حساب مبالغ الاشتراكات محلياً ولكن لا يتم تقديمها.
 
-### Payroll batch marked as completed but some employee credits failed silently
-**System Behavior:** The batch status is set to `BATCH_COMPLETE` without checking the individual employee credit statuses. Some credits failed but were not reported.
+**User Impact:** تظهر الشركة "خدمة التأمينات الاجتماعية غير متوفرة."
 
-**User Impact:** The company believes all employees have been paid. Some employees have not received their salaries.
+**Recovery:** يتم حساب الاشتراكات وتخزينها محلياً. يتم تقديمها عند استعادة API. يتم إلغاء أي غرامة تأخير.
 
-**Recovery:** A reconciliation job runs every 15 minutes comparing the batch total against individual credit records. Mismatches are detected and the failed credits are retried. The company is notified of the correction.
+### تعطل نظام مصرف سورية المركزي لتحويل الرواتب عبر المقاصة الإلكترونية
+**System Behavior:** يتعطل نظام المقاصة الإلكترونية في مصرف سورية المركزي. لا يمكن معالجة تحويلات الرواتب بين البنوك في الوقت المحدد.
 
-### Cache inconsistency — company balance shown as 600,000 ETB but actual is 500,000 ETB
-**System Behavior:** The cache TTL (60 seconds) serves a stale balance of 600,000 ETB. The company initiates a payroll of 550,000 ETB. The actual balance of 500,000 ETB is insufficient.
+**User Impact:** تتأخر رواتب الموظفين الذين لديهم حسابات في بنوك مختلفة عن بنك الشركة لمدة تصل إلى 24 ساعة.
 
-**User Impact:** The HR manager sees "رصيد غير كافٍ" (Insufficient balance.) after being shown a sufficient balance on the previous screen.
+**Recovery:** يتم وضع التحويلات في قائمة انتظار ومعالجتها عند استعادة نظام المقاصة. يتم إشعار الموظفين المتأثرين بالتأخير.
 
-**Recovery:** The cache is invalidated on any balance-affecting write operation. Balance reads are always served from the primary database for payroll initiation.
+## 4. أعطال تناسق البيانات (Data Consistency Failures)
 
-### Employee salary update event lost — HR changed salary from 15,000 to 20,000 ETB but event not consumed
-**System Behavior:** The HR manager updates the employee's salary in the employer dashboard. The Kafka event carrying the change is lost before the payroll engine consumes it.
+### وضع علامة على دفعة الرواتب كمكتملة ولكن بعض إيداعات الموظفين فشلت بصمت
+**System Behavior:** تم تعيين حالة الدفعة إلى `BATCH_COMPLETE` دون التحقق من حالات إيداع الموظف الفردية. فشلت بعض الإيداعات ولكن لم يتم الإبلاغ عنها.
 
-**User Impact:** The employee receives 15,000 ETB instead of 20,000 ETB (underpaid by 5,000 ETB.)
+**User Impact:** تعتقد الشركة أن جميع الموظفين قد تم دفع رواتبهم. بعض الموظفين لم يتلقوا رواتبهم.
 
-**Recovery:** The reconciliation system detects a delta between the expected salary (from the employer's HRMS) and the actual disbursed amount. The HR manager is notified. A correction payment is made in the next cycle.
+**Recovery:** تعمل وظيفة تسوية كل 15 دقيقة تقارن إجمالي الدفعة بسجلات الإيداع الفردية. يتم اكتشاف حالات عدم التطابق وإعادة محاولة الإيداعات الفاشلة. يتم إشعار الشركة بالتصحيح.
 
-### Dual-write between payroll service and wallet service fails partially
-**System Behavior:** The company is debited successfully. The employee credit write fails. The Saga pattern detects the inconsistency within 2 seconds and reverses the company debit.
+### عدم تناسق التخزين المؤقت — رصيد الشركة يظهر كـ 15,000,000 ليرة سورية ولكن الفعلي 12,000,000 ليرة
+**System Behavior:** يخدم TTL للتخزين المؤقت (60 ثانية) رصيداً قديماً قدره 15,000,000 ليرة سورية. تبدأ الشركة كشوف رواتب بقيمة 13,000,000 ليرة سورية. الرصيد الفعلي 12,000,000 ليرة سورية غير كافٍ.
 
-**User Impact:** The company sees a reversal. Employees see nothing. The payroll is delayed by approximately 30 seconds.
+**User Impact:** يرى مدير الموارد البشرية "رصيد غير كافٍ." بعد أن ظهر له رصيد كافٍ على الشاشة السابقة.
 
-**Recovery:** The compensation transaction is completed within 5 seconds. The HR manager retries the payroll.
+**Recovery:** يتم إبطال التخزين المؤقت عند أي عملية كتابة تؤثر على الرصيد. تتم قراءة الرصيد دائماً من قاعدة البيانات الأساسية لبدء الرواتب.
 
-### Tax table update missed — new tax bracket effective July 1 but Beza uses old table for July payroll
-**System Behavior:** The MoF published new tax brackets effective July 1. Beza's tax engine was not updated. 4,000 employees are over-withheld by an average of 500 ETB each. Total over-collection: 2,000,000 ETB.
+### فقدان حدث تحديث راتب الموظف — قام مدير الموارد البشرية بتغيير الراتب من 250,000 إلى 350,000 ليرة سورية ولكن لم يتم استهلاك الحدث
+**System Behavior:** يقوم مدير الموارد البشرية بتحديث راتب الموظف في لوحة تحكم صاحب العمل. يتم فقدان حدث Kafka الذي يحمل التغيير قبل أن يستهلكه محرك الرواتب.
 
-**User Impact:** All employees see higher tax deductions than expected. "تم استخدام جدول الضرائب القديم" (The old tax table was used.)
+**User Impact:** يتلقى الموظف 250,000 ليرة سورية بدلاً من 350,000 ليرة سورية (أقل بمقدار 100,000 ل.س).
 
-**Recovery:** The correction is applied in the next payroll with refunds to all affected employees. The tax table update is automated through the MoF API with version checking.
+**Recovery:** يكتشف نظام التسوية فرقاً بين الراتب المتوقع (من نظام موارد بشرية لصاحب العمل) والمبلغ المصروف الفعلي. يتم إشعار مدير الموارد البشرية. يتم دفع تصحيح في الدورة التالية.
 
-## 5. Security Failures
+### فشل الكتابة المزدوجة بين خدمة الرواتب وخدمة المحفظة جزئياً
+**System Behavior:** تم خصم مبلغ الشركة بنجاح. فشلت كتابة إيداع الموظف. يكتشف نمط Saga عدم التناسق في غضون ثانيتين ويعكس خصم الشركة.
 
-### Fraud false positive — employer adding a new employee with an 80,000 ETB salary flagged
-**System Behavior:** The AML rules engine triggers on the combination of a new employee addition and a high salary amount. The payroll is placed on hold.
+**User Impact:** ترى الشركة إلغاءً. لا يرى الموظفون شيئاً. تتأخر الرواتب بحوالي 30 ثانية.
 
-**User Impact:** The HR manager sees "إضافة موظف جديد قيد المراجعة" (New employee addition under review.) The payroll for that employee is delayed.
+**Recovery:** تكتمل معاملة التعويض في غضون 5 ثوانٍ. يعيد مدير الموارد البشرية محاولة كشوف الرواتب.
 
-**Recovery:** The compliance team verifies the employment contract. If valid, the addition is approved within 4 hours.
+### تفويت تحديث جدول الضرائب — شرائح ضريبية جديدة سارية من 1 يوليو ولكن المنصة تستخدم الجدول القديم
+**System Behavior:** نشرت مصلحة الضرائب السورية شرائح ضريبية جديدة سارية من 1 يوليو. لم يتم تحديث محرك الضرائب في المنصة. تم استقطاع مبالغ إضافية من 1,000 موظف بمتوسط 25,000 ليرة سورية لكل منهم. إجمالي الاستقطاع الزائد: 25,000,000 ليرة سورية.
 
-### Fraud false negative — ghost employee on payroll for 2 years, 15,000 ETB per month siphoned
-**System Behavior:** The anomaly detection system fails to flag a ghost employee — a fictitious person added to the payroll who does not actually work for the company. Over 2 years, 360,000 ETB is stolen.
+**User Impact:** يرى جميع الموظفين استقطاعات ضريبية أعلى من المتوقع. "تم استخدام جدول الضرائب القديم."
 
-**User Impact:** Real employees are unaffected. The company loses 360,000 ETB to the ghost employee.
+**Recovery:** يتم تطبيق التصحيح في كشوف الرواتب التالية مع استرداد المبالغ لجميع الموظفين المتأثرين. تتم أتمتة تحديث جدول الضرائب من خلال API مصلحة الضرائب مع التحقق من الإصدار.
 
-**Recovery:** A monthly reconciliation between the Beza payroll data and the company's HRMS employee headcount is introduced. A discrepancy triggers an alert. The ghost employee is flagged and removed.
+### اختلاف في ساعات العمل المسجلة — نظام الموارد البشرية يسجل 160 ساعة والموظف يدعي 180 ساعة
+**System Behavior:** يستخدم نظام الرواتب ساعات العمل المعتمدة من نظام الموارد البشرية لصاحب العمل. يعترض الموظف على الساعات المسجلة.
 
-### Unauthorized access to payroll dashboard — ex-employee HR manager modifies salaries
-**System Behavior:** A former HR manager uses stolen credentials to log in to the payroll dashboard. The attacker increases 50 salaries by 5,000 ETB each.
+**User Impact:** يشعر الموظف أنه تم دفع أقل من المستحق له مقابل 20 ساعة عمل إضافية. "تم احتساب ساعات العمل الإضافية بناءً على بيانات صاحب العمل."
 
-**User Impact:** 50 employees are overpaid by 5,000 ETB each. The company overpays 250,000 ETB in total.
+**Recovery:** يرفع الموظف اعتراضاً عبر تطبيق المنصة. يراجع مدير الموارد البشرية سجل ساعات العمل ويعدل إذا لزم الأمر. يتم تطبيق التصحيح في دورة الرواتب التالية.
 
-**Recovery:** Salary changes require dual approval (HR manager plus finance manager). MFA is enforced for all payroll actions. An audit log tracks every salary modification.
+### عدم تطابق بيانات الموظف بين نظام الموارد البشرية ونظام الرواتب
+**System Behavior:** تم تحديث اسم الموظف ورقم الحساب المصرفي في نظام الموارد البشرية ولكن لم تتم مزامنته مع نظام الرواتب. يتم إرسال الراتب إلى الحساب القديم.
 
-### Bank account hijacking — employee payroll account changed to the attacker's account
-**System Behavior:** The HR uploads new bank details for an employee without proper verification. The attacker's bank account is used for the next salary payment.
+**User Impact:** يتأخر وصول الراتب للموظف أو يذهب إلى حساب مغلق.
 
-**User Impact:** The employee does not receive their 25,000 ETB salary. The attacker receives the payment.
+**Recovery:** يتم تشغيل وظيفة مزامنة تلقائية كل ساعة بين نظام الموارد البشرية ونظام الرواتب. يتم إشعار مدير الموارد البشرية بأي اختلافات.
 
-**Recovery:** Bank account changes require employee OTP verification plus a 24-hour cooling period. An email and SMS notification are sent to the employee's registered contact.
+## 5. أعطال الأمان (Security Failures)
 
-### Insider threat — payroll admin modifies their own salary from 40,000 to 60,000 ETB
-**System Behavior:** The payroll admin uses their access to change their own salary record. The system allows the change because the admin has self-service access.
+### إنذار كاذب للاحتيال — صاحب العمل يضيف موظفاً جديداً براتب 800,000 ليرة سورية يتم الإبلاغ عنه
+**System Behavior:** يطلق محرك قواعد AML إنذاراً على مزيج من إضافة موظف جديد وراتب مرتفع. يتم تعليق كشوف الرواتب.
 
-**User Impact:** The admin overpays themselves by 20,000 ETB.
+**User Impact:** يرى مدير الموارد البشرية "إضافة موظف جديد قيد المراجعة." تتأخر رواتب ذلك الموظف.
 
-**Recovery:** Self-salary changes are prohibited by policy. A manager approval is required for any salary modification. An audit alert is triggered on any self-modification attempt.
+**Recovery:** يتحقق فريق الامتثال من عقد العمل. إذا كان صالحاً، تتم الموافقة على الإضافة في غضون 4 ساعات.
 
-## 6. Business Logic Failures
+### إنذار كاذب سلبي للاحتيال — موظف وهمي في كشوف الرواتب لمدة سنتين، 200,000 ليرة سورية شهرياً مسحوبة
+**System Behavior:** يفشل نظام كشف الحالات الشاذة في الإبلاغ عن موظف وهمي — شخص وهمي مضاف إلى كشوف الرواتب لا يعمل فعلياً في الشركة. على مدى سنتين، تم سرقة 4,800,000 ليرة سورية.
 
-### Payroll submitted on a public holiday — banks closed, settlement delayed
-**System Behavior:** The payroll is processed on the Beza ledger immediately. The bank settlement is queued for the next business day.
+**User Impact:** الموظفون الحقيقيون غير متأثرين. تخسر الشركة 4,800,000 ليرة سورية للموظف الوهمي.
 
-**User Impact:** Employees with Beza wallets are credited instantly. Employees requiring bank transfers see "سيتم إيداع الراتب في الحساب البنكي يوم العمل التالي" (Salary will be deposited into the bank account on the next business day.)
+**Recovery:** يتم إدخال تسوية شهرية بين بيانات رواتب المنصة وعدد موظفي نظام الموارد البشرية لصاحب العمل. يؤدي الاختلاف إلى تنبيه. يتم الإبلاغ عن الموظف الوهمي وإزالته.
 
-**Recovery:** Beza wallet employees can use their funds immediately. Bank transfer employees can use their Beza wallet balance via the Beza card or agent network.
+### وصول غير مصرح به إلى لوحة تحكم الرواتب — مدير موارد بشرية سابق يعدل الرواتب
+**System Behavior:** يستخدم مدير موارد بشرية سابق بيانات اعتماد مسروقة لتسجيل الدخول إلى لوحة تحكم الرواتب. يزيد المهاجم 50 راتباً بمقدار 50,000 ليرة سورية لكل منهم.
 
-### Employee with multiple active accounts credited to the wrong one
-**System Behavior:** The primary account flag is not set for the employee. The payroll credit goes to a secondary account.
+**User Impact:** 50 موظفاً يتقاضون مبالغ إضافية قدرها 50,000 ليرة سورية لكل منهم. تدفع الشركة مبلغاً إضافياً قدره 2,500,000 ليرة سورية إجمالاً.
 
-**User Impact:** The employee sees the salary in the wrong account. They must manually transfer the funds to their primary account.
+**Recovery:** تتطلب تغييرات الراتب موافقة مزدوجة (مدير الموارد البشرية بالإضافة إلى مدير المالية). يتم فرض MFA لجميع إجراءات الرواتب. يتتبع سجل التدقيق كل تعديل في الراتب.
 
-**Recovery:** The system always uses the account marked as "primary salary account." Employees can set their preferred account in the app. The HR manager can also designate the default account.
+### اختطاف حساب مصرفي — تغيير حساب راتب الموظف إلى حساب المهاجم
+**System Behavior:** يقوم مدير الموارد البشرية بتحميل تفاصيل مصرفية جديدة لموظف دون التحقق المناسب. يتم استخدام الحساب المصرفي للمهاجم لدفعة الراتب التالية.
 
-### Minimum wage check fails — employee salary of 1,200 ETB/month is below the 1,500 ETB minimum
-**System Behavior:** The compliance check rejects the payroll for that specific employee because the salary is below the legal minimum wage.
+**User Impact:** لا يتلقى الموظف راتبه البالغ 450,000 ليرة سورية. يتلقى المهاجم الدفعة.
 
-**User Impact:** The employer sees "راتب الموظف #2103 أقل من الحد الأدنى للأجور" (Employee #2103's salary is below the minimum wage.)
+**Recovery:** تتطلب تغييرات الحساب المصرفي التحقق عبر OTP للموظف بالإضافة إلى فترة تبريد مدتها 24 ساعة. يتم إرسال إشعار بالبريد الإلكتروني وSMS إلى جهة اتصال الموظف المسجلة.
 
-**Recovery:** The employer must adjust the salary to at least 1,500 ETB. The payroll for that employee cannot proceed until the adjustment is made.
+### تهديد داخلي — مسؤول الرواتب يعدل راتبه من 500,000 إلى 800,000 ليرة سورية
+**System Behavior:** يستخدم مسؤول الرواتب صلاحياته لتغيير سجل راتبه. يسمح النظام بالتغيير لأن المسؤول لديه صلاحيات الخدمة الذاتية.
 
-### Overtime calculation dispute — system auto-calculated 40 hours but employee claims 50 hours
-**System Behavior:** The payroll system uses the approved timesheet from the employer's HR system. The employee disputes the recorded hours.
+**User Impact:** يدفع المسؤول لنفسه مبلغاً إضافياً قدره 300,000 ليرة سورية.
 
-**User Impact:** The employee feels underpaid by 10 hours of overtime. "تم احتساب overtime بناءً على بيانات صاحب العمل" (Overtime was calculated based on the employer's data.)
+**Recovery:** تغييرات الراتب الذاتية محظورة بموجب السياسة. موافقة المدير مطلوبة لأي تعديل في الراتب. يتم إطلاق تنبيه تدقيق على أي محاولة تعديل ذاتي.
 
-**Recovery:** The employee raises a dispute through the Beza app. The HR manager reviews the timesheet and adjusts if applicable. A correction is made in the next payroll cycle.
+### تسريب بيانات رواتب الموظفين — وصول غير مصرح به إلى معلومات الرواتب
+**System Behavior:** يتمكن مهاجم من الوصول إلى قاعدة بيانات تحتوي على معلومات رواتب جميع موظفي الشركات المستخدمة للمنصة.
 
-### Maximum payroll batch size exceeded — company with 5,000 employees submits a single batch
-**System Behavior:** The system has a limit of 2,000 employees per batch. The single batch submission is rejected.
+**User Impact:** يتم كشف معلومات حساسة (الرواتب، أرقام الحسابات، الأسماء الكاملة) لجميع الموظفين. خسارة خصوصية هائلة.
 
-**User Impact:** The HR manager sees "الحد الأقصى لعدد الموظفين للدفعة الواحدة هو 2,000" (The maximum number of employees per batch is 2,000.)
+**Recovery:** يتم تشفير جميع بيانات الرواتب في حالة السكون. يتم تطبيق الوصول على أساس الحاجة إلى المعرفة. يتم إشعار الشركات والموظفين المتأثرين بموجب متطلبات الإبلاغ.
 
-**Recovery:** The HR manager splits the payroll into 3 batches (2,000 + 2,000 + 1,000 employees). The batches are processed sequentially.
+## 6. أعطال منطق الأعمال (Business Logic Failures)
 
-## 7. Performance & Scalability Failures
+### تقديم الرواتب في يوم عطلة رسمية — البنوك مغلقة، التسوية متأخرة
+**System Behavior:** تتم معالجة الرواتب في سجلات المنصة فوراً. يتم وضع تسوية البنك في قائمة انتظار ليوم العمل التالي.
 
-### Bulk payroll processing — 10,000 employees in a single batch
-**System Behavior:** The payroll batch processor handles 10,000 employee credits sequentially. Processing takes 8 minutes. The wallet service handles 20 credits per second.
+**User Impact:** الموظفون الذين لديهم محافظ منصة يتم إيداع رواتبهم فوراً. الموظفون الذين يتطلبون تحويلات مصرفية يرون "سيتم إيداع الراتب في الحساب المصرفي يوم العمل التالي."
 
-**User Impact:** Employees at the end of the batch are credited 8 minutes after the start. The company sees the status as 60% complete for several minutes.
+**Recovery:** يمكن لموظفي محفظة المنصة استخدام أموالهم فوراً. يمكن لموظفي التحويل المصرفي استخدام رصيد محفظة المنصة عبر بطاقة المنصة أو شبكة الوكلاء.
 
-**Recovery:** Batch processing is parallelized across 10 worker threads (1,000 employees per thread). Processing time is reduced to under 1 minute. Progress is tracked per batch.
+### موظف بحسابات نشطة متعددة — إيداع في الحساب الخطأ
+**System Behavior:** لم يتم تعيين علامة الحساب الأساسي للموظف. يذهب إيداع الراتب إلى حساب ثانوي.
 
-### Payroll month-end spike — 500 companies submit simultaneously on the 30th
-**System Behavior:** 500 companies submit payroll on the last day of the month. The payroll service auto-scales from 10 to 50 pods. The database connection pool reaches 200 connections.
+**User Impact:** يرى الموظف الراتب في الحساب الخطأ. يجب عليه تحويل الأموال يدوياً إلى حسابه الأساسي.
 
-**User Impact:** Companies experience 5-10 minute delays in payroll processing. The dashboard shows "في قائمة الانتظار: 45" (Queue position: 45.)
+**Recovery:** يستخدم النظام دائماً الحساب المحدد كـ "حساب الراتب الأساسي." يمكن للموظفين تعيين حسابهم المفضل في التطبيق. يمكن لمدير الموارد البشرية أيضاً تعيين الحساب الافتراضي.
 
-**Recovery:** Payroll submission is distributed across a 3-day window (28th to 30th). Companies are incentivized with early submission credits. The system auto-scales based on queue depth.
+### فشل فحص الحد الأدنى للأجور — راتب موظف 180,000 ليرة سورية شهرياً أقل من الحد الأدنى البالغ 200,000 ليرة
+**System Behavior:** يرفض فحص الامتثال كشوف الرواتب لهذا الموظف المحدد لأن الراتب أقل من الحد الأدنى القانوني للأجور في سورية.
 
-### Employee list CSV processing — 50MB file with 50,000 employees
-**System Behavior:** The CSV parser receives a 50MB file with 50,000 employees. Parsing takes 5 minutes. Memory usage spikes to 2GB.
+**User Impact:** يرى صاحب العمل "راتب الموظف #2103 أقل من الحد الأدنى للأجور (200,000 ل.س شهرياً)."
 
-**User Impact:** The HR manager sees "جاري معالجة الملف..." (Processing file...) for 5 minutes. The upload progress bar appears stuck.
+**Recovery:** يجب على صاحب العمل تعديل الراتب إلى 200,000 ليرة سورية على الأقل. لا يمكن أن تستمر رواتب ذلك الموظف حتى يتم التعديل.
 
-**Recovery:** CSV processing is moved to a background job with streaming parsing (processing rows as they are read). The upload progress is estimated based on rows processed. A progress message shows "تمت معالجة 12,500 من 50,000 موظف" (12,500 of 50,000 employees processed.)
+### نزاع حول حساب ساعات العمل الإضافية — النظام حسب 30 ساعة إضافية والموظف يدعي 50 ساعة
+**System Behavior:** يستخدم نظام الرواتب ساعات العمل المعتمدة من نظام الموارد البشرية لصاحب العمل. يعترض الموظف على الساعات المسجلة.
 
-## 8. Operational Failures
+**User Impact:** يشعر الموظف أنه تم دفع أقل من المستحق له مقابل 20 ساعة عمل إضافية بمعدل 5,000 ل.س للساعة، أي فرق 100,000 ل.س.
 
-### Deployment rollback — v7.2.0 applies wrong tax calculation
-**System Behavior:** The canary deployment detects a 15% decrease in net salary amounts (over-withholding). The automated rollback is triggered within 3 minutes.
+**Recovery:** يرفع الموظف اعتراضاً عبر تطبيق المنصة. يراجع مدير الموارد البشرية جدول ساعات العمل ويعدل إذا لزم الأمر. يتم تطبيق التصحيح في دورة الرواتب التالية.
 
-**User Impact:** Approximately 300 employees are over-withheld by an average of 500 ETB each. Total over-deduction: 150,000 ETB.
+### تجاوز الحد الأقصى لحجم دفعة الرواتب — شركة بها 5,000 موظف تقدم دفعة واحدة
+**System Behavior:** النظام لديه حد أقصى يبلغ 2,000 موظف لكل دفعة. يتم رفض تقديم الدفعة الواحدة.
 
-**Recovery:** The rollback completes within 2 minutes. The tax calculation is corrected. Affected employees receive the over-withheld amount plus 5% interest in the next payroll.
+**User Impact:** يرى مدير الموارد البشرية "الحد الأقصى لعدد الموظفين للدفعة الواحدة هو 2,000."
 
-### Configuration error — default salary set to 0 ETB for new employees
-**System Behavior:** A configuration change sets the default employee salary to 0 ETB. 50 new employees are added with 0 ETB salary. Their payslips show 0 ETB.
+**Recovery:** يقسم مدير الموارد البشرية كشوف الرواتب إلى 3 دفعات (2,000 + 2,000 + 1,000 موظف). تتم معالجة الدفعات بالتسلسل.
 
-**User Impact:** 50 employees see a payslip with 0 ETB salary. Confusion and panic among new hires.
+### عدم تطابق تاريخ الراتب مع بداية الشهر — صرف الرواتب قبل استلام التمويل
+**System Behavior:** تحاول الشركة صرف الرواتب في اليوم 25 من الشهر ولكن التمويل من الإدارة المالية متوقع في اليوم 28. رصيد المحفظة غير كافٍ.
 
-**Recovery:** The configuration error is detected within 10 minutes. The default salary is corrected. HR managers are contacted to correct the salary records. A pre-submission validation check is added.
+**User Impact:** يرى مدير الموارد البشرية "رصيد غير كافٍ. سيتم صرف الرواتب عند توفر التمويل."
 
-### Bank file format change — CBE changes salary file format without notice
-**System Behavior:** CBE updates their salary file format specification. Beza's generated file uses the old format. CBE rejects the file.
+**Recovery:** يتم جدولة الدفعة تلقائياً لليوم 28. يتم إشعار مدير الموارد البشرية عند إضافة التمويل ويمكنه تأكيد الدفعة.
 
-**User Impact:** 5,000 employees' salaries are delayed by 1 day while the file format is updated.
+### تعارض في تواريخ صرف الرواتب — دفعتان لشهر واحد
+**System Behavior:** يحاول مدير الموارد البشرية صرف راتب شهر يونيو مرتين (مرة في 28 يونيو ومرة في 30 يونيو) بسبب خطأ إداري.
 
-**Recovery:** The operations team updates the file generator within 4 hours. The file is resubmitted. Affected employees receive a notification about the delay. An apology credit of 50 ETB is provided.
+**User Impact:** يتلقى الموظفون راتبين في شهر واحد. يجب على الشركة استرداد الراتب الثاني من الموظفين.
 
-## 9. Recovery Time Objectives Summary
+**Recovery:** يكتشف النظام دفعة مكررة لنفس الفترة ويرفض الدفعة الثانية. تظهر رسالة "تمت معالجة رواتب شهر يونيو مسبقاً."
 
-| Failure Category | Detection Time | Recovery Time | RPO | Maximum Impact |
+### عدم تطابق نسبة اشتراك التأمينات الاجتماعية مع الفئة الجديدة للموظف
+**System Behavior:** تم ترقية الموظف إلى فئة وظيفية أعلى ولكن لم يتم تحديث نسبة اشتراك التأمينات الاجتماعية. يتم تطبيق النسبة القديمة.
+
+**User Impact:** يتم استقطاع مبلغ غير صحيح للتأمينات الاجتماعية. قد يكون أقل أو أكثر من المطلوب.
+
+**Recovery:** يتم تحديث فئة الموظف تلقائياً عند الترقية. يتم إشعار مدير الموارد البشرية لتأكيد التغيير. يتم تصحيح الاشتراكات في الدورة التالية.
+
+## 7. أعطال الأداء وقابلية التوسع (Performance & Scalability Failures)
+
+### معالجة رواتب جماعية — 10,000 موظف في دفعة واحدة
+**System Behavior:** يعالج معالج دفعة الرواتب 10,000 إيداع موظف بالتسلسل. تستغرق المعالجة 8 دقائق. تتعامل خدمة المحفظة مع 20 إيداعاً في الثانية.
+
+**User Impact:** الموظفون في نهاية الدفعة يتم إيداع رواتبهم بعد 8 دقائق من البداية. ترى الشركة الحالة كـ 60% مكتملة لعدة دقائق.
+
+**Recovery:** يتم توازي معالجة الدفعة عبر 10 عمال (1,000 موظف لكل عامل). يتم تقليل وقت المعالجة إلى أقل من دقيقة واحدة. يتم تتبع التقدم لكل دفعة.
+
+### زيادة نهاية الشهر — 500 شركة تقدّم الرواتب في نفس الوقت في اليوم 30
+**System Behavior:** تقدم 500 شركة الرواتب في آخر يوم من الشهر. يتوسع نطاق خدمة الرواتب تلقائياً من 10 إلى 50 حاوية. يصل اتصال قاعدة البيانات إلى 200 اتصال.
+
+**User Impact:** تواجه الشركات تأخيراً من 5-10 دقائق في معالجة الرواتب. تظهر لوحة التحكم "في قائمة الانتظار: 45."
+
+**Recovery:** يتم توزيع تقديم الرواتب عبر نافذة مدتها 3 أيام (28 إلى 30). يتم تحفيز الشركات المبكرة بارصدة ائتمانية. يتوسع النظام تلقائياً بناءً على عمق قائمة الانتظار.
+
+### معالجة CSV لقائمة الموظفين — ملف 50 ميغابايت مع 50,000 موظف
+**System Behavior:** يتلقى محلل CSV ملفاً بحجم 50 ميغابايت مع 50,000 موظف. يستغرق التحليل 5 دقائق. يصل استخدام الذاكرة إلى 2 غيغابايت.
+
+**User Impact:** يرى مدير الموارد البشرية "جاري معالجة الملف..." لمدة 5 دقائق. يبدو شريط تقدم التحميل عالقاً.
+
+**Recovery:** يتم نقل معالجة CSV إلى وظيفة خلفية مع تحليل دفق (معالجة الصفوف أثناء قراءتها). يتم تقدير تقدم التحميل بناءً على الصفوف المعالجة. تظهر رسالة تقدم "تمت معالجة 12,500 من 50,000 موظف."
+
+### زيادة عدد الموظفين لشركة كبرى في بداية العام — 100,000 موظف في دفعة واحدة
+**System Behavior:** تقوم شركة تصنيع كبيرة في حلب بتقديم رواتب 100,000 موظف في أول يوم من الشهر. يستغرق تحميل الملف 15 دقيقة والمعالجة 30 دقيقة.
+
+**User Impact:** تتأخر رواتب الموظفين لمدة تصل إلى 45 دقيقة. تظهر حالة الشركة "قيد المعالجة — 30% مكتمل" لفترة طويلة.
+
+**Recovery:** يتم تقسيم المعالجة عبر 50 عاملاً موزعاً. يتم تخصيص موارد إضافية للشركات الكبيرة. يتم إشعار جميع الموظفين بموعد الإيداع المتوقع.
+
+## 8. أعطال تشغيلية (Operational Failures)
+
+### التراجع عن النشر — الإصدار v7.2.0 يطبق حساب ضريبي خاطئ
+**System Behavior:** يكتشف النشر التجريبي انخفاضاً بنسبة 15% في صافي مبالغ الرواتب (استقطاع زائد). يتم تفعيل التراجع الآلي في غضون 3 دقائق.
+
+**User Impact:** حوالي 300 موظف تم استقطاع مبالغ إضافية منهم بمتوسط 25,000 ليرة سورية لكل منهم. إجمالي الاستقطاع الزائد: 7,500,000 ليرة سورية.
+
+**Recovery:** يكتمل التراجع في غضون دقيقتين. يتم تصحيح حساب الضريبة. يحصل الموظفون المتأثرون على المبلغ المستقطع الزائد بالإضافة إلى فائدة 5% في كشوف الرواتب التالية.
+
+### خطأ في التكوين — الراتب الافتراضي مضبوط على 0 ليرة سورية للموظفين الجدد
+**System Behavior:** تغيير في التكوين يضبط الراتب الافتراضي للموظف الجديد على 0 ليرة سورية. 50 موظفاً جديداً تمت إضافتهم براتب 0 ليرة سورية. تظهر كشوف رواتبهم 0 ليرة سورية.
+
+**User Impact:** 50 موظفاً يرون كشف راتب بمبلغ 0 ليرة سورية. ارتباك وذعر بين الموظفين الجدد.
+
+**Recovery:** يتم اكتشاف خطأ التكوين في غضون 10 دقائق. يتم تصحيح الراتب الافتراضي. يتم الاتصال بمديري الموارد البشرية لتصحيح سجلات الرواتب. يتم إضافة التحقق المسبق من صحة الراتب قبل التقديم.
+
+### تغيير تنسيق ملف الرواتب من قبل البنك السوري دون إشعار
+**System Behavior:** يقوم البنك السوري الشريك بتحديث مواصفات تنسيق ملف الرواتب. يستخدم ملف المنصة المُنشأ التنسيق القديم. يرفض البنك الملف.
+
+**User Impact:** تتأخر رواتب 5,000 موظف لمدة يوم واحد أثناء تحديث تنسيق الملف.
+
+**Recovery:** يقوم فريق العمليات بتحديث مولد الملف في غضون 4 ساعات. يعاد إرسال الملف. يحصل الموظفون المتأثرون على إشعار بالتأخير. يتم تقديم رصيد اعتذاري قدره 5,000 ليرة سورية لكل موظف.
+
+### تعطل بوابة البنك السوري الإلكترونية — عدم القدرة على تحويل الرواتب
+**System Behavior:** تتعطل البوابة الإلكترونية للبنك السوري الشريك. لا يمكن إرسال ملفات الرواتب أو إجراء تحويلات مباشرة.
+
+**User Impact:** 10,000 موظف لا يتلقون رواتبهم في الوقت المحدد. تتأخر المدفوعات لمدة يوم كامل.
+
+**Recovery:** يتم تفعيل البنك البديل كخيار احتياطي. يتم تحويل الرواتب من خلال حساب احتياطي في بنك آخر. يتم إشعار جميع الشركات والموظفين المتأثرين.
+
+### إضراب الموظفين في البنك — تعطل جميع الخدمات المصرفية
+**System Behavior:** يتوقف موظفو البنك السوري عن العمل بسبب إضراب. لا يمكن معالجة أي تحويلات مصرفية أو إيداعات رواتب.
+
+**User Impact:** تتأخر رواتب جميع موظفي الشركات التي تتعامل مع هذا البنك لمدة غير محددة.
+
+**Recovery:** يتم تحويل مدفوعات الرواتب عبر محافظ المنصة بدلاً من الحسابات المصرفية. يمكن للشركات صرف رواتب الموظفين عبر محافظهم الرقمية فوراً. يتم إيداع المبالغ في الحسابات المصرفية عند استعادة الخدمة.
+
+## 9. ملخص أهداف وقت الاسترداد
+
+| فئة الفشل | وقت الاكتشاف | وقت الاسترداد | RPO | أقصى تأثير |
 |-----------------|----------------|---------------|-----|----------------|
-| Network (transient) | < 1 second | < 30 seconds | 0 | Single batch delayed |
-| Network (DNS outage) | 30 seconds | < 5 minutes | 0 | All payroll ops blocked |
-| Transaction failure | < 100ms | < 5 seconds | 0 | Single employee payment |
-| External dependency | < 10 seconds | < 4 hours | 0 | Bank/SMS unavailable |
-| Data inconsistency | < 5 minutes | < 1 hour | < 5 seconds | Salary discrepancy |
-| Security incident | < 1 minute | < 4 hours | 0 | Payroll fraud prevented |
-| Business logic | < 1 hour | < 24 hours | 0 | Tax calc / min wage issue |
-| Performance degradation | < 1 minute | < 5 minutes | 0 | Slow batch processing |
-| Operational (deployment) | < 5 minutes | < 10 minutes | < 1 minute | Wrong tax calculation |
+| الشبكة (مؤقت) | < 1 ثانية | < 30 ثانية | 0 | تأخير دفعة واحدة |
+| الشبكة (انقطاع DNS) | 30 ثانية | < 5 دقائق | 0 | حظر جميع عمليات الرواتب |
+| فشل المعاملة | < 100 مللي ثانية | < 5 ثوانٍ | 0 | دفع موظف واحد |
+| التبعية الخارجية | < 10 ثوانٍ | < 4 ساعات | 0 | بنك/SMS غير متاح |
+| عدم تناسق البيانات | < 5 دقائق | < 1 ساعة | < 5 ثوانٍ | اختلاف في الراتب |
+| حادث أمني | < 1 دقيقة | < 4 ساعات | 0 | منع احتيال الرواتب |
+| منطق الأعمال | < 1 ساعة | < 24 ساعة | 0 | حساب ضريبي / حد أدنى |
+| تدهور الأداء | < 1 دقيقة | < 5 دقائق | 0 | بطء معالجة الدفعة |
+| تشغيلي (نشر) | < 5 دقائق | < 10 دقائق | < 1 دقيقة | حساب ضريبي خاطئ |
 
-## Changelog
+## سجل التغييرات
 
-| Date | Version | Changes |
+| التاريخ | الإصدار | التغييرات |
 |------|---------|---------|
-| 2026-05-29 | 1.0 | Initial release — 7 categories covering network, transactions, external dependencies, data consistency, security, business logic, and performance failures for payroll feature |
+| 2026-05-29 | 1.0 | الإصدار الأولي — 7 فئات تغطي الشبكة، المعاملات، التبعيات الخارجية، تناسق البيانات، الأمان، منطق الأعمال، والأداء لميزة الرواتب |
 
 ---
 
-*Version: 1.0 | Last updated: 2026-05-29 | Owner: Payroll Engineering Team*
+*الإصدار: 1.0 | آخر تحديث: 2026-05-29 | المالك: فريق هندسة الرواتب*

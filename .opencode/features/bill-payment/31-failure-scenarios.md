@@ -1,304 +1,353 @@
-# 31. Bill Payment — Failure Scenarios
+# 31. دفع الفواتير — سيناريوهات الفشل (Bill Payment — Failure Scenarios)
 
-> **Purpose:** Document every failure mode for the Beza Bill Payment feature — utility bills (electricity, water, telecom), government fees, and private billers. Uses real ETB amounts, biller names (EEU, Ethio Telecom, Addis Ababa Water), and Arabic/Amharic messaging.
+> **الغرض:** توثيق جميع حالات الفشل المحتملة لميزة دفع الفواتير — فواتير الخدمات (الكهرباء، المياه، الاتصالات)، الرسوم الحكومية، والمزودين الخاصين. يستخدم مبالغ حقيقية بالليرة السورية، أسماء مزودين سوريين (المؤسسة العامة للكهرباء، مؤسسة مياه دمشق، سيريتل، MTN)، ورسائل باللغة العربية فقط.
 
 ---
 
-## 1. Network Failures
+## 1. أعطال الشبكة (Network Failures)
 
-### Internet cut during bill payment after debit but before biller confirmation
-**System Behavior:** The customer is debited from their wallet. The payment is marked `PENDING_BILLER_ACK`. The biller (e.g., EEU) has not received the payment confirmation.
+### انقطاع الإنترنت أثناء دفع الفاتورة بعد الخصم ولكن قبل تأكيد المزود
+**System Behavior:** يتم خصم المبلغ من محفظة العميل. يتم وضع علامة على الدفع كـ `PENDING_BILLER_ACK`. لم يتلق المزود (مثل المؤسسة العامة للكهرباء) تأكيد الدفع.
 
-**User Impact:** The customer sees "تم خصم المبلغ. في انتظار تأكيد الفاتورة" (Amount deducted. Awaiting bill confirmation.) The biller may later send a disconnection notice if the payment is not recorded.
+**User Impact:** يرى العميل رسالة "تم خصم المبلغ. في انتظار تأكيد الفاتورة." قد يرسل المزود إشعار قطع لاحقاً إذا لم يتم تسجيل الدفع.
 
-**Recovery:** A biller reconciliation job runs every 2 hours. If the biller confirms receipt, the payment status is updated. If the biller does not confirm within 4 hours, a reversal is initiated and the customer is refunded.
+**Recovery:** تعمل وظيفة تسوية مع المزود كل ساعتين. إذا أكد المزود الاستلام، يتم تحديث حالة الدفع. إذا لم يؤكد المزود خلال 4 ساعات، يتم بدء إلغاء واسترداد المبلغ للعميل.
 
-### API timeout (>5s) during EEU bill inquiry
-**System Behavior:** The bill inquiry service times out while fetching the bill amount from the EEU API. The service cannot return the bill amount.
+### انتهاء مهلة API (>5 ثوان) أثناء استعلام فاتورة المؤسسة العامة للكهرباء
+**System Behavior:** تنتهي مهلة خدمة استعلام الفاتورة أثناء جلب مبلغ الفاتورة من API المؤسسة العامة للكهرباء. لا يمكن للخدمة إرجاع مبلغ الفاتورة.
 
-**User Impact:** The customer sees "تعذر الحصول على قيمة الفاتورة. حاول مرة أخرى" (Could not obtain the bill amount. Please try again.) The bill amount field remains blank.
+**User Impact:** يرى العميل رسالة "تعذر الحصول على قيمة الفاتورة. حاول مرة أخرى." يبقى حقل مبلغ الفاتورة فارغاً.
 
-**Recovery:** The system retries with backoff (2s, 5s, 15s). If all retries fail, the customer can enter the amount manually by uploading a photo of their bill. The manual entry is verified against the biller's records before processing.
+**Recovery:** يعيد النظام المحاولة بتأخير تصاعدي (2 ثانية، 5 ثوانٍ، 15 ثانية). إذا فشلت جميع المحاولات، يمكن للعميل إدخال المبلغ يدوياً عن طريق تحميل صورة فاتورتهم. يتم التحقق من الإدخال اليدوي مقابل سجلات المزود قبل المعالجة.
 
-### DNS failure for bills-api.beza.et
-**System Behavior:** The bill payment gateway is inaccessible because the DNS cannot resolve the API endpoint. All bill payment operations are blocked.
+### فشل DNS لخدمة دفع الفواتير
+**System Behavior:** بوابة دفع الفواتير غير قابلة للوصول لأن DNS لا يمكنه حل نقطة نهاية API. جميع عمليات دفع الفواتير محظورة.
 
-**User Impact:** The user sees "خدمة دفع الفواتير غير متوفرة حالياً" (Bill payment service is currently unavailable.) The request is automatically redirected to `pay.beza.et`.
+**User Impact:** يرى المستخدم رسالة "خدمة دفع الفواتير غير متوفرة حالياً."
 
-**Recovery:** Route53 failover to the secondary region completes within 5 minutes. The customer retries after a 2-minute wait.
+**Recovery:** يكتمل التبديل إلى المنطقة الثانوية عبر Route53 خلال 5 دقائق. يعيد العميل المحاولة بعد دقيقتين.
 
-### Biller API (EEU) connection timeout during payment submission
-**System Behavior:** The payment submission to the EEU server does not receive a response within the 20-second timeout. The payment is marked as `PENDING_BILLER_SUBMIT`.
+### انتهاء مهلة اتصال API المزود (المؤسسة العامة للكهرباء) أثناء إرسال الدفع
+**System Behavior:** لا يتلقى إرسال الدفع إلى خادم المؤسسة العامة للكهرباء استجابة خلال مهلة الـ 20 ثانية. يتم وضع علامة على الدفع كـ `PENDING_BILLER_SUBMIT`.
 
-**User Impact:** The customer sees "جاري تأكيد الدفع مع هيئة الكهرباء" (Confirming payment with the Electric Utility.)
+**User Impact:** يرى العميل رسالة "جاري تأكيد الدفع مع المؤسسة العامة للكهرباء."
 
-**Recovery:** The system retries the submission 3 times (30s, 2min, 5min intervals). If the EEU server remains unreachable, the payment is queued and processed when the EEU system recovers.
+**Recovery:** يعيد النظام الإرسال 3 مرات (بفاصل 30 ثانية، دقيقتان، 5 دقائق). إذا بقي خادم المؤسسة العامة للكهرباء غير متاح، يتم وضع الدفع في قائمة انتظار ومعالجته عند استعادة النظام.
 
-### Network partition between Beza and Ethio Telecom SMSC
-**System Behavior:** The bill payment is processed successfully. The SMS receipt cannot be delivered because the SMSC connection is down.
+### انقطاع الشبكة بين المنصة ومركز رسائل مزود الاتصالات (سيريتل/MTN)
+**System Behavior:** تتم معالجة دفع الفاتورة بنجاح. لا يمكن تسليم إيصال SMS لأن اتصال مركز الرسائل معطل.
 
-**User Impact:** The customer sees "تم الدفع بنجاح" (Payment successful) in the app. The SMS receipt is not received.
+**User Impact:** يرى العميل "تم الدفع بنجاح" في التطبيق. لا يتم استلام إيصال SMS.
 
-**Recovery:** The SMS is retried for up to 24 hours. An in-app receipt is always available in the transaction history. A push notification is sent as an immediate backup.
+**Recovery:** يعاد إرسال SMS لمدة تصل إلى 24 ساعة. يتوفر إيصال داخل التطبيق دائماً في سجل المعاملات. يتم إرسال إشعار فوري كنسخة احتياطية فورية.
 
-## 2. Transaction Failures
+## 2. أعطال المعاملات (Transaction Failures)
 
-### Insufficient balance — customer tries to pay a 3,500 ETB water bill but has 2,100 ETB
-**System Behavior:** The pre-validation checks `wallet_balance >= bill_amount`. The transaction is rejected before any debit occurs.
+### رصيد غير كافٍ — يحاول العميل دفع فاتورة كهرباء بقيمة 35,000 ليرة سورية ولكن لديه 21,000 ليرة فقط
+**System Behavior:** يتحقق التحقق المسبق من `wallet_balance >= bill_amount`. يتم رفض المعاملة قبل أي خصم.
 
-**User Impact:** The customer sees "رصيد غير كافٍ. الرصيد المتاح: 2,100 ETB" (Insufficient balance. Available: 2,100 ETB.)
+**User Impact:** يرى العميل رسالة "رصيد غير كافٍ. الرصيد المتاح: 21,000 ليرة سورية."
 
-**Recovery:** The UI shows the minimum top-up amount needed. The customer can add funds to their wallet or check if the biller supports partial payment. Most utility billers in Ethiopia require full payment.
+**Recovery:** تعرض واجهة المستخدم الحد الأدنى لمبلغ الشحن المطلوب. يمكن للعميل إضافة أموال إلى محفظته أو التحقق مما إذا كان المزود يدعم الدفع الجزئي. معظم مزودي الخدمات في سورية يطلبون الدفع الكامل.
 
-### Duplicate bill payment — customer pays the same EEU bill twice
-**System Behavior:** The idempotency key is constructed from `biller_code + customer_id + bill_reference + amount`. The second payment request returns `DUPLICATE` and is rejected.
+### دفع فاتورة مكرر — يدفع العميل نفس فاتورة المؤسسة العامة للكهرباء مرتين
+**System Behavior:** يتم إنشاء مفتاح التكرار من `biller_code + customer_id + bill_reference + amount`. يتم إرجاع `DUPLICATE` لطلب الدفع الثاني ويتم رفضه.
 
-**User Impact:** The customer sees "تم دفع هذه الفاتورة مسبقاً" (This bill has already been paid.)
+**User Impact:** يرى العميل رسالة "تم دفع هذه الفاتورة مسبقاً."
 
-**Recovery:** The second payment is rejected before any debit occurs. If a duplicate payment somehow occurs (race condition), the customer can request a refund from Beza support, which is processed within 48 hours.
+**Recovery:** يتم رفض الدفع الثاني قبل أي خصم. إذا حدث دفع مكرر (حالة سباق)، يمكن للعميل طلب استرداد من دعم المنصة، ويتم معالجته خلال 48 ساعة.
 
-### Wrong bill reference number — customer enters a 10-digit number instead of 13 digits
-**System Behavior:** The reference validation checks the length and format against the biller's specification. The format does not match and the payment is blocked.
+### رقم فاتورة خاطئ — يدخل العميل رقماً من 10 أرقام بدلاً من 24 رقماً
+**System Behavior:** يتحقق التحقق من المرجع من طول وتنسيق الرقم مقابل مواصفات المزود. التنسيق غير متطابق ويتم حظر الدفع.
 
-**User Impact:** The customer sees "رقم الفاتورة غير صحيح. يجب أن يتكون من 13 رقماً" (Invalid bill number. Must be 13 digits.)
+**User Impact:** يرى العميل رسالة "رقم الفاتورة غير صحيح. يجب أن يتكون من 24 رقماً (رقم العداد)."
 
-**Recovery:** The UI validates the reference number format as the customer types. The format mask adjusts based on the selected biller type.
+**Recovery:** تتحقق واجهة المستخدم من تنسيق رقم المرجع أثناء الكتابة. يتكيف قناع التنسيق حسب نوع المزود المحدد.
 
-### Bill already paid at the biller — customer tries to pay an already-cleared EEU bill
-**System Behavior:** The biller returns `BILL_ALREADY_PAID` when Beza submits the payment. The payment is not processed and the customer is not debited.
+### الفاتورة مدفوعة مسبقاً لدى المزود — يحاول العميل دفع فاتورة مسددة للمؤسسة العامة للكهرباء
+**System Behavior:** يعيد المزود `BILL_ALREADY_PAID` عندما ترسل المنصة الدفع. لا تتم معالجة الدفع ولا يتم خصم مبلغ من العميل.
 
-**User Impact:** The customer sees "هذه الفاتورة مدفوعة مسبقاً" (This bill has already been paid.)
+**User Impact:** يرى العميل رسالة "هذه الفاتورة مدفوعة مسبقاً."
 
-**Recovery:** No refund is needed since no funds were moved. The transaction history shows "مدفوعة مسبقاً" (Already paid) for reference.
+**Recovery:** لا حاجة لاسترداد الأموال نظراً لعدم تحويل أي أموال. يظهر سجل المعاملات "مدفوعة مسبقاً" كمرجع.
 
-### Payment amount exceeds bill amount — customer enters 2,000 ETB for a 1,750 ETB bill
-**System Behavior:** The system checks with the biller whether overpayments are accepted. If accepted, the excess is credited as prepaid balance. If not accepted, the payment is rejected.
+### مبلغ الدفع يتجاوز مبلغ الفاتورة — يدخل العميل 40,000 ليرة لفاتورة بقيمة 37,500 ليرة
+**System Behavior:** يتحقق النظام مع المزود مما إذا كانت المدفوعات الزائدة مقبولة. إذا كانت مقبولة، يتم إيداع الفائض كرصيد مسبق. إذا لم تكن مقبولة، يتم رفض الدفع.
 
-**User Impact:** The customer sees "المبلغ المدخل (2,000 ETB) يتجاوز قيمة الفاتورة (1,750 ETB). سيتم إيداع 250 ETB كرصيد مسبق" (The entered amount (2,000 ETB) exceeds the bill amount (1,750 ETB). 250 ETB will be credited as prepaid balance.)
+**User Impact:** يرى العميل "المبلغ المدخل (40,000 ل.س) يتجاوز قيمة الفاتورة (37,500 ل.س). سيتم إيداع 2,500 ل.س كرصيد مسبق."
 
-**Recovery:** The prepaid balance is tracked by the biller and can be used for the next billing cycle.
+**Recovery:** يتم تتبع الرصيد المسبق من قبل المزود ويمكن استخدامه لدورة الفوترة التالية.
 
-### Payment made to the wrong biller — customer selects Ethio Telecom but enters an EEU reference
-**System Behavior:** The system validates the reference number format against the selected biller's pattern. The format does not match and the payment is blocked.
+### دفع لمزود خاطئ — يختار العميل سيريتل ولكن يدخل رقم عداد المؤسسة العامة للكهرباء
+**System Behavior:** يتحقق النظام من تنسيق رقم المرجع مقابل نمط المزود المحدد. التنسيق غير متطابق ويتم حظر الدفع.
 
-**User Impact:** The customer sees "رقم الفاتورة لا يتطابق مع مزود الخدمة المحدد" (The bill number does not match the selected service provider.)
+**User Impact:** يرى العميل رسالة "رقم الفاتورة لا يتطابق مع مزود الخدمة المحدد."
 
-**Recovery:** The payment is rejected before any funds are moved. The customer corrects the biller selection and retries.
+**Recovery:** يتم رفض الدفع قبل تحويل أي أموال. يقوم العميل بتصحيح اختيار المزود ويعيد المحاولة.
 
-## 3. External Dependency Failures
+### فشل دفع فاتورة المياه بسبب عدم تطابق رقم العداد القديم مع النظام الجديد لمؤسسة مياه دمشق
+**System Behavior:** قامت مؤسسة مياه دمشق بترقية نظام الفوترة. أرقام العدادات القديمة ذات 14 رقماً لم تعد صالحة، النظام الجديد يستخدم 20 رقماً. يرفض API المزود الدفع.
 
-### EEU (Ethiopian Electric Utility) system down for maintenance
-**System Behavior:** All EEU bill inquiries and payments are blocked. A status banner is shown on the bill payment page.
+**User Impact:** يرى العميل "رقم العداد غير معروف لدى مؤسسة مياه دمشق. يرجى تحديث رقم العداد."
 
-**User Impact:** The customer sees "خدمة هيئة الكهرباء غير متوفرة حالياً. حاول مرة أخرى بعد ساعة" (EEU service is currently unavailable. Please try again in 1 hour.)
+**Recovery:** يتم تحديث تعيين تنسيق المرجع في غضون 4 ساعات. يتم تعيين التنسيق القديم تلقائياً إلى التنسيق الجديد عند الإمكان. يمكن للعميل الحصول على الرقم الجديد من فاتورة المياه الورقية.
 
-**Recovery:** The operations team monitors the EEU status page. When EEU confirms availability, the service resumes automatically. For urgent payments, a queue is available that processes when EEU is back online.
+## 3. أعطال التبعيات الخارجية (External Dependency Failures)
 
-### Ethio Telecom biller API returning incorrect balance
-**System Behavior:** The Ethio Telecom API returns 0 ETB due for all customers due to a billing system glitch. Beza displays the API response.
+### تعطل نظام المؤسسة العامة للكهرباء للصيانة
+**System Behavior:** يتم حظر جميع استعلامات ومدفوعات المؤسسة العامة للكهرباء. يتم عرض لافتة حالة على صفحة دفع الفواتير.
 
-**User Impact:** The customer sees "لا توجد فاتورة مستحقة" (No bill due.) even though they know they have an outstanding balance.
+**User Impact:** يرى العميل رسالة "خدمة المؤسسة العامة للكهرباء غير متوفرة حالياً. حاول مرة أخرى بعد ساعة."
 
-**Recovery:** Beza displays a disclaimer "قد لا تكون قيمة الفاتورة دقيقة. يُرجى التأكيد مع Ethio Telecom" (The bill amount may not be accurate. Please confirm with Ethio Telecom.) The customer can manually enter the amount with a screenshot of their bill.
+**Recovery:** يراقب فريق العمليات صفحة حالة المؤسسة العامة للكهرباء. عندما تؤكد المؤسسة التوفر، يستأنف النظام الخدمة تلقائياً. للمدفوعات العاجلة، تتوفر قائمة انتظار تتم معالجتها عندما تعود المؤسسة للخدمة.
 
-### Water and Sewerage Authority API timeout
-**System Behavior:** The inquiry API hangs for more than 15 seconds. The system falls back to the cached bill amount from the last 24 hours.
+### API سيريتل يعيد رصيداً غير صحيح
+**System Behavior:** يعيد API سيريتل مبلغ 0 ليرة سورية مستحقة لجميع العملاء بسبب خلل في نظام الفوترة. تعرض المنصة استجابة API.
 
-**User Impact:** The customer sees a cached amount with the disclaimer "قيمة الفاتورة من آخر تحديث" (Bill amount from the last update.)
+**User Impact:** يرى العميل رسالة "لا توجد فاتورة مستحقة." حتى لو كان يعلم بوجود رصيد مستحق.
 
-**Recovery:** If no cached amount is available, the system shows "غير متاح" (Unavailable.) and the customer can manually enter the amount by taking a photo of their water bill.
+**Recovery:** تعرض المنصة إخلاء مسؤولية "قد لا تكون قيمة الفاتورة دقيقة. يُرجى التأكيد مع سيريتل." يمكن للعميل إدخال المبلغ يدوياً مع صورة فاتورته.
 
-### SMS provider (InfoBip) unavailable for bill payment receipt
-**System Behavior:** The SMS is queued on SQS. A push notification is sent via Firebase Cloud Messaging as the primary channel.
+### انتهاء مهلة API مؤسسة مياه دمشق
+**System Behavior:** يتعطل API الاستعلام لأكثر من 15 ثانية. يعود النظام إلى مبلغ الفاتورة المخبأ من آخر 24 ساعة.
 
-**User Impact:** The customer may not receive the SMS receipt. The receipt is available in the app transaction history. "تم إرسال الإيصال عبر التطبيق" (Receipt sent via app.)
+**User Impact:** يرى العميل مبلغاً مخبأً مع إخلاء مسؤولية "قيمة الفاتورة من آخر تحديث."
 
-**Recovery:** The SMS is retried every hour for up to 24 hours. If the customer has consented, a WhatsApp receipt is also sent.
+**Recovery:** إذا لم يتوفر مبلغ مخبأ، يعرض النظام "غير متاح." ويمكن للعميل إدخال المبلغ يدوياً عن طريق التقاط صورة لفاتورة المياه الخاصة به.
 
-### Tax authority (MoF) API for government fee payment down
-**System Behavior:** Government fee payments (e.g., passport fees, business licenses) are blocked. Private billers (EEU, Ethio Telecom) are unaffected.
+### مزود SMS غير متاح لإيصال دفع الفاتورة
+**System Behavior:** يتم وضع SMS في قائمة انتظار على SQS. يتم إرسال إشعار فوري عبر Firebase Cloud Messaging كقناة أساسية.
 
-**User Impact:** The customer sees "خدمة دفع الرسوم الحكومية غير متوفرة" (Government fee payment service is unavailable.)
+**User Impact:** قد لا يتلقى العميل إيصال SMS. الإيصال متاح في سجل معاملات التطبيق. "تم إرسال الإيصال عبر التطبيق."
 
-**Recovery:** Queued payments are processed when the MoF API is restored. Any late payment penalties incurred due to the outage are waived.
+**Recovery:** يعاد إرسال SMS كل ساعة لمدة تصل إلى 24 ساعة. إذا وافق العميل، يتم إرسال إيصال WhatsApp أيضاً.
 
-## 4. Data Consistency Failures
+### API مصلحة الضرائب السورية لدفع الرسوم الحكومية معطل
+**System Behavior:** يتم حظر مدفوعات الرسوم الحكومية (مثل رسوم جواز السفر، التراخيص التجارية). المزودون الخاصون (المؤسسة العامة للكهرباء، سيريتل، MTN) غير متأثرين.
 
-### Payment success in Beza DB but biller rejects (EEU system error)
-**System Behavior:** The customer is debited in the Beza wallet. The EEU system returns a `REJECTED` status. Beza detects the mismatch and initiates an automatic reversal.
+**User Impact:** يرى العميل رسالة "خدمة دفع الرسوم الحكومية غير متوفرة."
 
-**User Impact:** The customer sees the reversal "تم إعادة 1,750 ETB إلى محفظتك. فشل دفع الفاتورة" (1,750 ETB has been returned to your wallet. Bill payment failed.)
+**Recovery:** تتم معالجة المدفوعات في قائمة الانتظار عند استعادة API مصلحة الضرائب. يتم إلغاء أي غرامات تأخير ناتجة عن الانقطاع.
 
-**Recovery:** The reversal is completed within 30 seconds. The customer can retry the payment. The EEU error is logged for follow-up by the operations team.
+### تعطل نظام MTN للفوترة — عدم القدرة على دفع فواتير الخلوي
+**System Behavior:** يتعطل نظام الفوترة في MTN سوريا. لا يمكن إجراء استعلامات أو مدفوعات جديدة.
 
-### Cache inconsistency — bill amount cached as 0 but actual is 1,500 ETB
-**System Behavior:** The cache TTL (5 minutes) serves a stale value of 0 ETB. The customer proceeds thinking no bill is due.
+**User Impact:** يرى العميل "خدمة MTN غير متوفرة حالياً. يرجى المحاولة لاحقاً أو الدفع مباشرة عبر تطبيق MTN."
 
-**User Impact:** The customer does not pay the bill. The bill goes overdue and a late fee is incurred.
+**Recovery:** يتم إعادة المحاولة كل 5 دقائق. عند استعادة النظام، تتم معالجة جميع المدفوعات المعلقة تلقائياً.
 
-**Recovery:** The next cache refresh shows the correct amount of 1,500 ETB. The customer is notified "لديك فاتورة مستحقة بقيمة 1,500 ETB" (You have a due bill of 1,500 ETB.)
+## 4. أعطال تناسق البيانات (Data Consistency Failures)
 
-### Bill payment event lost in Kafka — credit to biller never sent
-**System Behavior:** The payment is marked as `COMPLETED` in the Beza database. The Kafka message carrying the payment confirmation to the biller is lost. The biller is never notified.
+### نجاح الدفع في قاعدة بيانات المنصة ولكن المزود يرفض (خطأ في نظام المؤسسة العامة للكهرباء)
+**System Behavior:** يتم خصم مبلغ من محفظة العميل في المنصة. يعيد نظام المؤسسة العامة للكهرباء حالة `REJECTED`. تكتشف المنصة عدم التطابق وتبدأ الإلغاء التلقائي.
 
-**User Impact:** The customer thinks the bill is paid. The biller sends a disconnection notice because they have not received the payment.
+**User Impact:** يرى العميل الإلغاء "تم إعادة 37,500 ل.س إلى محفظتك. فشل دفع الفاتورة."
 
-**Recovery:** A reconciliation job between Beza and the biller runs daily. Mismatched payments are detected and the credit information is resent. The customer is notified of the correction.
+**Recovery:** يكتمل الإلغاء خلال 30 ثانية. يمكن للعميل إعادة محاولة الدفع. يتم تسجيل خطأ المؤسسة العامة للكهرباء للمتابعة من قبل فريق العمليات.
 
-### Dual-write inconsistency — payment recorded but biller balance decrement fails
-**System Behavior:** The customer is debited. The biller's prepaid balance is not updated because the write to the biller's system fails.
+### عدم تناسق التخزين المؤقت — مبلغ الفاتورة المخبأ كـ 0 ولكن الفعلي 35,000 ليرة سورية
+**System Behavior:** يخدم TTL للتخزين المؤقت (5 دقائق) قيمة قديمة قدرها 0 ليرة سورية. يمضي العميل قدماً معتقداً أنه لا توجد فاتورة مستحقة.
 
-**User Impact:** The customer sees the payment in their history. The biller shows no credit on their account.
+**User Impact:** لا يدفع العميل الفاتورة. تصبح الفاتورة متأخرة ويتم فرض رسوم تأخير.
 
-**Recovery:** A compensatory transaction refunds the customer. The customer sees "تم إلغاء الدفع. أعيد 1,750 ETB" (Payment cancelled. 1,750 ETB returned.)
+**Recovery:** يظهر التحديث التالي للتخزين المؤقت المبلغ الصحيح البالغ 35,000 ليرة سورية. يتم إشعار العميل "لديك فاتورة مستحقة بقيمة 35,000 ل.س."
 
-### Bill reference number collision — two customers use the same reference number
-**System Behavior:** The database enforces a unique constraint on `(biller_code, bill_reference)`. The second customer's payment is rejected.
+### فقدان حدث دفع الفاتورة في Kafka — لم يتم إرسال الدفع إلى المزود أبداً
+**System Behavior:** يتم وضع علامة على الدفع كـ `COMPLETED` في قاعدة بيانات المنصة. يتم فقدان رسالة Kafka التي تحمل تأكيد الدفع إلى المزود. لم يتم إشعار المزود أبداً.
 
-**User Impact:** The second customer sees "رقم الفاتورة مستخدم مسبقاً. يرجى التحقق من الرقم" (Bill number already in use. Please verify the number.)
+**User Impact:** يعتقد العميل أن الفاتورة مدفوعة. يرسل المزود إشعار قطع لأنهم لم يستلموا الدفع.
 
-**Recovery:** The customer contacts the biller to confirm the correct reference number. Beza support helps resolve the collision.
+**Recovery:** تعمل وظيفة تسوية بين المنصة والمزود يومياً. يتم اكتشاف المدفوعات غير المتطابقة وإعادة إرسال معلومات الدفع. يتم إشعار العميل بالتصحيح.
 
-## 5. Security Failures
+### عدم تناسق الكتابة المزدوجة — تم تسجيل الدفع ولكن فشل تحديث رصيد المزود
+**System Behavior:** تم خصم مبلغ من العميل. لم يتم تحديث الرصيد المدفوع مسبقاً للمزود لأن الكتابة إلى نظام المزود فشلت.
 
-### Fraud false positive — customer paying a 25,000 ETB business electricity bill flagged
-**System Behavior:** The AML rules engine triggers on the amount exceeding the 20,000 ETB threshold. The payment is placed in `PENDING_REVIEW`.
+**User Impact:** يرى العميل الدفع في سجله. يظهر المزود عدم وجود رصيد في حسابه.
 
-**User Impact:** The customer sees "المعاملة قيد المراجعة" (Transaction under review.) The business may face a late payment penalty if the delay exceeds the due date.
+**Recovery:** معاملة تعويضية تسترد المبلغ للعميل. يرى العميل "تم إلغاء الدفع. أعيدت 37,500 ل.س."
 
-**Recovery:** The compliance team reviews the transaction within 2 hours. If the customer has a history of business-scale payments, their profile is whitelisted. The payment is released.
+### تضارب رقم الفاتورة — عميلان يستخدمان نفس الرقم المرجعي
+**System Behavior:** تفرض قاعدة البيانات قيداً فريداً على `(biller_code, bill_reference)`. يتم رفض دفع العميل الثاني.
 
-### Fraud false negative — stolen phone used to pay a 500 ETB bill (testing), then 15,000 ETB
-**System Behavior:** The small test payment of 500 ETB passes with a low risk score. The larger payment of 15,000 ETB also passes because the device has been used successfully.
+**User Impact:** يرى العميل الثاني "رقم الفاتورة مستخدم مسبقاً. يرجى التحقق من الرقم."
 
-**User Impact:** The legitimate owner loses 15,500 ETB total. The biller is credited for the fraudster's payments.
+**Recovery:** يتصل العميل بالمزود لتأكيد رقم المرجع الصحيح. يساعد دعم المنصة في حل التضارب.
 
-**Recovery:** The device fingerprint and geolocation anomaly triggers a retrospective alert. Insurance covers 80% of the verified loss. The stolen device is blacklisted.
+### عدم تطابق مبلغ الفاتورة بين المنصة والمزود بعد الدفع
+**System Behavior:** تم دفع الفاتورة بمبلغ 35,000 ليرة سورية. يظهر سجل المزود المبلغ كـ 34,500 ليرة سورية بسبب فرق في طريقة حساب الرسوم.
 
-### Unauthorized access to biller configuration panel
-**System Behavior:** An attacker modifies the EEU biller API endpoint URL to point to the attacker's own server. All EEU bill payments are redirected.
+**User Impact:** يرى العميل مبلغين مختلفين في المنصة وفي فاتورة المزود. "اختلاف في مبلغ الفاتورة المسدد."
 
-**User Impact:** Thousands of customers pay their EEU bills to the attacker. At 1,750 ETB per customer times 10,000 customers, the total exposure is 17.5 million ETB.
+**Recovery:** يتم تشغيل وظيفة تسوية تلقائية كل ساعة لمقارنة المبالغ المسددة مع سجلات المزود. يتم تصحيح أي اختلاف وإشعار العميل.
 
-**Recovery:** API endpoint changes require MFA plus dual approval from two authorized engineers. An audit log entry triggers an immediate SIEM alert on any `BILLER_ENDPOINT_CHANGE`. Weekly endpoint verification confirms correct configuration.
+## 5. أعطال الأمان (Security Failures)
 
-### Refund fraud — customer claims bill payment failed, requests refund after biller confirms
-**System Behavior:** The customer calls support claiming the payment failed. The support agent issues a refund without verifying with the biller.
+### إنذار كاذب للاحتيال — عميل يدفع فاتورة كهرباء تجارية بقيمة 250,000 ليرة سورية يتم الإبلاغ عنها
+**System Behavior:** يطلق محرك قواعد AML إنذاراً على المبلغ الذي يتجاوز حد 200,000 ليرة سورية. يتم وضع الدفع في `PENDING_REVIEW`.
 
-**User Impact:** Beza loses 1,750 ETB. The customer receives both the bill payment and the refund.
+**User Impact:** يرى العميل "المعاملة قيد المراجعة." قد تواجه الشركة غرامة تأخير إذا تجاوز التأخير تاريخ الاستحقاق.
 
-**Recovery:** The support workflow requires direct verification with the biller before issuing any refund. The refund requires the biller's confirmation code as evidence.
+**Recovery:** يراجع فريق الامتثال المعاملة خلال ساعتين. إذا كان لدى العميل تاريخ من مدفوعات بحجم تجاري، يتم إدراج ملفه الشخصي في القائمة البيضاء. يتم تحرير الدفع.
 
-### Fake biller injected — attacker registers as a biller and sends fake bills
-**System Behavior:** The attacker registers a fake biller through the biller onboarding process, which was not thoroughly vetted. The attacker sends fake bills to Beza users.
+### إنذار كاذب سلبي للاحتيال — هاتف مسروق يُستخدم لدفع فاتورة 5,000 ليرة سورية (اختبار)، ثم 150,000 ليرة
+**System Behavior:** يجتاز دفعة الاختبار الصغيرة البالغة 5,000 ليرة سورية بتقييم مخاطر منخفض. كما يجتاز الدفعة الأكبر البالغة 150,000 ليرة سورية لأن الجهاز تم استخدامه بنجاح.
 
-**User Impact:** 500 customers pay 1,200 ETB each to the fake biller. Total loss is 600,000 ETB.
+**User Impact:** يفقد المالك الشرعي 155,000 ليرة سورية إجمالاً. يتم إيداع مبلغ المزود لمدفوعات المحتال.
 
-**Recovery:** All new billers undergo physical verification and bank account matching before activation. Suspicious billers are flagged for manual review by the merchant onboarding team.
+**Recovery:** يؤدي بصمة الجهاز وتباين الموقع الجغرافي إلى تنبيه استعادي. يغطي التأمين 80٪ من الخسارة المؤكدة. يتم إدراج الهاتف المسروق في القائمة السوداء.
 
-## 6. Business Logic Failures
+### وصول غير مصرح به إلى لوحة تكوين المزودين
+**System Behavior:** يخترق مهاجم لوحة التكوين ويعدل عنوان API الخاص بالمؤسسة العامة للكهرباء ليشير إلى خادم المهاجم الخاص. يتم إعادة توجيه جميع مدفوعات المؤسسة العامة للكهرباء.
 
-### Late payment fee incurred due to Beza processing delay
-**System Behavior:** The customer pays on the due date. The biller receives the payment the next day due to a processing delay. The biller charges a late fee.
+**User Impact:** يدفع آلاف العملاء فواتير المؤسسة العامة للكهرباء للمهاجم. بمعدل 35,000 ليرة سورية لكل عميل × 10,000 عميل، إجمالي التعرض 350,000,000 ليرة سورية.
 
-**User Impact:** The customer sees a late fee from the biller. Beza covers the cost. "تم دفع غرامة التأخير نيابة عنك" (The late fee has been paid on your behalf.)
+**Recovery:** تتطلب تغييرات نقطة نهاية API موافقة مزدوجة من مهندسين مصرح لهم بالإضافة إلى MFA. يؤدي إدخال سجل التدقيق إلى تنبيه SIEM فوري على أي `BILLER_ENDPOINT_CHANGE`. يتم التحقق الأسبوعي من صحة التكوين.
 
-**Recovery:** Beza absorbs the late fee (maximum 50 ETB per bill). The root cause — the biller's batch processing runs only at 6 PM — is documented and communicated to the customer.
+### احتيال استرداد — يدعي العميل فشل دفع الفاتورة، يطلب استرداداً بعد تأكيد المزود
+**System Behavior:** يتصل العميل بالدعم مدعياً فشل الدفع. يصدر وكيل الدعم استرداداً دون التحقق مع المزود.
 
-### Biller rejects payment because the customer account number format changed
-**System Behavior:** The EEU migrated to a new account numbering system. The old format is no longer recognized. The payment is rejected.
+**User Impact:** تخسر المنصة 35,000 ليرة سورية. يحصل العميل على كل من دفع الفاتورة واسترداد المبلغ.
 
-**User Impact:** The customer sees "رقم الحساب غير معروف لدى هيئة الكهرباء" (Account number unknown to EEU.)
+**Recovery:** تتطلب سير عمل الدعم التحقق المباشر مع المزود قبل إصدار أي استرداد. يتطلب الاسترداد رمز تأكيد المزود كدليل.
 
-**Recovery:** Beza updates the reference format mapping within 4 hours. The old format is automatically mapped to the new format. The customer retries the payment.
+### مزود وهمي — مسجل كمزود ويرسل فواتير مزيفة
+**System Behavior:** يسجل المهاجم كمزود وهمي من خلال عملية تأهيل المزودين التي لم يتم فحصها بدقة. يرسل المهاجم فواتير مزيفة لمستخدمي المنصة.
 
-### Partial payment not supported by the biller
-**System Behavior:** The customer tries to pay 50% of a 3,000 ETB bill. The biller returns `PARTIAL_NOT_SUPPORTED`.
+**User Impact:** 500 عميل يدفعون 25,000 ليرة سورية لكل منهم للمزود المزيف. إجمالي الخسارة 12,500,000 ليرة سورية.
 
-**User Impact:** The customer sees "هذا المزود لا يدعم الدفع الجزئي. يرجى دفع 3,000 ETB كاملاً" (This provider does not support partial payment. Please pay the full 3,000 ETB.)
+**Recovery:** يخضع جميع المزودين الجدد للتحقق المادي ومطابقة الحساب المصرفي قبل التفعيل. يتم الإبلاغ عن المزودين المشبوهين للمراجعة اليدوية من قبل فريق تأهيل التجار.
 
-**Recovery:** The UI hides the partial payment option for billers that do not support it. The customer must pay the full amount.
+### استغلال ضعف في واجهة الاستعلام — جلب فواتير الآخرين
+**System Behavior:** يكتشف المهاجم أن معرّف العميل في واجهة الاستعلام يمكن تعديله. يقوم المهاجم باستعلام فواتير عملاء آخرين.
 
-### Recurring payment fails due to insufficient balance on the scheduled date
-**System Behavior:** The auto-payment engine checks the wallet balance. The balance is insufficient. The payment is skipped. A retry is scheduled for 3 days later.
+**User Impact:** يتم كشف خصوصية فواتير العملاء. يطلع المهاجم على أسماء وأرقام فواتير وأرصدة عملاء آخرين.
 
-**User Impact:** The customer is notified "فشل الدفع التلقائي للفاتورة. يرجى التأكد من وجود رصيد كافٍ" (Auto-payment failed. Please ensure you have sufficient balance.)
+**Recovery:** يتم تطبيق التحقق من التفويض على جميع استعلامات الفواتير. يتم تدقيق جميع طلبات API وتسجيلها. يتم إخطار العملاء المتأثرين.
 
-**Recovery:** The system retries up to 3 times (3, 7, and 14 days after the original due date). If all retries fail, the auto-payment rule is suspended and the customer must pay manually.
+## 6. أعطال منطق الأعمال (Business Logic Failures)
 
-### Bill amount changed between inquiry and payment
-**System Behavior:** The EEU updated the bill from 1,750 ETB to 1,850 ETB between the customer's inquiry and the payment confirmation. The system re-verifies the amount at payment time.
+### غرامة تأخير ناتجة عن تأخير معالجة المنصة
+**System Behavior:** يدفع العميل في تاريخ الاستحقاق. يتلقى المزود الدفع في اليوم التالي بسبب تأخير في المعالجة. يفرض المزود رسوم تأخير.
 
-**User Impact:** The customer sees "تم تحديث قيمة الفاتورة. المبلغ الجديد: 1,850 ETB" (The bill amount has been updated. The new amount is 1,850 ETB.)
+**User Impact:** يرى العميل رسوم تأخير من المزود. تتحمل المنصة التكلفة. "تم دفع غرامة التأخير نيابة عنك."
 
-**Recovery:** The customer can accept the new amount or cancel the payment. If cancelled, no charge is incurred. The original inquiry amount is invalidated.
+**Recovery:** تتحمل المنصة رسوم التأخير (بحد أقصى 5,000 ليرة سورية لكل فاتورة). يتم توثيق السبب الجذري — معالجة الدفعة المجمعة للمزود تعمل فقط في الساعة 6 مساءً — ويتم إبلاغ العميل به.
 
-## 7. Performance & Scalability Failures
+### المزود يرفض الدفع لأن تنسيق رقم حساب العميل تغير
+**System Behavior:** قامت المؤسسة العامة للكهرباء بالانتقال إلى نظام ترقيم جديد للحسابات. لم يعد التنسيق القديم معروفاً. يتم رفض الدفع.
 
-### Sudden bill payment spike — 20x volume on EEU bill due date
-**System Behavior:** The bill payment API auto-scales from 20 to 150 pods. The EEU API receives 8,000 payment submissions per minute. EEU's system throttles to 100 requests per second.
+**User Impact:** يرى العميل "رقم الحساب غير معروف لدى المؤسسة العامة للكهرباء."
 
-**User Impact:** Customers see "الخدمة مشغولة حالياً. يرجى الانتظار" (The service is busy. Please wait.) Payment confirmations are delayed by up to 5 minutes.
+**Recovery:** تقوم المنصة بتحديث تعيين تنسيق المرجع في غضون 4 ساعات. يتم تعيين التنسيق القديم تلقائياً إلى التنسيق الجديد. يعيد العميل محاولة الدفع.
 
-**Recovery:** Bill payment requests are queued and processed at the EEU throttle rate. A position indicator shows "مكانك في قائمة الانتظار: 234" (Your position in queue: 234.) Pre-scheduled payments are processed ahead of the due date.
+### الدفع الجزئي غير مدعوم من المزود
+**System Behavior:** يحاول العميل دفع 50٪ من فاتورة بقيمة 35,000 ليرة سورية. يعيد المزود `PARTIAL_NOT_SUPPORTED`.
 
-### Biller inquiry API rate limiting — 200 inquiries per second per biller
-**System Behavior:** The EEU inquiry API enforces a rate limit of 200 requests per second. Beza sends 500 inquiries per second during peak hours. 300 inquiries are throttled.
+**User Impact:** يرى العميل "هذا المزود لا يدعم الدفع الجزئي. يرجى دفع 35,000 ل.س كاملاً."
 
-**User Impact:** Customers see a 5-second delay when looking up their EEU bill. "جاري تحميل بيانات الفاتورة..." (Loading bill data...) takes longer than usual.
+**Recovery:** تخفي واجهة المستخدم خيار الدفع الجزئي للمزودين الذين لا يدعمونه. يجب على العميل دفع المبلغ الكامل.
 
-**Recovery:** Inquiry results are cached in Redis for 5 minutes. The rate is smoothed to exactly 200 requests per second. Batch inquiry is used to fetch multiple bills in a single call.
+### فشل الدفع المتكرر بسبب عدم كفاية الرصيد في التاريخ المحدد
+**System Behavior:** يتحقق محرك الدفع التلقائي من رصيد المحفظة. الرصيد غير كافٍ. يتم تخطي الدفع. تتم جدولة إعادة المحاولة بعد 3 أيام.
 
-### Database query slowdown — bill history query takes 15 seconds for power users
-**System Behavior:** Users with 1,000+ bill payments experience slow history queries. The query scans all rows for that user. Query time grows linearly with transaction count.
+**User Impact:** يتم إشعار العميل "فشل الدفع التلقائي للفاتورة. يرجى التأكد من وجود رصيد كافٍ."
 
-**User Impact:** Power users see "جاري تحميل سجل الفواتير..." (Loading bill history...) for 10-15 seconds.
+**Recovery:** يعيد النظام المحاولة حتى 3 مرات (3 و7 و14 يوماً بعد تاريخ الاستحقاق الأصلي). إذا فشلت جميع المحاولات، يتم تعليق قاعدة الدفع التلقائي ويجب على العميل الدفع يدوياً.
 
-**Recovery:** A composite index on `(user_id, created_at)` reduces query time to 200ms. Pagination is limited to 20 items per page with cursor-based pagination.
+### تغير مبلغ الفاتورة بين الاستعلام والدفع
+**System Behavior:** قامت المؤسسة العامة للكهرباء بتحديث الفاتورة من 35,000 ليرة سورية إلى 37,000 ليرة سورية بين استعلام العميل وتأكيد الدفع. يعيد النظام التحقق من المبلغ عند وقت الدفع.
 
-## 8. Operational Failures
+**User Impact:** يرى العميل "تم تحديث قيمة الفاتورة. المبلغ الجديد: 37,000 ل.س."
 
-### Deployment rollback — v3.4.0 sends duplicate bill payments to EEU
-**System Behavior:** The canary deployment detects a 50% increase in payment submissions within 3 minutes. The automated rollback is triggered.
+**Recovery:** يمكن للعميل قبول المبلغ الجديد أو إلغاء الدفع. إذا تم الإلغاء، لا يتم فرض أي رسوم. يتم إبطال مبلغ الاستعلام الأصلي.
 
-**User Impact:** Approximately 100 customers had their bills paid twice. The EEU shows double payment on their accounts. Total overpayment: 175,000 ETB.
+### عدم توفر خدمة الدفع الفوري لفاتورة الكهرباء بعد ساعات العمل الرسمية
+**System Behavior:** تقوم المؤسسة العامة للكهرباء بإيقاف خدمة الدفع الفوري بعد الساعة 8 مساءً. يرفض API المزود أي مدفوعات جديدة حتى صباح اليوم التالي.
 
-**Recovery:** The rollback completes within 2 minutes. The duplicate payments are reconciled with EEU. Customers receive refunds for the overpayment within 48 hours.
+**User Impact:** يرى العميل "خدمة الدفع الفوري للمؤسسة العامة للكهرباء غير متوفرة بعد ساعات العمل الرسمية (8 صباحاً - 8 مساءً)."
 
-### Configuration error — wrong EEU API endpoint configured
-**System Behavior:** A configuration change points the EEU integration to the wrong API endpoint (production pointed to staging). All EEU payments fail.
+**Recovery:** يتم وضع الدفع في قائمة انتظار ومعالجته تلقائياً في صباح اليوم التالي عند استعادة الخدمة.
 
-**User Impact:** All EEU bill payments fail for 8 minutes. 500 customers cannot pay their electricity bills.
+### فاتورة مفقودة في نظام المزود — لا تظهر الفاتورة رغم وجود استحقاق
+**System Behavior:** API المزود لا يعيد أي فاتورة مستحقة للمشترك رغم أن العداد نشط والاستهلاك مسجل. يكون سبب المشكلة خلل في مزامنة بيانات الفوترة لدى المزود.
 
-**Recovery:** A monitoring alert fires on 100% failure rate for EEU payments. The endpoint is corrected within 8 minutes. Affected customers are notified and can retry.
+**User Impact:** يرى العميل "لا توجد فاتورة مستحقة حالياً" بالرغم من وصول إشعار ورقي من المزود بالمبلغ المطلوب.
 
-### Biller credential rotation failure — EEU API key expires
-**System Behavior:** The EEU API key expires. The credential rotation was not completed on schedule. All EEU API calls fail with authentication errors.
+**Recovery:** يمكن للعميل إدخال المبلغ يدوياً مع تحميل صورة الفاتورة الورقية كدليل. يتم إشعار فريق العمليات لمتابعة الخلل مع المزود.
 
-**User Impact:** EEU bill inquiries and payments are blocked for 25 minutes. 2,000 customers are affected.
+## 7. أعطال الأداء وقابلية التوسع (Performance & Scalability Failures)
 
-**Recovery:** The API key is manually rotated within 25 minutes. Automated credential rotation with 14-day advance warning is implemented. A backup API key is maintained.
+### زيادة مفاجئة في مدفوعات الفواتير — 20 ضعف الحجم في تاريخ استحقاق فواتير المؤسسة العامة للكهرباء
+**System Behavior:** يتوسع نطاق API دفع الفواتير تلقائياً من 20 إلى 150 حاوية. يتلقى API المؤسسة العامة للكهرباء 8,000 إرسال دفع في الدقيقة. يخفض نظام المؤسسة العامة للكهرباء السرعة إلى 100 طلب في الثانية.
 
-## 9. Recovery Time Objectives Summary
+**User Impact:** يرى العملاء "الخدمة مشغولة حالياً. يرجى الانتظار." تتأخر تأكيدات الدفع بمقدار يصل إلى 5 دقائق.
 
-| Failure Category | Detection Time | Recovery Time | RPO | Maximum Impact |
+**Recovery:** يتم وضع طلبات دفع الفواتير في قائمة انتظار ومعالجتها بمعدل تحديد سرعة المؤسسة العامة للكهرباء. يظهر مؤشر الموقع "مكانك في قائمة الانتظار: 234." تتم معالجة المدفوعات المجدولة مسبقاً قبل تاريخ الاستحقاق.
+
+### تحديد معدل API استعلام المزود — 200 استعلام في الثانية لكل مزود
+**System Behavior:** يفرض API استعلام المؤسسة العامة للكهرباء حداً لمعدل 200 طلب في الثانية. ترسل المنصة 500 استعلام في الثانية خلال ساعات الذروة. يتم تحديد سرعة 300 استعلام.
+
+**User Impact:** يرى العملاء تأخيراً لمدة 5 ثوانٍ عند البحث عن فاتورة المؤسسة العامة للكهرباء. "جاري تحميل بيانات الفاتورة..." يستغرق وقتاً أطول من المعتاد.
+
+**Recovery:** يتم تخزين نتائج الاستعلام في Redis لمدة 5 دقائق. يتم تسوية المعدل إلى 200 طلب في الثانية بالضبط. يتم استخدام الاستعلام المجمع لجلب فواتير متعددة في استدعاء واحد.
+
+### بطء استعلام قاعدة البيانات — استعلام سجل الفواتير يستغرق 15 ثانية للمستخدمين النشطين
+**System Behavior:** المستخدمون الذين لديهم أكثر من 1,000 دفعة فاتورة يعانون من استعلامات تاريخ بطيئة. يفحص الاستعلام جميع الصفوف لهذا المستخدم. ينمو وقت الاستعلام خطياً مع عدد المعاملات.
+
+**User Impact:** يرى المستخدمون النشطون "جاري تحميل سجل الفواتير..." لمدة 10-15 ثانية.
+
+**Recovery:** يقلل فهرس مركب على `(user_id, created_at)` وقت الاستعلام إلى 200 مللي ثانية. يقتصر التصفح على 20 عنصراً في الصفحة مع تصفح قائم على المؤشر.
+
+## 8. أعطال تشغيلية (Operational Failures)
+
+### التراجع عن النشر — الإصدار v3.4.0 يرسل مدفوعات فواتير مكررة للمؤسسة العامة للكهرباء
+**System Behavior:** يكتشف النشر التجريبي زيادة بنسبة 50٪ في إرسال المدفوعات خلال 3 دقائق. يتم تفعيل التراجع الآلي.
+
+**User Impact:** تم دفع فواتير حوالي 100 عميل مرتين. تظهر المؤسسة العامة للكهرباء دفعة مزدوجة على حساباتهم. إجمالي المدفوعات الزائدة: 3,500,000 ليرة سورية.
+
+**Recovery:** يكتمل التراجع خلال دقيقتين. تتم تسوية المدفوعات المكررة مع المؤسسة العامة للكهرباء. يحصل العملاء على استرداد للدفع الزائد في غضون 48 ساعة.
+
+### خطأ في التكوين — نقطة نهاية API خاطئة للمؤسسة العامة للكهرباء
+**System Behavior:** تغيير في التكوين يوجه تكامل المؤسسة العامة للكهرباء إلى نقطة نهاية API خاطئة (الإنتاج موجه إلى الاختبار). تفشل جميع مدفوعات المؤسسة العامة للكهرباء.
+
+**User Impact:** تفشل جميع مدفوعات فواتير المؤسسة العامة للكهرباء لمدة 8 دقائق. 500 عميل لا يمكنهم دفع فواتير الكهرباء الخاصة بهم.
+
+**Recovery:** يتم إطلاق تنبيه مراقبة على معدل فشل 100٪ لمدفوعات المؤسسة العامة للكهرباء. يتم تصحيح نقطة النهاية في غضون 8 دقائق. يتم إشعار العملاء المتأثرين ويمكنهم إعادة المحاولة.
+
+### فشل تدوير بيانات اعتماد المؤسسة العامة للكهرباء — انتهاء صلاحية مفتاح API
+**System Behavior:** ينتهي صلاحية مفتاح API للمؤسسة العامة للكهرباء. لم يكتمل تدوير بيانات الاعتماد في الموعد المحدد. تفشل جميع استدعاءات API للمؤسسة العامة للكهرباء بأخطاء المصادقة.
+
+**User Impact:** يتم حظر استعلامات ومدفوعات فواتير المؤسسة العامة للكهرباء لمدة 25 دقيقة. يتأثر 2,000 عميل.
+
+**Recovery:** يتم تدوير مفتاح API يدوياً في غضون 25 دقيقة. يتم تطبيق تدوير آلي لبيانات الاعتماد مع إشعار قبل 14 يوماً. يتم الاحتفاظ بمفتاح API احتياطي.
+
+### تحديث تنسيق فاتورة المؤسسة العامة للكهرباء دون إشعار مسبق
+**System Behavior:** تقوم المؤسسة العامة للكهرباء بتحديث تنسيق رقم الفاتورة من 24 رقماً إلى 26 رقماً دون إشعار مسبق. ترفض الأنظمة الداخلية الطلبات ذات التنسيق القديم.
+
+**User Impact:** يتعذر على جميع العملاء دفع فواتير الكهرباء لمدة 6 ساعات حتى يتم تحديث التحقق من التنسيق.
+
+**Recovery:** يتم تحديث التحقق من تنسيق المرجع في غضون 6 ساعات. يتم دعم كل من التنسيقين القديم والجديد خلال الفترة الانتقالية.
+
+## 9. ملخص أهداف وقت الاسترداد
+
+| فئة الفشل | وقت الاكتشاف | وقت الاسترداد | RPO | أقصى تأثير |
 |-----------------|----------------|---------------|-----|----------------|
-| Network (transient) | < 1 second | < 30 seconds | 0 | Single payment delayed |
-| Network (DNS outage) | 30 seconds | < 5 minutes | 0 | All bill payments blocked |
-| Transaction failure | < 100ms | < 5 seconds | 0 | Single payment failed |
-| External dependency | < 10 seconds | < 15 minutes | 0 | Biller API unavailable |
-| Data inconsistency | < 5 minutes | < 1 hour | < 5 seconds | Payment status mismatch |
-| Security incident | < 1 minute | < 4 hours | 0 | Payment held for review |
-| Business logic | < 1 hour | < 24 hours | 0 | Partial pay not supported |
-| Performance degradation | < 1 minute | < 5 minutes | 0 | Slow bill inquiry |
-| Operational (deployment) | < 5 minutes | < 10 minutes | < 1 minute | Duplicate payments |
+| الشبكة (مؤقت) | < 1 ثانية | < 30 ثانية | 0 | تأخير دفع واحد |
+| الشبكة (انقطاع DNS) | 30 ثانية | < 5 دقائق | 0 | حظر جميع مدفوعات الفواتير |
+| فشل المعاملة | < 100 مللي ثانية | < 5 ثوانٍ | 0 | فشل دفع واحد |
+| التبعية الخارجية | < 10 ثوانٍ | < 15 دقيقة | 0 | API المزود غير متاح |
+| عدم تناسق البيانات | < 5 دقائق | < 1 ساعة | < 5 ثوانٍ | عدم تطابق حالة الدفع |
+| حادث أمني | < 1 دقيقة | < 4 ساعات | 0 | تعليق الدفع للمراجعة |
+| منطق الأعمال | < 1 ساعة | < 24 ساعة | 0 | دفع جزئي غير مدعوم |
+| تدهور الأداء | < 1 دقيقة | < 5 دقائق | 0 | استعلام فاتورة بطيء |
+| تشغيلي (نشر) | < 5 دقائق | < 10 دقائق | < 1 دقيقة | مدفوعات مكررة |
 
-## Changelog
+## سجل التغييرات
 
-| Date | Version | Changes |
+| التاريخ | الإصدار | التغييرات |
 |------|---------|---------|
-| 2026-05-29 | 1.0 | Initial release — 7 categories covering network, transactions, external dependencies, data consistency, security, business logic, and performance failures for bill payment feature |
+| 2026-05-29 | 1.0 | الإصدار الأولي — 7 فئات تغطي الشبكة، المعاملات، التبعيات الخارجية، تناسق البيانات، الأمان، منطق الأعمال، والأداء لميزة دفع الفواتير |
 
 ---
 
-*Version: 1.0 | Last updated: 2026-05-29 | Owner: Bill Payment Engineering Team*
+*الإصدار: 1.0 | آخر تحديث: 2026-05-29 | المالك: فريق هندسة دفع الفواتير*

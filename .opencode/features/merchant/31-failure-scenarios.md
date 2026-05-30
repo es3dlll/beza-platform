@@ -1,304 +1,353 @@
-# 31. Merchant — Failure Scenarios
+# 31. التجار — سيناريوهات الفشل (Merchant — Failure Scenarios)
 
-> **Purpose:** Document every failure mode for the Beza Merchant feature — in-store payments, POS, QR code, e-commerce gateway, settlement, and merchant onboarding. Uses real ETB amounts and Arabic/Amharic messaging.
+> **الغرض:** توثيق جميع حالات الفشل المحتملة لميزة التجار — المدفوعات في المتجر، نقاط البيع، رمز QR، بوابة التجارة الإلكترونية، التسوية، وتأهيل التجار. يستخدم مبالغ حقيقية بالليرة السورية ورسائل باللغة العربية فقط.
 
 ---
 
-## 1. Network Failures
+## 1. أعطال الشبكة (Network Failures)
 
-### Internet cut during POS payment after customer debited but merchant not credited
-**System Behavior:** The transaction is marked `PENDING_SETTLEMENT`. The customer's wallet is debited. The merchant's POS terminal shows "قيد المعالجة" (Processing.) The merchant credit is not applied.
+### انقطاع الإنترنت أثناء دفع عبر POS بعد خصم من العميل ولكن لم يتم إيداع التاجر
+**System Behavior:** يتم وضع علامة على المعاملة كـ `PENDING_SETTLEMENT`. يتم خصم مبلغ من محفظة العميل. يُظهر جهاز POS للتاجر "قيد المعالجة." لم يتم تطبيق إيداع التاجر.
 
-**User Impact:** The customer sees "تم خصم المبلغ من المحفظة. في انتظار تأكيد التاجر" (Amount has been deducted from your wallet. Awaiting merchant confirmation.) The merchant sees a spinning icon on the POS screen.
+**User Impact:** يرى العميل رسالة "تم خصم المبلغ من المحفظة. في انتظار تأكيد التاجر." يرى التاجر أيقونة دوارة على شاشة POS.
 
-**Recovery:** The POS terminal retries the credit to the merchant wallet every 10 seconds for up to 5 minutes. On success, a receipt is printed automatically. After 5 minutes of failure, a reversal is initiated and the customer is refunded.
+**Recovery:** يعيد جهاز POS محاولة الإيداع في محفظة التاجر كل 10 ثوانٍ لمدة تصل إلى 5 دقائق. عند النجاح، تتم طباعة إيصال تلقائياً. بعد 5 دقائق من الفشل، يتم بدء إلغاء واسترداد المبلغ للعميل.
 
-### API timeout (>5s) during QR code generation
-**System Behavior:** The merchant app cannot generate a new QR code because the API call times out. The app shows the last cached QR code, which is valid for 60 seconds from its original generation time.
+### انتهاء مهلة API (>5 ثوان) أثناء إنشاء رمز QR
+**System Behavior:** لا يمكن لتطبيق التاجر إنشاء رمز QR جديد لأن استدعاء API ينتهي مهلة. يُظهر التطبيق آخر رمز QR مخبأ، وهو صالح لمدة 60 ثانية من وقت إنشائه الأصلي.
 
-**User Impact:** The customer attempting to scan the QR code uses the cached version. If the cached code has expired, the scan fails and the customer sees "رمز الاستجابة السريعة منتهي الصلاحية" (QR code expired.)
+**User Impact:** العميل الذي يحاول مسح رمز QR يستخدم النسخة المخبأة. إذا انتهت صلاحية الرمز المخبأ، يفشل المسح ويرى العميل "رمز الاستجابة السريعة منتهي الصلاحية."
 
-**Recovery:** The merchant refreshes the app to generate a new QR code. The circuit breaker resets after 15 seconds and the API call succeeds on retry.
+**Recovery:** يقوم التاجر بتحديث التطبيق لإنشاء رمز QR جديد. يعاد تعيين قاطع الدائرة بعد 15 ثانية وينجح استدعاء API عند إعادة المحاولة.
 
-### DNS failure for merchant-api.beza.et
-**System Behavior:** The e-commerce checkout iframe hosted by Beza fails to load because the merchant API DNS is unreachable. The payment gateway JavaScript detects the failure and falls back to a redirect-based payment flow.
+### فشل DNS لخدمة التجار
+**System Behavior:** يفشل تحميل iframe الدفع للتجارة الإلكترونية المستضاف من المنصة لأن DNS لـ API التجار غير قابل للوصول. يكتشف JavaScript لبوابة الدفع الفشل ويتحول إلى تدفق دفع قائم على إعادة التوجيه.
 
-**User Impact:** The customer sees "بوابة الدفع غير متوفرة حالياً. استخدم طريقة دفع بديلة" (Payment gateway is currently unavailable. Please use an alternative payment method.)
+**User Impact:** يرى العميل "بوابة الدفع غير متوفرة حالياً. استخدم طريقة دفع بديلة."
 
-**Recovery:** The e-commerce plugin automatically redirects the customer to `pay.beza.et` which is served from a different DNS zone. If the redirect also fails, the customer is offered a bank transfer as a backup.
+**Recovery:** يعيد البرنامج المساعد للتجارة الإلكترونية توجيه العميل تلقائياً إلى بوابة دفع بديلة يتم تقديمها من منطقة DNS مختلفة. إذا فشل إعادة التوجيه أيضاً، يُعرض على العميل تحويل بنكي كنسخة احتياطية.
 
-### WebSocket disconnect during real-time payment notification
-**System Behavior:** The merchant dashboard detects the WebSocket disconnection and falls back to REST API polling every 5 seconds to check for new transactions.
+### انقطاع WebSocket أثناء إشعار الدفع في الوقت الفعلي
+**System Behavior:** تكتشف لوحة تحكم التاجر انقطاع WebSocket وتتحول إلى استقصاء REST API كل 5 ثوانٍ للتحقق من المعاملات الجديدة.
 
-**User Impact:** The merchant sees "آخر تحديث: منذ 3 دقائق" (Last updated: 3 minutes ago.) on the dashboard. Payments are still being processed but are not reflected in real-time.
+**User Impact:** يرى التاجر "آخر تحديث: منذ 3 دقائق." على لوحة التحكم. لا تزال المدفوعات قيد المعالجة ولكن لا تنعكس في الوقت الفعلي.
 
-**Recovery:** The WebSocket client reconnects automatically. Once reconnected, the server replays all missed transaction events. The dashboard is refreshed with the complete transaction list.
+**Recovery:** يعيد عميل WebSocket الاتصال تلقائياً. بعد إعادة الاتصال، يعيد الخادم بث جميع أحداث المعاملات الفائتة. يتم تحديث لوحة التحكم بقائمة المعاملات الكاملة.
 
-### SSL handshake failure on merchant POS terminal
-**System Behavior:** The POS terminal cannot establish a TLS connection with the Beza server. The terminal switches to offline mode, which supports transactions up to 500 ETB that are stored locally on the device.
+### فشل مصافحة SSL على جهاز POS للتاجر
+**System Behavior:** لا يمكن لجهاز POS إنشاء اتصال TLS مع خادم المنصة. يتحول الجهاز إلى وضع عدم الاتصال، الذي يدعم المعاملات حتى 50,000 ليرة سورية يتم تخزينها محلياً على الجهاز.
 
-**User Impact:** The customer can still pay up to 500 ETB. The merchant sees "وضع غير متصل — المبلغ محدود بـ 500 ETB" (Offline mode — amount limited to 500 ETB.)
+**User Impact:** لا يزال بإمكان العميل الدفع حتى 50,000 ليرة سورية. يرى التاجر "وضع غير متصل — المبلغ محدود بـ 50,000 ل.س."
 
-**Recovery:** The POS terminal stores encrypted transactions in local memory. When the network connection is restored, the stored transactions are automatically synced and sent for batch settlement.
+**Recovery:** يخزن جهاز POS المعاملات المشفرة في الذاكرة المحلية. عند استعادة اتصال الشبكة، تتم مزامنة المعاملات المخزنة تلقائياً وإرسالها للتسوية المجمعة.
 
-## 2. Transaction Failures
+## 2. أعطال المعاملات (Transaction Failments)
 
-### Insufficient customer balance — customer tries to pay 3,500 ETB but has 2,000 ETB
-**System Behavior:** The payment pre-validation checks `wallet_balance >= transaction_amount`. The balance of 2,000 ETB is below the 3,500 ETB purchase amount. The transaction is rejected.
+### رصيد عميل غير كافٍ — يحاول العميل دفع 75,000 ليرة سورية ولكن لديه 50,000 ليرة
+**System Behavior:** يتحقق التحقق المسبق من الدفع من `wallet_balance >= transaction_amount`. رصيد 50,000 ليرة سورية أقل من مبلغ الشراء 75,000 ليرة سورية. يتم رفض المعاملة.
 
-**User Impact:** The customer sees "رصيد غير كافٍ. الرصيد المتاح: 2,000 ETB" (Insufficient balance. Available balance: 2,000 ETB.)
+**User Impact:** يرى العميل "رصيد غير كافٍ. الرصيد المتاح: 50,000 ل.س."
 
-**Recovery:** The customer can split the payment — 2,000 ETB from the Beza wallet and 1,500 ETB from a linked bank card. The merchant POS system supports split-tender transactions.
+**Recovery:** يمكن للعميل تقسيم الدفع — 50,000 ليرة سورية من محفظة المنصة و 25,000 ليرة سورية من بطاقة مصرفية مرتبطة. يدعم نظام POS الخاص بالتاجر معاملات الدفع المقسم.
 
-### Duplicate QR scan — two customers scan the same QR code simultaneously
-**System Behavior:** The QR code is configured for single use. After the first successful payment, the QR code is marked as consumed. The second scan returns `QR_ALREADY_USED`.
+### مسح QR مكرر — عميلان يمسحان نفس رمز QR في وقت واحد
+**System Behavior:** تم تكوين رمز QR للاستخدام الفردي. بعد أول دفعة ناجحة، يتم وضع علامة على رمز QR كمستخدم. يعيد المسح الثاني `QR_ALREADY_USED`.
 
-**User Impact:** The second customer sees "رمز الاستجابة السريعة منتهي الصلاحية" (QR code expired.) The first customer's payment proceeds normally.
+**User Impact:** يرى العميل الثاني "رمز الاستجابة السريعة منتهي الصلاحية." تتم معالجة دفعة العميل الأول بشكل طبيعي.
 
-**Recovery:** The merchant generates a new QR code by refreshing the app. QR codes have a 60-second lifetime and are automatically refreshed every 30 seconds.
+**Recovery:** يقوم التاجر بإنشاء رمز QR جديد بتحديث التطبيق. رموز QR لها عمر افتراضي مدته 60 ثانية ويتم تحديثها تلقائياً كل 30 ثانية.
 
-### Refund initiated for an already-refunded transaction
-**System Behavior:** The idempotency key prevents double refunds. The second refund request returns HTTP 409 Conflict with `DUPLICATE_REFUND`.
+### بدء استرداد لمعاملة تم استردادها بالفعل
+**System Behavior:** يمنع مفتاح التكرار الاسترداد المزدوج. يعيد طلب الاسترداد الثاني HTTP 409 مع `DUPLICATE_REFUND`.
 
-**User Impact:** The merchant sees "تم إرجاع المبلغ مسبقاً" (The amount has already been refunded.)
+**User Impact:** يرى التاجر "تم إرجاع المبلغ مسبقاً."
 
-**Recovery:** The merchant checks the transaction history to confirm the refund status before initiating a new refund request.
+**Recovery:** يتحقق التاجر من سجل المعاملات لتأكيد حالة الاسترداد قبل بدء طلب استرداد جديد.
 
-### Partial refund — merchant refunds 500 ETB from a 2,000 ETB purchase
-**System Behavior:** The system supports partial refunds. A new refund transaction is created for 500 ETB. The original transaction remains valid for the remaining 1,500 ETB.
+### استرداد جزئي — يسترد التاجر 25,000 ليرة سورية من عملية شراء بقيمة 100,000 ليرة
+**System Behavior:** يدعم النظام الاسترداد الجزئي. يتم إنشاء معاملة استرداد جديدة بمبلغ 25,000 ليرة سورية. تظل المعاملة الأصلية صالحة للمبلغ المتبقي 75,000 ليرة سورية.
 
-**User Impact:** The customer receives "تم إرجاع 500 ETB من مشترياتك لدى متجر ABC" (500 ETB has been refunded from your purchase at ABC store.)
+**User Impact:** يتلقى العميل "تم إرجاع 25,000 ل.س من مشترياتك لدى متجر دمشق."
 
-**Recovery:** The remaining 1,500 ETB is still available for future refunds if needed. The merchant can issue additional partial refunds up to the original transaction amount.
+**Recovery:** المبلغ المتبقي 75,000 ليرة سورية لا يزال متاحاً لاستردادات مستقبلية إذا لزم الأمر. يمكن للتاجر إصدار استردادات جزئية إضافية تصل إلى مبلغ المعاملة الأصلي.
 
-### Settlement batch fails — daily merchant settlement to bank account fails
-**System Behavior:** The settlement engine processes the batch at 2:00 AM EAT. The bank API returns an error for the batch transfer. The entire batch is held.
+### فشل دفعة التسوية — فشل التسوية اليومية للتاجر إلى الحساب المصرفي
+**System Behavior:** يعالج محرك التسوية الدفعة عند الساعة 2:00 صباحاً. يعيد API البنك خطأ في تحويل الدفعة. يتم تعليق الدفعة بأكملها.
 
-**User Impact:** The merchant sees "تسوية اليوم متأخرة" (Today's settlement is delayed.) The previous day's funds are not yet available in the merchant's bank account.
+**User Impact:** يرى التاجر "تسوية اليوم متأخرة." أموال اليوم السابق غير متوفرة بعد في الحساب المصرفي للتاجر.
 
-**Recovery:** The settlement is retried every 30 minutes for up to 6 hours. If all retries fail, the operations team triggers a manual settlement through the bank's corporate portal.
+**Recovery:** يعاد محاولة التسوية كل 30 دقيقة لمدة تصل إلى 6 ساعات. إذا فشلت جميع المحاولات، يطلق فريق العمليات تسوية يدوية من خلال البوابة الإلكترونية للبنك.
 
-### Merchant account deactivated mid-transaction
-**System Behavior:** The merchant's account status is changed to `INACTIVE` by a compliance action. The payment was initiated before the status change propagated. The transaction is blocked at the authorization stage.
+### إلغاء تنشيط حساب التاجر أثناء المعاملة
+**System Behavior:** يتم تغيير حالة حساب التاجر إلى `INACTIVE` بواسطة إجراء امتثال. تم بدء الدفع قبل نشر تغيير الحالة. يتم حظر المعاملة في مرحلة التفويض.
 
-**User Impact:** The customer sees the transaction was rejected. The merchant sees "حساب التاجر غير نشط" (Merchant account is inactive.)
+**User Impact:** يرى العميل أن المعاملة مرفوضة. يرى التاجر "حساب التاجر غير نشط."
 
-**Recovery:** The merchant contacts customer support to resolve the compliance issue. Once the account is reactivated, payments resume normally.
+**Recovery:** يتصل التاجر بدعم العملاء لحل مشكلة الامتثال. بمجرد إعادة تنشيط الحساب، تستأنف المدفوعات بشكل طبيعي.
 
-## 3. External Dependency Failures
+## 3. أعطال التبعيات الخارجية (External Dependency Failures)
 
-### CFE (Ethio Telecom) service down during merchant SIM verification
-**System Behavior:** The new merchant onboarding flow pauses at the SIM card verification step. The CFE API cannot confirm the mobile number ownership.
+### تعطل خدمة التحقق من شريحة الهاتف للتاجر (سيريتل/MTN)
+**System Behavior:** يتوقف تدفق تأهيل التاجر الجديد عند خطوة التحقق من شريحة الهاتف. لا يمكن لـ API مشغل الاتصالات تأكيد ملكية رقم الهاتف.
 
-**User Impact:** The prospective merchant sees "تعذر التحقق من رقم الهاتف" (Phone number verification failed.)
+**User Impact:** يرى التاجر المحتمل "تعذر التحقق من رقم الهاتف."
 
-**Recovery:** The onboarding flow continues with an alternative verification method — a video call with a Beza agent who verifies the merchant's identity and SIM card ownership.
+**Recovery:** يستمر تدفق التأهيل بطريقة تحقق بديلة — مكالمة فيديو مع وكيل المنصة يتحقق من هوية التاجر وملكية شريحة الهاتف.
 
-### SMS provider (InfoBip) unavailable for merchant receipt
-**System Behavior:** The SMS delivery is queued on SQS. A push notification is sent via Firebase Cloud Messaging as the primary receipt channel.
+### مزود SMS غير متاح لإيصال التاجر
+**System Behavior:** يتم وضع تسليم SMS في قائمة انتظار على SQS. يتم إرسال إشعار فوري عبر Firebase Cloud Messaging كقناة إيصال أساسية.
 
-**User Impact:** The customer may not receive the SMS receipt. The message "تم إرسال الإيصال عبر التطبيق" (The receipt has been sent via the app) is shown.
+**User Impact:** قد لا يتلقى العميل إيصال SMS. تظهر الرسالة "تم إرسال الإيصال عبر التطبيق."
 
-**Recovery:** The SMS is retried for up to 24 hours. If the customer has consented to WhatsApp communication, a WhatsApp receipt is sent as a backup.
+**Recovery:** يعاد إرسال SMS لمدة تصل إلى 24 ساعة. إذا وافق العميل على التواصل عبر WhatsApp، يتم إرسال إيصال WhatsApp كنسخة احتياطية.
 
-### Bank API timeout during merchant settlement
-**System Behavior:** The ACI/EBPP bank transfer for the merchant settlement does not respond within the 30-second timeout. The funds are held in the Beza settlement account.
+### انتهاء مهلة API البنك أثناء تسوية التاجر
+**System Behavior:** لا يستجيب التحويل المصرفي لتسوية التاجر خلال مهلة الـ 30 ثانية. يتم الاحتفاظ بالأموال في حساب تسوية المنصة.
 
-**User Impact:** The merchant sees "التسوية معلقة — سيتم إيداع المبلغ خلال 24 ساعة" (Settlement is pending — the amount will be deposited within 24 hours.)
+**User Impact:** يرى التاجر "التسوية معلقة — سيتم إيداع المبلغ خلال 24 ساعة."
 
-**Recovery:** An internal transfer is made to the merchant's Beza wallet instantly (available immediately). The bank transfer is processed asynchronously when the bank API is available.
+**Recovery:** يتم تحويل داخلي إلى محفظة التاجر في المنصة فوراً (متاح فوراً). تتم معالجة التحويل المصرفي بشكل غير متزامن عندما يكون API البنك متاحاً.
 
-### Tax authority (MoF) API failure for e-receipt integration
-**System Behavior:** The receipt is generated locally but the submission to the MoF tax authority fails. The receipt is queued for retry with the transaction data stored locally.
+### فشل API مصلحة الضرائب السورية لتكامل الإيصال الإلكتروني
+**System Behavior:** يتم إنشاء الإيصال محلياً ولكن فشل إرساله إلى مصلحة الضرائب السورية. يتم وضع الإيصال في قائمة انتظار لإعادة المحاولة مع تخزين بيانات المعاملة محلياً.
 
-**User Impact:** No user impact is visible. The merchant prints the receipt with a valid tax ID. The receipt shows "الإيصال مسجل في النظام الضريبي" (Receipt registered with the tax authority.)
+**User Impact:** لا يظهر أي تأثير على المستخدم. يطبع التاجر الإيصال برقم ضريبي صالح. يُظهر الإيصال "الإيصال مسجل في النظام الضريبي."
 
-**Recovery:** The e-receipt is retried every 5 minutes for up to 2 hours. If the MoF API remains unavailable, the operations team manually uploads the batch to the tax authority portal.
+**Recovery:** يعاد إرسال الإيصال الإلكتروني كل 5 دقائق لمدة تصل إلى ساعتين. إذا بقي API مصلحة الضرائب غير متاح، يقوم فريق العمليات برفع الدفعة يدوياً إلى بوابة مصلحة الضرائب.
 
-### POS terminal manufacturer API down for firmware update
-**System Behavior:** The POS terminal continues operating on the current firmware version. The security patch or feature update is delayed.
+### تعطل API الشركة المصنعة لجهاز POS لتحديث البرامج الثابتة
+**System Behavior:** يستمر جهاز POS في العمل على إصدار البرامج الثابتة الحالي. يتم تأجيل التصحيح الأمني أو تحديث الميزات.
 
-**User Impact:** No operational impact on payment processing. The merchant sees "يتوفر تحديث للنظام. يرجى التحديث لاحقاً" (A system update is available. Please update later.)
+**User Impact:** لا تأثير تشغيلي على معالجة الدفع. يرى التاجر "يتوفر تحديث للنظام. يرجى التحديث لاحقاً."
 
-**Recovery:** The firmware update is deferred to the next maintenance window. The POS terminal continues operating normally.
+**Recovery:** يتم تأجيل تحديث البرامج الثابتة إلى نافذة الصيانة التالية. يستمر جهاز POS في العمل بشكل طبيعي.
 
-## 4. Data Consistency Failures
+### انقطاع خدمة الإنترنت في سورية — تعطل البنية التحتية للاتصالات
+**System Behavior:** تتعطل خدمات الإنترنت في منطقة جغرافية واسعة في سورية بسبب انقطاع في البنية التحتية للاتصالات. لا يمكن لجميع أجهزة POS والتطبيقات في المنطقة الاتصال بالخادم.
 
-### Payment success DB write succeeds but merchant ledger write fails
-**System Behavior:** The customer is debited successfully. The merchant ledger write fails due to a database connection issue. The Saga pattern detects the inconsistency and triggers a compensation.
+**User Impact:** لا يمكن للتجار في المنطقة قبول المدفوعات الإلكترونية. يرى كل من التاجر والعميل "لا يمكن الاتصال بالخدمة. يرجى المحاولة لاحقاً."
 
-**User Impact:** The customer sees a refund notification "تم إعادة 1,500 ETB إلى محفظتك" (1,500 ETB has been returned to your wallet.) The merchant never sees the transaction.
+**Recovery:** تعمل أجهزة POS في وضع عدم الاتصال للمبالغ الصغيرة (حتى 50,000 ل.س). تتم مزامنة المعاملات المخزنة تلقائياً عند استعادة الاتصال. يتم إشعار التجار عند عودة الخدمة.
 
-**Recovery:** The compensation is triggered automatically within 2 seconds. The merchant transaction is not recorded. The customer is refunded in full.
+## 4. أعطال تناسق البيانات (Data Consistency Failures)
 
-### Cache inconsistency — merchant daily sales total shown as 85,000 ETB but actual is 72,000 ETB
-**System Behavior:** The cache-aside pattern with version checking detects the TTL mismatch. The stale cache entry is invalidated and a fresh value is computed from the database.
+### نجاح كتابة دفع في قاعدة البيانات ولكن فشل كتابة دفتر أستاذ التاجر
+**System Behavior:** تم خصم مبلغ من العميل بنجاح. فشلت كتابة دفتر أستاذ التاجر بسبب مشكلة في اتصال قاعدة البيانات. يكتشف نمط Saga عدم التناسق ويطلق تعويضاً.
 
-**User Impact:** The merchant sees an inflated sales figure on the dashboard. A warning "قد تختلف الأرقام عن الإجمالي الفعلي" (Figures may differ from the actual total.) is shown.
+**User Impact:** يرى العميل إشعار استرداد "تم إعادة 50,000 ل.س إلى محفظتك." لا يرى التاجر المعاملة أبداً.
 
-**Recovery:** The cache is invalidated and the fresh total is computed from the database. An `INCONSISTENCY_DETECTED` metric is logged for monitoring.
+**Recovery:** يتم تفعيل التعويض تلقائياً خلال ثانيتين. لا يتم تسجيل معاملة التاجر. يتم استرداد المبلغ للعميل بالكامل.
 
-### Settlement event lost in Kafka — merchant settlement instruction not published
-**System Behavior:** The settlement engine prepares the merchant's settlement but the Kafka message is lost before reaching the bank transfer service. The merchant is not settled.
+### عدم تناسق التخزين المؤقت — إجمالي مبيعات التاجر اليومي يظهر كـ 850,000 ليرة سورية ولكن الفعلي 720,000 ليرة
+**System Behavior:** يكتشف نمط التخزين المؤقت مع التحقق من الإصدار عدم تطابق TTL. يتم إبطال إدخال التخزين المؤقت القديم ويتم حساب قيمة جديدة من قاعدة البيانات.
 
-**User Impact:** The merchant's daily settlement is missing from their dashboard. The status shows "لم يتم تسوية اليوم" (Not settled today.)
+**User Impact:** يرى التاجر رقماً متضخماً للمبيعات على لوحة التحكم. يتم عرض تحذير "قد تختلف الأرقام عن الإجمالي الفعلي."
 
-**Recovery:** The dead-letter queue consumer detects the missing settlement event within 5 minutes and replays it. A manual trigger is available through the ops panel for immediate settlement.
+**Recovery:** يتم إبطال التخزين المؤقت وحساب الإجمالي الجديد من قاعدة البيانات. يتم تسجيل مقياس `INCONSISTENCY_DETECTED` للمراقبة.
 
-### Dual-write between payment service and inventory system fails
-**System Behavior:** The payment is processed successfully. The inventory decrement write fails. The system detects the inconsistency within 5 seconds.
+### فقدان حدث التسوية في Kafka — لم يتم نشر تعليمات تسوية التاجر
+**System Behavior:** يعدّ محرك التسوية تسوية التاجر ولكن يتم فقدان رسالة Kafka قبل الوصول إلى خدمة التحويل المصرفي. لا تتم تسوية التاجر.
 
-**User Impact:** The customer pays for an item successfully. The merchant's inventory is not updated, creating a risk of overselling the same item.
+**User Impact:** تسوية التاجر اليومية مفقودة من لوحة التحكم الخاصة به. تظهر الحالة "لم يتم تسوية اليوم."
 
-**Recovery:** The payment is reversed if the inventory write fails within 5 seconds. The customer sees "تم إلغاء الطلب بسبب خطأ في المخزون" (The order has been cancelled due to an inventory error.)
+**Recovery:** يكتشف مستهلك قائمة انتظار الرسائل الميتة حدث التسوية المفقود في غضون 5 دقائق ويعيد تشغيله. يتوفر مشغل يدوي من خلال لوحة العمليات للتسوية الفورية.
 
-### Merchant commission rate table updated mid-day
-**System Behavior:** The commission rate table uses versioned entries. Transactions initiated before the rate change use the old rate. Transactions after the change use the new rate.
+### فشل الكتابة المزدوجة بين خدمة الدفع ونظام المخزون
+**System Behavior:** تمت معالجة الدفع بنجاح. فشلت كتابة إنقاص المخزون. يكتشف النظام عدم التناسق في غضون 5 ثوانٍ.
 
-**User Impact:** The merchant sees some transactions at the old commission rate and some at the new rate within the same day. The message is "معدل العمولة: 1.5% للمعاملات السابقة، 1.8% للجديدة" (Commission rate: 1.5% for previous transactions, 1.8% for new transactions.)
+**User Impact:** يدفع العميل ثمن صنف بنجاح. لا يتم تحديث مخزون التاجر، مما يخلق خطر بيع نفس الصنف بشكل زائد.
 
-**Recovery:** The rate table is versioned per transaction. No retroactive application occurs. The merchant is notified of the rate change 7 days in advance.
+**Recovery:** يتم عكس الدفع إذا فشلت كتابة المخزون في غضون 5 ثوانٍ. يرى العميل "تم إلغاء الطلب بسبب خطأ في المخزون."
 
-## 5. Security Failures
+### تحديث جدول عمولة التاجر في منتصف اليوم
+**System Behavior:** يستخدم جدول معدل العمولة إدخالات مرقمة بالإصدار. المعاملات التي بدأت قبل تغيير السعر تستخدم السعر القديم. المعاملات بعد التغيير تستخدم السعر الجديد.
 
-### Fraud false positive — legitimate customer making a 15,000 ETB purchase flagged
-**System Behavior:** The AML rules engine triggers on the combination of amount > 10,000 ETB and a first-time transaction with this merchant. The payment is blocked and placed in review.
+**User Impact:** يرى التاجر بعض المعاملات بمعدل العمولة القديم وبعضها بالمعدل الجديد في نفس اليوم. الرسالة "معدل العمولة: 1.2% للمعاملات السابقة، 1.5% للجديدة."
 
-**User Impact:** The customer sees "المعاملة قيد المراجعة" (Transaction under review.) at the checkout counter. This may cause embarrassment in a physical store setting.
+**Recovery:** يتم إصدار جدول السعر لكل معاملة. لا يحدث تطبيق بأثر رجعي. يتم إشعار التاجر بتغيير السعر قبل 7 أيام.
 
-**Recovery:** An SMS OTP is sent to the customer's registered phone. If the customer enters the OTP correctly, the transaction is approved within 30 seconds.
+### اختلاف مبلغ الفاتورة بين إيصال التاجر وسجل العميل
+**System Behavior:** تظهر فاتورة التاجر مبلغ 85,000 ليرة سورية بينما يظهر سجل العميل في التطبيق مبلغ 85,500 ليرة سورية بسبب اختلاف في آلية تقريب الرسوم.
 
-### Fraud false negative — stolen phone used to make an 8,000 ETB payment at a merchant
-**System Behavior:** The behavioral model scores the transaction at 0.3, which is well below the 0.7 threshold for MFA. The payment is approved without additional verification.
+**User Impact:** يلاحظ العميل فرق 500 ليرة سورية بين ما دفعه وما هو مسجل. قد يشتكي العميل للتاجر أو لخدمة العملاء.
 
-**User Impact:** The legitimate phone owner loses 8,000 ETB. The transaction appears as a normal purchase at a merchant store.
+**Recovery:** يتم تشغيل وظيفة تسوية كل ساعة لمقارنة المعاملات المسجلة لدى التاجر وسجل العميل. يتم تصحيح أي اختلاف تلقائياً.
 
-**Recovery:** The user reports the fraud through the call center. Insurance covers 80% of the verified loss. The device fingerprint and geolocation are used for retrospective model training.
+## 5. أعطال الأمان (Security Failures)
 
-### Unauthorized access to merchant settlement dashboard
-**System Behavior:** An attacker changes the merchant's settlement bank account details through the compromised dashboard. The change takes effect on the next settlement cycle.
+### إنذار كاذب للاحتيال — عميل شرعي يقوم بعملية شراء بقيمة 300,000 ليرة سورية يتم الإبلاغ عنها
+**System Behavior:** يطلق محرك قواعد AML إنذاراً على المبلغ الذي يتجاوز 200,000 ليرة سورية ومعاملة أولى مع هذا التاجر. يتم حظر الدفع ووضعه في المراجعة.
 
-**User Impact:** The merchant's daily settlement of 50,000 ETB is sent to the attacker's bank account instead of the merchant's account.
+**User Impact:** يرى العميل "المعاملة قيد المراجعة." عند الخروج. قد يسبب هذا إحراجاً في بيئة متجر فعلي.
 
-**Recovery:** Settlement bank account changes require MFA plus a 24-hour cooling period. An email and SMS notification are sent to the merchant's registered contact. The audit log tracks all changes.
+**Recovery:** يتم إرسال OTP عبر SMS إلى هاتف العميل المسجل. إذا أدخل العميل OTP بشكل صحيح، تتم الموافقة على المعاملة في غضون 30 ثانية.
 
-### Refund fraud — customer claims non-receipt after receiving goods
-**System Behavior:** The customer requests a refund through customer support, claiming they never received the goods. The merchant disputes the claim.
+### إنذار كاذب سلبي للاحتيال — هاتف مسروق يُستخدم لدفع 150,000 ليرة سورية لدى تاجر
+**System Behavior:** يسجل النموذج السلوكي المعاملة عند 0.3، وهو أقل بكثير من عتبة 0.7 لـ MFA. تتم الموافقة على الدفع دون تحقق إضافي.
 
-**User Impact:** The merchant loses 3,500 ETB (refunded to the customer) plus the value of the goods.
+**User Impact:** يفقد مالك الهاتف الشرعي 150,000 ليرة سورية. تظهر المعاملة كعملية شراء عادية في متجر تاجر.
 
-**Recovery:** Beza requires photo evidence of delivery from the merchant. The payment is held in escrow for 24 hours after delivery confirmation. A resolution team investigates the dispute.
+**Recovery:** يبلغ المستخدم عن الاحتيال من خلال مركز الاتصال. يغطي التأمين 80٪ من الخسارة المؤكدة. يتم استخدام بصمة الجهاز والموقع الجغرافي للتدريب الاستعادي للنموذج.
 
-### POS tampering — merchant modifies POS to report lower sales
-**System Behavior:** The merchant modifies their POS terminal to report 10,000 ETB in daily sales instead of the actual 25,000 ETB. The settlement fee is calculated on the lower amount.
+### وصول غير مصرح به إلى لوحة تسوية التاجر
+**System Behavior:** يغير المهاجم تفاصيل الحساب المصرفي لتسوية التاجر من خلال لوحة التحكم المخترقة. يسري التغيير في دورة التسوية التالية.
 
-**User Impact:** Beza loses commission on 15,000 ETB. The tax authority loses VAT on the unreported amount.
+**User Impact:** يتم إرسال تسوية التاجر اليومية البالغة 500,000 ليرة سورية إلى الحساب المصرفي للمهاجم بدلاً من حساب التاجر.
 
-**Recovery:** Random shadow audits compare merchant-reported sales against customer receipt data from the Beza app. Anomaly detection on average ticket size versus similar merchants triggers an investigation.
+**Recovery:** تتطلب تغييرات الحساب المصرفي للتسوية MFA بالإضافة إلى فترة تبريد مدتها 24 ساعة. يتم إرسال إشعار عبر البريد الإلكتروني وSMS إلى جهة اتصال التاجر المسجلة. يتتبع سجل التدقيق جميع التغييرات.
 
-## 6. Business Logic Failures
+### احتيال استرداد — يدعي العميل عدم الاستلام بعد استلام البضائع
+**System Behavior:** يطلب العميل استرداداً من خلال دعم العملاء، مدعياً أنه لم يستلم البضائع أبداً. يعترض التاجر على الادعاء.
 
-### Merchant daily settlement limit exceeded — 150,000 ETB settled but bank account has 200,000 ETB limit
-**System Behavior:** The settlement engine checks the bank account's incoming transfer limit. It splits the settlement into two parts: 150,000 ETB today and 50,000 ETB tomorrow.
+**User Impact:** يخسر التاجر 75,000 ليرة سورية (المبلغ المسترد للعميل) بالإضافة إلى قيمة البضائع.
 
-**User Impact:** The merchant sees "سيتم تسوية 50,000 ETB غداً" (50,000 ETB will be settled tomorrow.)
+**Recovery:** تطلب المنصة دليلاً مصوراً على التسليم من التاجر. يتم تعليق الدفع في الضمان لمدة 24 ساعة بعد تأكيد التسليم. يحقق فريق حل النزاعات في النزاع.
 
-**Recovery:** The remaining balance is automatically queued for the next settlement cycle. No manual action is needed.
+### التلاعب بـ POS — يعدل التاجر جهاز POS للإبلاغ عن مبيعات أقل
+**System Behavior:** يعدل التاجر جهاز POS الخاص به للإبلاغ عن 200,000 ليرة سورية في المبيعات اليومية بدلاً من 500,000 ليرة سورية الفعلية. يتم احتساب رسوم التسوية على المبلغ الأقل.
 
-### Merchant category code (MCC) mismatch — merchant registered as retail but processes high-risk transactions
-**System Behavior:** The risk engine detects that the transaction patterns do not match the registered MCC. Additional risk fees are applied to the transactions.
+**User Impact:** تخسر المنصة عمولتها على 300,000 ليرة سورية. تخسر مصلحة الضرائب ضريبة القيمة المضافة على المبلغ غير المبلغ عنه.
 
-**User Impact:** The merchant sees "تم تطبيق رسوم مخاطر إضافية بنسبة 0.5%" (An additional 0.5% risk fee has been applied.)
+**Recovery:** تقوم مراجعات ظل عشوائية بمقارنة مبيعات التاجر المبلغ عنها مقابل بيانات إيصال العميل من تطبيق المنصة. يؤدي الكشف عن الحالات الشاذة في متوسط حجم التذكرة مقابل التجار المماثلين إلى فتح تحقيق.
 
-**Recovery:** The merchant can request an MCC code update through customer support. If the MCC change is approved, the difference in risk fees is refunded.
+### استغلال ثغرة في رمز QR — إنشاء رموز QR مزيفة لخداع العملاء
+**System Behavior:** يقوم المهاجم بإنشاء رموز QR مزيفة تحمل علامة تاجر معروف ويضعها في المتجر. العملاء الذين يمسحون الرمز يرسلون الدفع إلى حساب المهاجم.
 
-### Customer disputes a chargeback — claims they did not authorize a 5,000 ETB payment
-**System Behavior:** The chargeback is raised by the customer. The merchant account is debited 5,000 ETB pending the investigation outcome.
+**User Impact:** يدفع العملاء للتاجر الخطأ. يفقد التاجر المبيعات. يخسر العملاء أموالهم.
 
-**User Impact:** The merchant sees "تم خصم 5,000 ETB كطرف مقابل للنزاع" (5,000 ETB has been debited as a counter-entry for the dispute.)
+**Recovery:** تحتوي رموز QR على توقيع رقمي يتحقق من صحتها. يتم عرض اسم التاجر وصورته في تطبيق العميل بعد المسح. يمكن للعملاء الإبلاغ عن رموز QR مشبوهة.
 
-**Recovery:** The merchant provides the signed receipt or delivery proof. If the documentation is valid, the chargeback is reversed and the funds are returned to the merchant. If the documentation is insufficient, the merchant bears the loss.
+## 6. أعطال منطق الأعمال (Business Logic Failures)
 
-### Settlement delayed due to a public holiday (Ethiopian banks closed)
-**System Behavior:** The settlement engine checks the holiday calendar and skips the settlement for the public holiday. The settlement is queued for the next business day.
+### تجاوز حد التسوية اليومي للتاجر — تسوية 1,500,000 ليرة سورية ولكن الحساب المصرفي له حد 1,000,000 ليرة
+**System Behavior:** يتحقق محرك التسوية من حد التحويل الوارد للحساب المصرفي. يقسم التسوية إلى جزأين: 1,000,000 ليرة سورية اليوم و 500,000 ليرة سورية غداً.
 
-**User Impact:** The merchant sees "التسوية مؤجلة بسبب العطلة الرسمية" (Settlement is deferred due to a public holiday.)
+**User Impact:** يرى التاجر "سيتم تسوية 500,000 ل.س غداً."
 
-**Recovery:** No action is needed. The funds are held in the Beza settlement account (earning no interest) and settled on the next business day.
+**Recovery:** يتم وضع الرصيد المتبقي تلقائياً في قائمة انتظار لدورة التسوية التالية. لا حاجة لإجراء يدوي.
 
-### Tier 1 merchant daily transaction limit hit (50,000 ETB)
-**System Behavior:** The merchant's daily transaction acceptance limit of 50,000 ETB is reached. The merchant cannot accept any more payments for the day.
+### عدم تطابق رمز فئة التاجر (MCC) — تاجر مسجل كمتجر بيع بالتجزئة ولكنه يعالج معاملات عالية المخاطر
+**System Behavior:** يكتشف محرك المخاطرة أن أنماط المعاملات لا تتطابق مع MCC المسجل. يتم تطبيق رسوم مخاطر إضافية على المعاملات.
 
-**User Impact:** Customers attempting to pay see "التاجر غير قادر على قبول الدفع حالياً" (The merchant is currently unable to accept payments.)
+**User Impact:** يرى التاجر "تم تطبيق رسوم مخاطر إضافية بنسبة 0.5%."
 
-**Recovery:** The merchant can upgrade to Tier 2 (daily limit of 500,000 ETB) by completing an in-app KYC upgrade with business license upload. The upgrade is instant upon document submission.
+**Recovery:** يمكن للتاجر طلب تحديث رمز MCC من خلال دعم العملاء. إذا تمت الموافقة على تغيير MCC، يتم رد فرق رسوم المخاطرة.
 
-## 7. Performance & Scalability Failures
+### العميل يعترض على معاملة — يدعي أنه لم يأذن بدفع 100,000 ليرة سورية
+**System Behavior:** يتم رفع الاعتراض من قبل العميل. يتم خصم 100,000 ليرة سورية من حساب التاجر معلقاً نتيجة التحقيق.
 
-### Sudden POS traffic spike — 10x during Meskel Festival holiday shopping
-**System Behavior:** The merchant payment API auto-scales from 30 to 200 pods. The QR code generation service handles 5,000 requests per second. Database write connections peak at 300.
+**User Impact:** يرى التاجر "تم خصم 100,000 ل.س كطرف مقابل للنزاع."
 
-**User Impact:** Merchants and customers experience 2-3 second latency during the first 5 minutes of the spike. QR code generation may take up to 8 seconds.
+**Recovery:** يقدم التاجر الإيصال الموقع أو دليل التسليم. إذا كانت الوثائق صالحة، يتم عكس الاعتراض وإعادة الأموال إلى التاجر. إذا كانت الوثائق غير كافية، يتحمل التاجر الخسارة.
 
-**Recovery:** Auto-scaling policies trigger at 60% CPU. Pre-warming is scheduled for known holiday periods. QR codes are pre-generated and cached on the merchant device.
+### تأخير التسوية بسبب عطلة رسمية (البنوك السورية مغلقة)
+**System Behavior:** يتحقق محرك التسوية من تقويم العطلات ويتخطى التسوية للعطلة الرسمية. يتم وضع التسوية في قائمة انتظار ليوم العمل التالي.
 
-### POS terminal batch settlement timeout — 500 terminals settle simultaneously at midnight
-**System Behavior:** The settlement engine receives 500 batch files at the same time (midnight auto-settlement). Processing queue grows to 30 minutes.
+**User Impact:** يرى التاجر "التسوية مؤجلة بسبب العطلة الرسمية."
 
-**User Impact:** Merchants see settlement as "قيد المعالجة" (Processing) for up to 30 minutes. Funds are not available until settlement completes.
+**Recovery:** لا حاجة لإجراء. يتم الاحتفاظ بالأموال في حساب تسوية المنصة وتسويتها في يوم العمل التالي.
 
-**Recovery:** Settlement processing is distributed across 10 worker pods. Terminal settlement times are randomized within a 1-hour window (11:30 PM to 12:30 AM).
+### الوصول إلى حد المعاملة اليومي للتاجر من المستوى 1 (1,000,000 ليرة سورية)
+**System Behavior:** يتم الوصول إلى حد قبول المعاملات اليومي للتاجر البالغ 1,000,000 ليرة سورية. لا يمكن للتاجر قبول أي مدفوعات أخرى لليوم.
 
-### E-commerce checkout API overwhelmed — 500 concurrent checkout requests
-**System Behavior:** The e-commerce payment gateway handles 500 concurrent checkout requests. The 3DS verification service becomes a bottleneck, processing only 100 requests per second.
+**User Impact:** العملاء الذين يحاولون الدفع يرون "التاجر غير قادر على قبول الدفع حالياً."
 
-**User Impact:** Customers see the checkout spinner for 10-15 seconds. 20% of checkout requests time out and must be retried.
+**Recovery:** يمكن للتاجر الترقية إلى المستوى 2 (الحد اليومي 5,000,000 ليرة سورية) من خلال إكمال ترقية KYC داخل التطبيق مع تحميل الرخصة التجارية. الترقية فورية عند تقديم المستندات.
 
-**Recovery:** The 3DS service is auto-scaled. A checkout queue with position tracking is displayed to the customer. "موقعك في قائمة الانتظار: 45" (Your position in queue: 45.)
+### عدم توافق سعر الصرف للتسويات بالدولار — تاجر يطلب التسوية بالدولار الأمريكي
+**System Behavior:** يطلب تاجر يستورد بضائع أن تتم تسويته بالدولار الأمريكي بدلاً من الليرة السورية. لا يدعم النظام حالياً تسويات متعددة العملات.
 
-## 8. Operational Failures
+**User Impact:** يرى التاجر "التسوية متاحة فقط بالليرة السورية حالياً."
 
-### Deployment rollback — v6.3.0 breaks QR code scanning for Android devices
-**System Behavior:** The canary deployment detects a 40% increase in QR scan failures within 2 minutes. The automated rollback to v6.2.9 is triggered.
+**Recovery:** يتم تحويل المبلغ إلى الدولار الأمريكي بسعر الصرف الرسمي لدى المنصة وقت التسوية. تتم إضافة ميزة التسوية متعددة العملات في خريطة الطريق المستقبلية.
 
-**User Impact:** Approximately 300 customers could not scan QR codes for 2 minutes. They either used alternative payment or waited.
+### إلغاء اشتراك عميل في الإيصال الإلكتروني — يطلب العميل إيصالاً ورقياً
+**System Behavior:** يطلب العميل إيصالاً ورقياً مطبوعاً بدلاً من الإيصال الإلكتروني. لا يدعم نظام التاجر طباعة الإيصالات الورقية للتسليم الفوري.
 
-**Recovery:** The rollback completes within 2 minutes. The QR scanning library version is tested on all device types before the next release.
+**User Impact:** يرفض العميل استلام الإيصال الإلكتروني. ينشأ نزاع حول إثبات الدفع.
 
-### Configuration error — merchant settlement fee set to 10% instead of 2%
-**System Behavior:** A configuration change sets the merchant settlement fee to 10%. 200 merchant settlements are processed with the incorrect fee.
+**Recovery:** يقوم التاجر بإرسال صورة الإيصال عبر WhatsApp أو وسائل التواصل الأخرى. يتم إرسال نسخة من الإيصال الإلكتروني إلى البريد الإلكتروني للعميل.
 
-**User Impact:** 200 merchants are charged 8% extra on their settlement. A merchant settling 100,000 ETB loses 8,000 ETB in extra fees.
+## 7. أعطال الأداء وقابلية التوسع (Performance & Scalability Failures)
 
-**Recovery:** A monitoring alert fires on the fee exceeding 3%. The configuration is reverted. Affected merchants receive the excess fee refunded plus a 5% apology credit.
+### زيادة مفاجئة في حركة POS — 10 أضعاف خلال موسم التسوق في رمضان
+**System Behavior:** يتوسع نطاق API دفع التجار تلقائياً من 30 إلى 200 حاوية. تتعامل خدمة إنشاء رمز QR مع 5,000 طلب في الثانية. تبلغ اتصالات كتابة قاعدة البيانات ذروتها عند 300.
 
-### POS terminal certificate expiry — 1,000 terminals lose connectivity
-**System Behavior:** The client certificate on 1,000 POS terminals expires simultaneously. The terminals cannot establish a TLS connection with the Beza server.
+**User Impact:** يعاني التجار والعملاء من تأخير 2-3 ثوانٍ خلال أول 5 دقائق من الزيادة. قد يستغرق إنشاء رمز QR حتى 8 ثوانٍ.
 
-**User Impact:** 1,000 merchants cannot accept payments for 2 hours until the certificates are renewed.
+**Recovery:** يتم تفعيل سياسات التوسع التلقائي عند 60٪ من استخدام المعالج. يتم جدولة التسخين المسبق لفترات العطلات المعروفة. يتم إنشاء رموز QR مسبقاً وتخزينها مؤقتاً على جهاز التاجر.
 
-**Recovery:** Certificate renewal is automated with 30-day advance warning. A remote certificate push mechanism is implemented. Terminals fall back to offline mode for transactions under 500 ETB.
+### انتهاء مهلة تسوية دفعة POS — 500 جهاز يسوّي في وقت واحد عند منتصف الليل
+**System Behavior:** يتلقى محرك التسوية 500 ملف دفعة في نفس الوقت (التسوية التلقائية في منتصف الليل). ينمو قائمة انتظار المعالجة إلى 30 دقيقة.
 
-## 9. Recovery Time Objectives Summary
+**User Impact:** يرى التجار التسوية كـ "قيد المعالجة" لمدة تصل إلى 30 دقيقة. الأموال غير متوفرة حتى اكتمال التسوية.
 
-| Failure Category | Detection Time | Recovery Time | RPO | Maximum Impact |
+**Recovery:** يتم توزيع معالجة التسوية عبر 10 عمال. يتم توزيع أوقات تسوية الأجهزة بشكل عشوائي ضمن نافذة مدتها ساعة واحدة (11:30 مساءً إلى 12:30 صباحاً).
+
+### إرهاق API الدفع للتجارة الإلكترونية — 500 طلب دفع متزامن
+**System Behavior:** تتعامل بوابة الدفع للتجارة الإلكترونية مع 500 طلب دفع متزامن. تصبح خدمة التحقق 3DS عنق الزجاجة، حيث تعالج 100 طلب فقط في الثانية.
+
+**User Impact:** يرى العملاء مؤشر تحميل الدفع لمدة 10-15 ثانية. 20٪ من طلبات الدفع تنتهي مهلة ويجب إعادة المحاولة.
+
+**Recovery:** يتم توسيع نطاق خدمة 3DS تلقائياً. يتم عرض قائمة انتظار الدفع مع تتبع الموقع للعميل. "موقعك في قائمة الانتظار: 45."
+
+### بطء استعلام سجل معاملات التاجر — يستغرق 20 ثانية للتجار الكبار
+**System Behavior:** التجار الذين لديهم أكثر من 50,000 معاملة يعانون من استعلامات سجل بطيئة. يفحص الاستعلام جميع الصفوف لهذا التاجر.
+
+**User Impact:** يرى التاجر "جاري تحميل سجل المعاملات..." لمدة 15-20 ثانية.
+
+**Recovery:** يقلل فهرس مركب على `(merchant_id, created_at)` وقت الاستعلام إلى 300 مللي ثانية. يقتصر التصفح على 20 عنصراً في الصفحة مع تصفح قائم على المؤشر.
+
+## 8. أعطال تشغيلية (Operational Failures)
+
+### التراجع عن النشر — الإصدار v6.3.0 يعطل مسح رمز QR لأجهزة Android
+**System Behavior:** يكتشف النشر التجريبي زيادة بنسبة 40٪ في فشل مسح QR في غضون دقيقتين. يتم تفعيل التراجع الآلي إلى v6.2.9.
+
+**User Impact:** حوالي 300 عميل لم يتمكنوا من مسح رموز QR لمدة دقيقتين. إما استخدموا طريقة دفع بديلة أو انتظروا.
+
+**Recovery:** يكتمل التراجع في غضون دقيقتين. يتم اختبار إصدار مكتبة مسح QR على جميع أنواع الأجهزة قبل الإصدار التالي.
+
+### خطأ في التكوين — رسوم تسوية التاجر مضبوطة على 10٪ بدلاً من 2٪
+**System Behavior:** تغيير في التكوين يضبط رسوم تسوية التاجر على 10٪. تتم معالجة 200 تسوية تاجر بالرسوم غير الصحيحة.
+
+**User Impact:** 200 تاجر يتم فرض 8٪ إضافية عليهم في تسويتهم. تاجر يسوّي 1,000,000 ليرة سورية يخسر 80,000 ليرة سورية في الرسوم الإضافية.
+
+**Recovery:** يتم إطلاق تنبيه مراقبة عند تجاوز الرسوم 3٪. يتم التراجع عن التكوين. يحصل التجار المتأثرون على رد الرسوم الزائدة بالإضافة إلى 5٪ كرصيد اعتذاري.
+
+### انتهاء صلاحية شهادة POS — 1,000 جهاز يفقد الاتصال
+**System Behavior:** تنتهي صلاحية الشهادة على 1,000 جهاز POS في وقت واحد. لا يمكن للأجهزة إنشاء اتصال TLS مع خادم المنصة.
+
+**User Impact:** 1,000 تاجر لا يمكنهم قبول المدفوعات لمدة ساعتين حتى يتم تجديد الشهادات.
+
+**Recovery:** تتم أتمتة تجديد الشهادة مع إشعار قبل 30 يوماً. يتم تطبيق آلية دفع الشهادة عن بُعد. تتحول الأجهزة إلى وضع عدم الاتصال للمعاملات التي تقل عن 50,000 ليرة سورية.
+
+### تغيير عنوان IP للبنك في منتصف اليوم — تعطل تسوية التجار
+**System Behavior:** يقوم البنك السوري الشريك بتغيير عنوان IP للبوابة الإلكترونية للتسوية دون إشعار مسبق. تفشل جميع اتصالات التسوية.
+
+**User Impact:** تتأخر تسويات جميع التجار لمدة 3 ساعات حتى يتم تحديث التكوين. 500 تاجر يتأثرون.
+
+**Recovery:** يتصل فريق العمليات بالبنك للحصول على العنوان الجديد. يتم تحديث التكوين. يتم إعادة محاولة التسويات الفاشلة تلقائياً.
+
+## 9. ملخص أهداف وقت الاسترداد
+
+| فئة الفشل | وقت الاكتشاف | وقت الاسترداد | RPO | أقصى تأثير |
 |-----------------|----------------|---------------|-----|----------------|
-| Network (transient) | < 1 second | < 30 seconds | 0 | Single payment delayed |
-| Network (DNS outage) | 30 seconds | < 5 minutes | 0 | All merchant ops blocked |
-| Transaction failure | < 100ms | < 5 seconds | 0 | Single payment failed |
-| External dependency | < 10 seconds | < 15 minutes | 0 | Biller unavailable |
-| Data inconsistency | < 5 minutes | < 1 hour | < 5 seconds | Settlement discrepancy |
-| Security incident | < 1 minute | < 4 hours | 0 | Merchant account frozen |
-| Business logic | < 1 hour | < 24 hours | 0 | Limit hit / fee error |
-| Performance degradation | < 1 minute | < 5 minutes | 0 | Slow checkout |
-| Operational (deployment) | < 5 minutes | < 10 minutes | < 1 minute | Payment processing bug |
+| الشبكة (مؤقت) | < 1 ثانية | < 30 ثانية | 0 | تأخير دفع واحد |
+| الشبكة (انقطاع DNS) | 30 ثانية | < 5 دقائق | 0 | حظر جميع عمليات التجار |
+| فشل المعاملة | < 100 مللي ثانية | < 5 ثوانٍ | 0 | فشل دفع واحد |
+| التبعية الخارجية | < 10 ثوانٍ | < 15 دقيقة | 0 | API مزود غير متاح |
+| عدم تناسق البيانات | < 5 دقائق | < 1 ساعة | < 5 ثوانٍ | اختلاف في التسوية |
+| حادث أمني | < 1 دقيقة | < 4 ساعات | 0 | تجميد حساب التاجر |
+| منطق الأعمال | < 1 ساعة | < 24 ساعة | 0 | وصول حد / خطأ رسوم |
+| تدهور الأداء | < 1 دقيقة | < 5 دقائق | 0 | بطء الدفع |
+| تشغيلي (نشر) | < 5 دقائق | < 10 دقائق | < 1 دقيقة | خطأ في معالجة الدفع |
 
-## Changelog
+## سجل التغييرات
 
-| Date | Version | Changes |
+| التاريخ | الإصدار | التغييرات |
 |------|---------|---------|
-| 2026-05-29 | 1.0 | Initial release — 7 categories covering network, transactions, external dependencies, data consistency, security, business logic, and performance failures for merchant payments feature |
+| 2026-05-29 | 1.0 | الإصدار الأولي — 7 فئات تغطي الشبكة، المعاملات، التبعيات الخارجية، تناسق البيانات، الأمان، منطق الأعمال، والأداء لميزة مدفوعات التجار |
 
 ---
 
-*Version: 1.0 | Last updated: 2026-05-29 | Owner: Merchant Engineering Team*
+*الإصدار: 1.0 | آخر تحديث: 2026-05-29 | المالك: فريق هندسة التجار*

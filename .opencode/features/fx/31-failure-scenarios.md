@@ -1,304 +1,339 @@
-# 31. FX — Failure Scenarios
+# 31. FX — سيناريوهات الفشل (Failure Scenarios)
 
-> **Purpose:** Document every failure mode for the Beza FX (Foreign Exchange) feature — rate locking, conversion, liquidity management, and corridor-specific FX operations. Uses ETB, USD, EUR, GBP amounts and Arabic/Amharic messaging.
+> **الغرض:** توثيق جميع حالات الفشل المحتملة لميزة تحويل العملات الأجنبية — تثبيت سعر الصرف، التحويل، إدارة السيولة، وعمليات الصرف الخاصة بسورية. يستخدم مبالغ SYP/USD ورسائل باللغة العربية فقط.
 
 ---
 
-## 1. Network Failures
+## 1. أعطال الشبكة (Network Failures)
 
-### Internet cut during FX rate lock — user submits conversion but network drops before lock persistence
-**System Behavior:** The rate lock is initiated on the client side but the HTTP request never reaches the server. The client times out after 10 seconds. No rate lock record is created in the database.
+### انقطاع الإنترنت أثناء تثبيت سعر الصرف — يرسل المستخدم طلب تحويل لكن الشبكة تنقطع قبل تأكيد التثبيت
+**System Behavior:** يتم بدء تثبيت السعر من جهة العميل ولكن طلب HTTP لا يصل إلى الخادم. العميل ينتظر 10 ثوانٍ ثم يقطع. لا يتم إنشاء سجل تثبيت سعر في قاعدة البيانات.
 
-**User Impact:** The user sees a spinner, then "فشل تأمين سعر الصرف. حاول مرة أخرى" (Failed to lock the exchange rate. Please try again.) No rate is reserved and no funds are held.
+**User Impact:** يرى المستخدم مؤشر تحميل، ثم رسالة "فشل تثبيت سعر الصرف. حاول مرة أخرى." لم يتم حجز أي سعر ولم يتم خصم أي أموال.
 
-**Recovery:** The user retries the rate lock. A fresh rate is fetched from the CBX feed. Since no lock was persisted, no rate is burned or wasted.
+**Recovery:** يعيد المستخدم محاولة تثبيت السعر. يتم جلب سعر جديد من خلاصة مصرف سورية المركزي. بما أنه لم يتم حفظ أي تثبيت، لا يتم خسارة أي سعر.
 
-### API timeout (>5s) during rate query for 10,000 USD
-**System Behavior:** The FX service returns a cached rate from Redis that is up to 30 seconds old. If no cache is available because the TTL has expired, the service returns HTTP 503 Service Unavailable.
+### انتهاء مهلة API (>5 ثوان) أثناء استعلام سعر الصرف لمبلغ 5,000 دولار أمريكي
+**System Behavior:** تعيد خدمة الصرف سعراً مخبأً من Redis لا يتجاوز عمره 30 ثانية. إذا لم يتوفر سعر مخبأ لأن TTL انتهى، تعيد الخدمة HTTP 503 (الخدمة غير متوفرة).
 
-**User Impact:** The user sees "أسعار الصرف غير متوفرة حالياً" (Exchange rates are currently unavailable.) If a cached rate is returned, the user sees a warning "قد يختلف السعر" (The rate may differ.)
+**User Impact:** يرى المستخدم رسالة "أسعار الصرف غير متوفرة حالياً." إذا تم إرجاع سعر مخبأ، يرى المستخدم تحذيراً "قد يختلف السعر الفعلي."
 
-**Recovery:** The circuit breaker trips after the 5-second timeout with a 15-second cooldown. The client retries with exponential backoff. A fresh rate is fetched on the next successful attempt.
+**Recovery:** يتم فتح قاطع الدائرة بعد انتهاء المهلة البالغة 5 ثوانٍ مع فترة تبريد 15 ثانية. يعيد العميل المحاولة بتأخير تصاعدي. يتم جلب سعر جديد عند أول محاولة ناجحة.
 
-### DNS failure for fx-api.beza.et during CBX rate feed callback
-**System Behavior:** The CBX rate feed server cannot push rate updates because the FX API DNS is unreachable. The rate feed goes stale. No new rates are ingested.
+### فشل DNS لخدمة fx-api في أثناء تغذية أسعار مصرف سورية المركزي
+**System Behavior:** لا يمكن لخادم تغذية أسعار مصرف سورية المركزي إرسال تحديثات الأسعار لأن DNS لخدمة API الصرف غير متاح. تتوقف تغذية الأسعار. لا يتم استيراد أسعار جديدة.
 
-**User Impact:** The displayed rates freeze at the last pushed value. Users see non-moving rates with a warning "آخر تحديث: منذ 5 دقائق" (Last updated: 5 minutes ago.)
+**User Impact:** تتجمد الأسعار المعروضة عند آخر قيمة تم إرسالها. يرى المستخدمون أسعاراً ثابتة مع تحذير "آخر تحديث: منذ 5 دقائق."
 
-**Recovery:** Route53 health check detects the DNS failure and initiates failover to the secondary region. The CBX maintains a queue of undelivered rate updates (up to 1000 messages) that are delivered when connectivity is restored.
+**Recovery:** يكتشف فحص الصحة في Route53 فشل DNS ويبدأ التبديل إلى المنطقة الثانوية. يحتفظ مصرف سورية المركزي بقائمة انتظار من تحديثات الأسعار غير المسلمة (حتى 1000 رسالة) يتم تسليمها عند استعادة الاتصال.
 
-### WebSocket disconnect during live rate streaming
-**System Behavior:** The client detects the WebSocket disconnection and initiates reconnection with incremental backoff (1s, 2s, 4s). Missed rate updates are replayed as a snapshot plus deltas.
+### انقطاع WebSocket أثناء البث المباشر للأسعار
+**System Behavior:** يكتشف العميل انقطاع WebSocket ويبدأ إعادة الاتصال بتأخير تصاعدي (1 ثانية، 2 ثانية، 4 ثوانٍ). يتم إعادة بث تحديثات الأسعار المفقودة كصورة كاملة مع الفروقات.
 
-**User Impact:** The user sees a frozen rate ticker on the screen. The indicator "جاري تحديث الأسعار..." (Updating rates...) is shown during the reconnection period.
+**User Impact:** يرى المستخدم مؤشر أسعار متجمداً على الشاشة. يتم عرض "جاري تحديث الأسعار..." خلال فترة إعادة الاتصال.
 
-**Recovery:** On successful reconnection, the server sends a full rate table snapshot covering all instruments. No rates are lost because Kafka retains the rate topic for 24 hours and the client receives all missed deltas.
+**Recovery:** عند إعادة الاتصال بنجاح، يرسل الخادم صورة كاملة لجميع الأسعار لجميع الأدوات. لا يتم فقدان أي أسعار لأن Kafka يحتفظ بموضوع الأسعار لمدة 24 ساعة ويستلم العميل جميع الفروقات المفقودة.
 
-### Network partition between FX service and liquidity pool service
-**System Behavior:** The FX service quotes a rate without being able to verify that sufficient liquidity is available in the pool. The rate is quoted optimistically.
+### انقطاع الشبكة بين خدمة الصرف وخدمة مجمع السيولة
+**System Behavior:** تقوم خدمة الصرف بتسعير سعر دون التحقق من توفر سيولة كافية في المجمع. يتم تسعير السعر بشكل متفائل.
 
-**User Impact:** The user locks a rate. At conversion time, the system discovers there is insufficient liquidity and the conversion fails. The user sees "عذراً، لا توجد سيولة كافية للتحويل" (Sorry, insufficient liquidity for conversion.)
+**User Impact:** يثبت المستخدم سعراً. عند وقت التحويل، يكتشف النظام عدم وجود سيولة كافية ويفشل التحويل. يرى المستخدم رسالة "عذراً، لا توجد سيولة كافية للتحويل."
 
-**Recovery:** The FX service is updated to pre-reserve liquidity before quoting a rate. If the liquidity service is partitioned, the circuit breaker opens and prevents any rate quotes from being issued.
+**Recovery:** يتم تحديث خدمة الصرف لحجز السيولة مسبقاً قبل تسعير أي سعر. إذا كانت خدمة السيولة منقطعة، يفتح قاطع الدائرة ويمنع أي تسعير جديد.
 
-## 2. Transaction Failures
+## 2. أعطال المعاملات (Transaction Failures)
 
-### Rate lock expired before conversion — 57.50 ETB/USD locked at 10:00:00, valid 30s, conversion at 10:00:45
-**System Behavior:** The lock's `expires_at` field is checked against the current database time. The expired lock is rejected. A new rate of 57.80 is fetched from the CBX feed.
+### انتهاء صلاحية تثبيت السعر قبل التحويل — ثبّت سعر 13,100 SYP/USD الساعة 10:00:00، صالح لمدة 30 ثانية، محاولة تحويل الساعة 10:00:45
+**System Behavior:** يتم التحقق من حقل `expires_at` مقابل وقت قاعدة البيانات الحالي. يتم رفض التثبيت المنتهي. يتم جلب سعر جديد بقيمة 13,250 SYP/USD من تغذية مصرف سورية المركزي.
 
-**User Impact:** The user sees "انتهت صلاحية السعر. السعر الجديد: 57.80 ETB/USD" (The rate has expired. The new rate is 57.80 ETB/USD.)
+**User Impact:** يرى المستخدم رسالة "انتهت صلاحية السعر. السعر الجديد: 13,250 SYP/USD."
 
-**Recovery:** The user can accept the new rate or cancel the transaction. If cancelled, no funds are moved. If accepted, a new rate lock is created at 57.80 with a fresh 30-second validity window.
+**Recovery:** يمكن للمستخدم قبول السعر الجديد أو إلغاء المعاملة. إذا تم الإلغاء، لا يتم تحويل أي أموال. إذا تم القبول، يتم إنشاء تثبيت سعر جديد بقيمة 13,250 مع نافذة صلاحية جديدة مدتها 30 ثانية.
 
-### Double conversion attempt with the same lock ID
-**System Behavior:** The lock ID is used as an idempotency key. When the second conversion request arrives with the same lock ID, the system returns HTTP 409 Conflict.
+### محاولة تحويل مكررة بنفس معرف التثبيت
+**System Behavior:** يتم استخدام معرف التثبيت كمفتاح للتكرار. عند وصول طلب التحويل الثاني بنفس المعرف، يعيد النظام HTTP 409 (تعارض).
 
-**User Impact:** The user sees "تم استخدام سعر الصرف هذا مسبقاً" (This exchange rate has already been used.)
+**User Impact:** يرى المستخدم رسالة "تم استخدام سعر الصرف هذا مسبقاً."
 
-**Recovery:** The first conversion is processed normally. The second request is silently discarded. The rate lock is marked as consumed in the database to prevent any future reuse.
+**Recovery:** تتم معالجة التحويل الأول بشكل طبيعي. يتم تجاهل الطلب الثاني بصمت. يتم وضع علامة على تثبيت السعر كمستخدم في قاعدة البيانات لمنع أي إعادة استخدام مستقبلية.
 
-### Duplicate idempotency key for FX conversion
-**System Behavior:** The idempotency key is stored in Redis with a 48-hour TTL. A second request with the same key returns HTTP 409 Conflict.
+### مفتاح تكرار مكرر لتحويل العملات
+**System Behavior:** يتم تخزين مفتاح التكرار في Redis مع TTL لمدة 48 ساعة. طلب ثانٍ بنفس المفتاح يعيد HTTP 409 (تعارض).
 
-**User Impact:** The user sees "تمت معالجة طلب التحويل مسبقاً" (This conversion request has already been processed.)
+**User Impact:** يرى المستخدم رسالة "تمت معالجة طلب التحويل مسبقاً."
 
-**Recovery:** The client SDK must generate a unique UUID per conversion request. The SDK's `FxClient.createConversion()` method auto-generates a UUIDv4 for each call.
+**Recovery:** يجب على مكتبة SDK الخاصة بالعميل إنشاء UUID فريد لكل طلب تحويل. تقوم طريقة `FxClient.createConversion()` بإنشاء UUIDv4 تلقائياً لكل استدعاء.
 
-### Minimum conversion amount not met — user attempts 50 USD conversion (minimum 100 USD)
-**System Behavior:** The pre-validation engine checks the amount against the configured minimum (100 USD equivalent). The transaction is rejected with error code `MIN_AMOUNT`.
+### عدم استيفاء الحد الأدنى لمبلغ التحويل — يحاول المستخدم تحويل 50 دولاراً أمريكياً (الحد الأدنى 100 دولار)
+**System Behavior:** يتحقق محرك التحقق المسبق من المبلغ مقابل الحد الأدنى المكوّن (100 دولار أمريكي أو ما يعادله 1,310,000 SYP). يتم رفض المعاملة مع رمز الخطأ `MIN_AMOUNT`.
 
-**User Impact:** The user sees "الحد الأدنى للتحويل هو $100 USD أو ما يعادله" (The minimum conversion amount is $100 USD or equivalent.)
+**User Impact:** يرى المستخدم رسالة "الحد الأدنى للتحويل هو $100 USD أو ما يعادله 1,310,000 ليرة سورية."
 
-**Recovery:** The UI pre-validates the amount and grays out the submit button when the amount is below the minimum. A tooltip explains the minimum requirement.
+**Recovery:** تقوم واجهة المستخدم بالتحقق المسبق من المبلغ وتعطيل زر الإرسال عندما يكون المبلغ أقل من الحد الأدنى. يتم شرح الحد الأدنى في تلميح.
 
-### Maximum conversion amount exceeded — user attempts 100,000 USD (maximum 25,000 USD per transaction)
-**System Behavior:** The pre-validation engine checks the amount against the maximum per-transaction limit. The transaction is rejected with `MAX_AMOUNT_EXCEEDED`.
+### تجاوز الحد الأقصى لمبلغ التحويل — يحاول المستخدم تحويل 100,000 دولار أمريكي (الحد الأقصى 25,000 دولار لكل معاملة)
+**System Behavior:** يتحقق محرك التحقق المسبق من المبلغ مقابل الحد الأقصى لكل معاملة. يتم رفض المعاملة مع `MAX_AMOUNT_EXCEEDED`.
 
-**User Impact:** The user sees "الحد الأقصى للتحويل هو $25,000 USD للمعاملة الواحدة" (The maximum conversion amount is $25,000 USD per transaction.)
+**User Impact:** يرى المستخدم رسالة "الحد الأقصى للتحويل هو $25,000 USD للمعاملة الواحدة."
 
-**Recovery:** The user can split the conversion into multiple transactions of up to $25,000 each, or use the wholesale FX desk for larger amounts.
+**Recovery:** يمكن للمستخدم تقسيم التحويل إلى معاملات متعددة بحد أقصى 25,000 دولار لكل منها، أو استخدام مكتب الصرف بالجملة للمبالغ الأكبر.
 
-### Liquidity insufficient at lock execution — 50,000 USD sold but pool has only 30,000 USD
-**System Behavior:** The FX service checks the liquidity pool balance before confirming the conversion. If the pool balance is insufficient, the conversion is rejected.
+### سيولة غير كافية عند تنفيذ التثبيت — بيع 50,000 دولار ولكن المجمع يحتوي فقط على 30,000 دولار
+**System Behavior:** تتحقق خدمة الصرف من رصيد مجمع السيولة قبل تأكيد التحويل. إذا كان رصيد المجمع غير كافٍ، يتم رفض التحويل.
 
-**User Impact:** The user sees "عذراً، لا توجد سيولة كافية لتنفيذ التحويل. تم إلغاء الحجز" (Sorry, there is insufficient liquidity to execute the conversion. The lock has been cancelled.)
+**User Impact:** يرى المستخدم رسالة "عذراً، لا توجد سيولة كافية لتنفيذ التحويل. تم إلغاء الحجز."
 
-**Recovery:** The rate lock is reversed. No funds are debited from the user's account. The user can try a smaller amount or wait for the liquidity pool to be replenished.
+**Recovery:** يتم عكس تثبيت السعر. لا يتم خصم أي أموال من حساب المستخدم. يمكن للمستخدم تجربة مبلغ أصغر أو الانتظار حتى يتم تجديد مجمع السيولة.
 
-## 3. External Dependency Failures
+## 3. أعطال التبعيات الخارجية (External Dependency Failures)
 
-### CBX (National Bank of Ethiopia) rate feed down
-**System Behavior:** The FX service switches to `LAST_KNOWN_RATE` mode. It serves rates that are up to 30 minutes old. A `RATE_STALE` warning is broadcast on the status endpoint.
+### تعطل تغذية أسعار مصرف سورية المركزي (CBS)
+**System Behavior:** تتحول خدمة الصرف إلى وضع `LAST_KNOWN_RATE`. تقدم أسعاراً قد تصل إلى 30 دقيقة. يتم بث تحذير `RATE_STALE` على نقطة نهاية الحالة.
 
-**User Impact:** Users see a banner "أسعار الصرف قد لا تكون محدثة" (Exchange rates may not be current.) New FX locks use the stale rate plus a 0.5% risk margin.
+**User Impact:** يرى المستخدمون لافتة "أسعار الصرف قد لا تكون محدثة." تستخدم تثبيتات الصرف الجديدة السعر القديم بالإضافة إلى هامش مخاطرة بنسبة 0.5%.
 
-**Recovery:** The operations team contacts the CBX. When the feed is restored, the stale flag is cleared. The 30-minute window of stale rates is compensated by the 0.5% margin.
+**Recovery:** يتصل فريق العمليات بمصرف سورية المركزي. عند استعادة التغذية، يتم مسح علامة التقادم. يتم تعويض نافذة الـ 30 دقيقة من الأسعار القديمة بهامش الـ 0.5%.
 
-### CBX rate feed delayed by more than 30 minutes
-**System Behavior:** All new FX conversions are blocked. Only wallet-to-wallet ETB transfers are allowed. The FX service returns a 503 for all conversion requests.
+### تأخر تغذية مصرف سورية المركزي لأكثر من 30 دقيقة
+**System Behavior:** يتم حظر جميع تحويلات العملات الجديدة. يُسمح فقط بالتحويلات بين المحافظ بالليرة السورية. تعيد خدمة الصرف 503 لجميع طلبات التحويل.
 
-**User Impact:** Users attempting FX conversions see "خدمة تحويل العملات غير متوفرة حالياً" (Currency conversion service is currently unavailable.)
+**User Impact:** المستخدمون الذين يحاولون تحويل العملات يرون "خدمة تحويل العملات غير متوفرة حالياً."
 
-**Recovery:** The operations team manually uploads rates received from the CBX via phone or email. Once manually uploaded, the system resumes processing. Auto-resume happens when the feed is restored.
+**Recovery:** يقوم فريق العمليات برفع الأسعار المستلمة من مصرف سورية المركزي عبر الهاتف أو البريد الإلكتروني يدوياً. بمجرد الرفع اليدوي، يستأنف النظام المعالجة. يتم الاستئناف التلقائي عند استعادة التغذية.
 
-### Liquidity provider (correspondent bank) API timeout
-**System Behavior:** The liquidity reservation call to the correspondent bank hangs. The FX service falls back to the available pool balance cached in Redis (updated every 60 seconds).
+### انتهاء مهلة API لمزود السيولة (بنك مراسل)
+**System Behavior:** تتوقف مكالمة حجز السيولة للبنك المراسل. تعود خدمة الصرف إلى رصيد المجمع المتاح المخبأ في Redis (يتم تحديثه كل 60 ثانية).
 
-**User Impact:** The rate quote is based on the cached pool balance. If the cached balance shows insufficient liquidity, the quote is rejected. "السيولة غير متوفرة" (Liquidity is unavailable.)
+**User Impact:** يعتمد عرض السعر على رصيد المجمع المخبأ. إذا أظهر الرصيد المخبأ سيولة غير كافية، يتم رفض العرض. "السيولة غير متوفرة."
 
-**Recovery:** A consistent hashing algorithm routes to an alternate liquidity provider. The circuit breaker for the primary provider trips after 3 consecutive timeouts and resets after 60 seconds.
+**Recovery:** يقوم خوارزمية التجزئة المتسقة بتوجيه الطلب إلى مزود سيولة بديل. يتم فتح قاطع الدائرة للمزود الأساسي بعد 3 مهلات متتالية ويعاد تعيينه بعد 60 ثانية.
 
-### SWIFT gateway unavailable for cross-currency settlement
-**System Behavior:** The FX settlement messages are queued in the SWIFT store-and-forward system. The settlement batch is delayed.
+### بوابة SWIFT غير متوفرة للتسوية بين العملات
+**System Behavior:** يتم وضع رسائل تسوية SWIFT في قائمة انتظار نظام التخزين والتمرير. تتأخر دفعة التسوية.
 
-**User Impact:** The conversion completes on the Beza ledger. The external settlement is pending. "تسوية خارجية قيد الانتظار" (External settlement pending.)
+**User Impact:** يكتمل التحويل في سجلات المنصة. التسوية الخارجية معلقة. "تسوية خارجية قيد الانتظار."
 
-**Recovery:** The SWIFT queue is monitored. If the delay exceeds 4 hours, the operations team is alerted to contact the SWIFT service desk. The settlement is processed when the gateway is restored.
+**Recovery:** تتم مراقبة قائمة انتظار SWIFT. إذا تجاوز التأخير 4 ساعات، يتم تنبيه فريق العمليات للاتصال بمكتب خدمة SWIFT. تتم معالجة التسوية عند استعادة البوابة.
 
-### Market data provider (Bloomberg/Reuters) feed outage
-**System Behavior:** The FX service falls back to the CBX official rate, which is less frequently updated and has a wider spread. The bid-ask spread is increased by 0.5% as a risk buffer.
+### انقطاع تغذية مزود بيانات السوق
+**System Behavior:** تعود خدمة الصرف إلى السعر الرسمي لمصرف سورية المركزي، والذي يتم تحديثه بشكل أقل وله فارق أوسع. يتم زيادة فارق العرض والطلب بنسبة 0.5% كحاجز مخاطرة.
 
-**User Impact:** Users see wider bid-ask spreads. "فروق أسعار أوسع بسبب ظروف السوق" (Wider spreads due to market conditions.)
+**User Impact:** يرى المستخدمون فروق أسعار أوسع. "فروق أسعار أوسع بسبب ظروف السوق."
 
-**Recovery:** The auto-fallback to the CBX official rate requires no manual intervention. When the primary market data feed is restored, the system automatically switches back to the tighter spreads.
+**Recovery:** لا يتطلب العودة التلقائية إلى السعر الرسمي لمصرف سورية المركزي أي تدخل يدوي. عند استعادة تغذية بيانات السوق الأساسية، يعود النظام تلقائياً إلى الفروق الأضيق.
 
-## 4. Data Consistency Failures
+### انقطاع خدمة شبكة المدفوعات السورية (SYPS)
+**System Behavior:** لا يمكن معالجة مدفوعات التحويل عبر شبكة المدفوعات السورية. يتم وضع جميع معاملات التحويل في قائمة انتظار.
 
-### FX rate lock created in DB but not reflected in cache
-**System Behavior:** The rate lock is persisted to the database. The cache entry for that rate is not updated. When the conversion service reads from the cache, it does not see the lock.
+**User Impact:** يرى المستخدمون "شبكة المدفوعات السورية غير متوفرة حالياً. سيتم تأجيل المعاملة."
 
-**User Impact:** The user might accidentally override their own lock by fetching a fresh rate before the conversion. The original lock is still valid and causes a lock conflict.
+**Recovery:** تعاد محاولة المعالجة كل 5 دقائق. عند استعادة الخدمة، تتم معالجة جميع المعاملات المعلقة تلقائياً.
 
-**Recovery:** A `CACHE_MISMATCH` alert triggers automatic cache invalidation. A fresh read from the database confirms the lock. The client always uses the `lock_id` returned by the lock creation endpoint.
+## 4. أعطال تناسق البيانات (Data Consistency Failures)
 
-### Conversion DB write succeeds but ledger update fails
-**System Behavior:** The USD debit is recorded in the FX database. The ETB credit write to the user's wallet fails. The Saga pattern detects the inconsistency and triggers compensation.
+### إنشاء تثبيت سعر في قاعدة البيانات ولكن لا ينعكس في التخزين المؤقت
+**System Behavior:** يتم حفظ تثبيت السعر في قاعدة البيانات. لا يتم تحديث إدخال التخزين المؤقت لهذا السعر. عندما تقرأ خدمة التحويل من التخزين المؤقت، لا ترى التثبيت.
 
-**User Impact:** The user sees a reversal notification "تم إلغاء التحويل وإعادة $500 USD" (The conversion has been cancelled and $500 USD has been returned.)
+**User Impact:** قد يقوم المستخدم بالكتابة فوق تثبيته الخاص عن غير قصد عن طريق جلب سعر جديد قبل التحويل. التثبيت الأصلي لا يزال سارياً ويسبب تعارضاً.
 
-**Recovery:** The compensatory transaction reverses the USD debit. A retry queue attempts the ledger update 3 times (5s, 30s, 120s) before the compensation is finalized.
+**Recovery:** يؤدي تنبيه `CACHE_MISMATCH` إلى إبطال التخزين المؤقت تلقائياً. تؤكد قراءة جديدة من قاعدة البيانات التثبيت. يستخدم العميل دائماً `lock_id` الذي أعادته نقطة نهاية إنشاء التثبيت.
 
-### FX rate event lost in Kafka — rate update published but not consumed
-**System Behavior:** The rate update message is published to the Kafka topic. One or more consumers (pricing engine, wallet, remittance) fail to consume the message due to a consumer group rebalance.
+### نجاح كتابة تحويل في قاعدة البيانات ولكن فشل تحديث دفتر الأستاذ
+**System Behavior:** يتم تسجيل الخصم بالدولار الأمريكي في قاعدة بيانات الصرف. يفشل كتابة الإيداع بالليرة السورية في محفظة المستخدم. يكتشف نمط Saga عدم التناسق ويطلق التعويض.
 
-**User Impact:** Users of the affected consumer see a slightly stale rate for that currency pair. The price discrepancy can be up to 1%.
+**User Impact:** يرى المستخدم إشعار إلغاء "تم إلغاء التحويل وإعادة $500 USD."
 
-**Recovery:** The Kafka dead-letter queue consumer replays missed events. Consumer lag is monitored via LinkedIn Burrow. An alert is triggered if consumer lag exceeds 100 messages.
+**Recovery:** تعكس المعاملة التعويضية خصم الدولار الأمريكي. يحاول قائمة إعادة المحاولة تحديث دفتر الأستاذ 3 مرات (5 ثوانٍ، 30 ثانية، 120 ثانية) قبل الانتهاء من التعويض.
 
-### Dual-write inconsistency — rate lock DB write + Kafka event publish partially fails
-**System Behavior:** The rate lock event is published to Kafka successfully. The database write fails (rare race condition). The system believes no lock exists.
+### فقدان حدث سعر الصرف في Kafka — تم نشر تحديث السعر ولكن لم يتم استهلاكه
+**System Behavior:** يتم نشر رسالة تحديث السعر في موضوع Kafka. يفشل مستهلك واحد أو أكثر (محرك التسعير، المحفظة، التحويلات) في استهلاك الرسالة بسبب إعادة توازن مجموعة المستهلكين.
 
-**User Impact:** The user's lock is not persisted. When the user attempts the conversion, the system returns "lock_not_found" error. The pre-authorized amount appears held but no valid lock exists.
+**User Impact:** يرى مستخدمو المستهلك المتأثر سعراً قديماً قليلاً لزوج العملات هذا. يمكن أن يصل الفرق السعري إلى 1%.
 
-**Recovery:** A compensating event consumes the pre-authorized hold. The user sees "فشل التحويل. لم يتم خصم أي مبلغ" (Conversion failed. No amount has been deducted.)
+**Recovery:** يعيد مستهلك قائمة انتظار الرسائل الميتة تشغيل الأحداث الفائتة. تتم مراقبة تأخر المستهلك عبر LinkedIn Burrow. يتم إطلاق تنبيه إذا تجاوز تأخر المستهلك 100 رسالة.
 
-### Liquidity pool counter corrupted after concurrent conversions
-**System Behavior:** Two concurrent conversions both read the liquidity pool as 50,000 USD. Both deduct 10,000 USD from their local copy. The pool counter in the database ends up at 40,000 USD instead of 30,000 USD.
+### عدم تناسق الكتابة المزدوجة — فشل كتابة تثبيت السعر في قاعدة البيانات + نشر حدث Kafka جزئياً
+**System Behavior:** تم نشر حدث تثبيت السعر في Kafka بنجاح. فشلت كتابة قاعدة البيانات (حالة سباق نادرة). يعتقد النظام أنه لا يوجد تثبيت.
 
-**User Impact:** The pool shows phantom liquidity. The next conversion attempt fails because the actual pool is exhausted earlier than expected.
+**User Impact:** لم يتم حفظ تثبيت المستخدم. عندما يحاول المستخدم التحويل، يعيد النظام خطأ "لم يتم العثور على التثبيت." يظهر المبلغ المصرح به محجوزاً ولكن لا يوجد تثبيت صالح.
 
-**Recovery:** Optimistic locking with a `version` column prevents this race condition. The second transaction fails on the write with `OPTIMISTIC_LOCK_EXCEPTION` and is retried with the updated counter.
+**Recovery:** يقوم حدث تعويضي باستهلاك الحجز المصرح به. يرى المستخدم "فشل التحويل. لم يتم خصم أي مبلغ."
 
-## 5. Security Failures
+### تلف عداد مجمع السيولة بعد تحويلات متزامنة
+**System Behavior:** قرأ تحويلان متزامنان مجمع السيولة كـ 50,000 دولار. يخصم كل منهما 10,000 دولار من نسخته المحلية. ينتهي عداد المجمع في قاعدة البيانات عند 40,000 دولار بدلاً من 30,000 دولار.
 
-### Fraud false positive — recurring conversion pattern flagged as wash trading
-**System Behavior:** The AML rules engine detects 3 same-day USD to ETB to USD round-trip conversions. The pattern is flagged as potential wash trading.
+**User Impact:** يُظهر المجمع سيولة وهمية. تفشل محاولة التحويل التالية لأن المجمع الفعلي استُنفد مبكراً عن المتوقع.
 
-**User Impact:** The user sees "تم تعليق التحويل للمراجعة" (The conversion has been suspended for review.) The user's FX access is temporarily restricted.
+**Recovery:** يمنع القفل التفاؤلي مع عمود `version` حالة السباق هذه. يفشل التحويل الثاني عند الكتابة مع `OPTIMISTIC_LOCK_EXCEPTION` ويتم إعادة محاولته بالعداد المحدث.
 
-**Recovery:** The compliance team reviews the trading pattern within 4 hours. If the activity is legitimate hedging, the pattern is whitelisted. The user's FX access is restored.
+### عدم تطابق سعر الصرف بين الأنظمة الداخلية
+**System Behavior:** يظهر سعر الصرف المعروض في تطبيق العميل مختلفاً عن السعر المسجل في نظام المحاسبة الخلفي بسبب تأخير في المزامنة بين الخدمات المصغرة.
 
-### Fraud false negative — front-running via rate feed latency
-**System Behavior:** An insider who can see the rate change before it is broadcast to the market executes a conversion at the old rate. The rate feed consumer has a 100ms advantage.
+**User Impact:** يرى المستخدم سعراً في واجهة التحويل وسعراً مختلفاً في كشف الحساب. "اختلاف في سعر الصرف المعروض."
 
-**User Impact:** The insider successfully executes a 50,000 USD conversion at the pre-change rate. The market receives the updated rate 100ms later.
+**Recovery:** يتم تشغيل وظيفة مزامنة كل 60 ثانية للتوفيق بين أسعار جميع الخدمات. يتم تسجيل أي اختلاف وإرسال تنبيه.
 
-**Recovery:** The internal rate feed is broadcast via Kafka with strict message ordering. No consumer is allowed to read ahead of the committed offset. A full audit trail tracks all rate views and conversions.
+## 5. أعطال الأمان (Security Failures)
 
-### Unauthorized access to FX admin rate override panel
-**System Behavior:** An attacker modifies the USD/ETB rate to 60.00 (market rate is 57.50) through the admin panel. The attacker then executes an internal conversion at the manipulated rate.
+### إنذار كاذب للاحتيال — نمط تحويل متكرر يُعلَم كغسل أموال
+**System Behavior:** يطلق محرك قواعد AML إنذاراً على 3 تحويلات ذهاب وعودة من دولار إلى ليرة سورية في نفس اليوم. يتم الإبلاغ عن النمط كغسل أموال محتمل.
 
-**User Impact:** The market rate is artificially manipulated. Beza loses 2.50 ETB per USD on the trade. For a 100,000 USD trade, the loss is 250,000 ETB.
+**User Impact:** يرى المستخدم رسالة "تم تعليق التحويل للمراجعة." يتم تقييد وصول المستخدم للصرف مؤقتاً.
 
-**Recovery:** Rate overrides require dual approval from two authorized users plus MFA. An audit log entry triggers a SIEM alert on any `RATE_OVERRIDE` event. The override requires supervisor authorization.
+**Recovery:** يراجع فريق الامتثال نمط التداول خلال 4 ساعات. إذا كان النشاط تحوطاً مشروعاً، يتم إدراجه في القائمة البيضاء. يتم استعادة وصول المستخدم للصرف.
 
-### Rate manipulation via multiple accounts — user creates 10 accounts to bypass the daily FX limit
-**System Behavior:** The user creates 10 different accounts, each with a 25,000 USD daily FX limit. The user converts 25,000 USD from each account, totaling 250,000 USD.
+### إنذار كاذب سلبي للاحتيال — التلاعب بالأسعار عبر تأخر تغذية الأسعار
+**System Behavior:** شخص من الداخل يمكنه رؤية تغير السعر قبل بثه للسوق ينفذ تحويلاً بالسعر القديم. يمتلك مستهلك تغذية الأسعار ميزة 100 مللي ثانية.
 
-**User Impact:** The user successfully bypasses the per-account limit and moves 250,000 USD out of ETB in a single day.
+**User Impact:** ينفذ الشخص من الداخل تحويلاً بقيمة 50,000 دولار أمريكي بالسعر السابق للتغيير. يتلقى السوق السعر المحدث بعد 100 مللي ثانية.
 
-**Recovery:** The AML system detects that all 10 accounts share the same device fingerprint and IP address. The accounts are linked. Future FX operations are blocked until the user completes a compliance review.
+**Recovery:** يتم بث تغذية الأسعار الداخلية عبر Kafka مع ترتيب صارم للرسائل. لا يُسمح لأي مستهلك بالقراءة قبل الإزاحة الملتزمة. يتتبع مسار تدقيق كامل جميع مشاهدات الأسعار والتحويلات.
 
-### Timing attack on rate lock expiry — attacker submits conversion at the exact expiry time
-**System Behavior:** The attacker monitors the rate lock expiry with sub-second precision. The attacker submits the conversion request at the exact moment the lock is about to expire.
+### وصول غير مصرح به إلى لوحة التحكم في أسعار الصرف الإدارية
+**System Behavior:** يخترق مهاجم لوحة التحكم ويعدل سعر SYP/USD إلى 14,000 (سعر السوق 13,100) من خلال لوحة الإدارة. ثم ينفذ المهاجم تحويلاً داخلياً بالسعر المعدل.
 
-**User Impact:** If the race condition is won by the attacker, the lock is accepted 10ms after expiry. The user gets the old, more favorable rate.
+**User Impact:** يتم التلاعب بسعر السوق بشكل مصطنع. تخسر المنصة 900 ليرة سورية لكل دولار في الصفقة. لصفقة بقيمة 100,000 دولار، الخسارة 90,000,000 ليرة سورية.
 
-**Recovery:** The expiry check uses the database-level `expires_at` field with an atomic compare-and-set operation. This prevents the race condition by using a single database transaction for validation.
+**Recovery:** تتطلب تغييرات الأسعار موافقة مزدوجة من مستخدمين مصرح لهم بالإضافة إلى MFA. يؤدي إدخال سجل التدقيق إلى تنبيه SIEM فوري على أي حدث `RATE_OVERRIDE`. يتطلب التعديل تفويضاً من المشرف.
 
-## 6. Business Logic Failures
+### التلاعب بالأسعار عبر حسابات متعددة — ينشئ المستخدم 10 حسابات لتجاوز حد الصرف اليومي
+**System Behavior:** ينشئ المستخدم 10 حسابات مختلفة، كل منها بحد يومي للصرف قدره 25,000 دولار. يحول المستخدم 25,000 دولار من كل حساب، بإجمالي 250,000 دولار.
 
-### Rate lock expired before conversion — user locks 57.50 at 10:00:00, tries conversion at 10:00:45
-**System Behavior:** The server checks `NOW() >= expires_at` and finds the lock expired. A new rate of 57.80 is fetched. The difference (0.52%) is within the 2% auto-approval threshold.
+**User Impact:** ينجح المستخدم في تجاوز الحد لكل حساب وينقل 250,000 دولار خارج الليرة السورية في يوم واحد.
 
-**User Impact:** The user sees "انتهت صلاحية سعر الصرف. السعر الجديد: 57.80. هل توافق؟" (The exchange rate has expired. The new rate is 57.80. Do you agree?)
+**Recovery:** يكتشف نظام AML أن جميع الحسابات العشرة تشترك في نفس بصمة الجهاز وعنوان IP. يتم ربط الحسابات. يتم حظر عمليات الصرف المستقبلية حتى يكمل المستخدم مراجعة الامتثال.
 
-**Recovery:** The user accepts the new rate. The system proactively refreshes the rate preview during the conversion flow to minimize the risk of expiry.
+### هجوم توقيت على انتهاء صلاحية تثبيت السعر — يقدم المهاجم تحويلاً في وقت انتهاء الصلاحية بالضبط
+**System Behavior:** يراقب المهاجم انتهاء صلاحية تثبيت السعر بدقة أقل من الثانية. يقدم المهاجم طلب التحويل في اللحظة التي على وشك أن تنتهي فيها صلاحية التثبيت.
 
-### Spread too wide during volatile market — normal spread 0.5%, current spread 3.0%
-**System Behavior:** The risk engine checks the current spread against the maximum allowed spread threshold (2.0%). The spread of 3.0% exceeds the threshold and the conversion is rejected.
+**User Impact:** إذا فاز المهاجم بسباق التوقيت، يتم قبول التثبيت بعد 10 مللي ثانية من انتهاء الصلاحية. يحصل المستخدم على السعر القديم الأفضل.
 
-**User Impact:** The user sees "فروق الأسعار حالياً واسعة جداً. حاول مرة أخرى بعد 30 دقيقة" (The spreads are currently too wide. Please try again in 30 minutes.)
+**Recovery:** يستخدم التحقق من انتهاء الصلاحية حقل `expires_at` على مستوى قاعدة البيانات مع عملية مقارنة وضبط ذرية. يمنع هذا حالة السباق باستخدام معاملة قاعدة بيانات واحدة للتحقق.
 
-**Recovery:** The system re-checks the spread every 5 minutes. When market volatility subsides and the spread narrows below the threshold, conversions resume automatically.
+### استغلال تأخر بث الأسعار للتداول الداخلي
+**System Behavior:** يتمكن موظف لديه حق الوصول المبكر لتحديثات الأسعار من تنفيذ تحويل قبل 2 ثانية من بث السعر للجمهور.
 
-### Directional limit hit — more USD bought than sold (net position exceeds risk limit)
-**System Behavior:** The FX risk engine monitors the net position in each currency. When the net USD position exceeds the configured risk limit, further USD purchases are blocked.
+**User Impact:** يحصل الموظف على سعر أفضل من السوق بمقدار 50 نقطة على تحويل بقيمة 20,000 دولار، محققاً ربحاً غير مشروع قدره 1,000,000 ليرة سورية.
 
-**User Impact:** The user attempting to buy USD sees "تم الوصول إلى الحد الأقصى لصافي المركز. حاول شراء عملة أخرى" (The net position limit has been reached. Try buying a different currency pair.)
+**Recovery:** يتم تطبيق حظر تداول داخلي لمدة 5 ثوانٍ قبل بث الأسعار للجمهور. يتم تسجيل جميع مشاهدات الأسعار مع الطابع الزمني. يتم مراجعة أي تحويل ينفذ خلال فترة الحظر تلقائياً.
 
-**Recovery:** The FX dealer manually hedges with the CBX to rebalance the position. The limit is reset after the hedge is executed.
+## 6. أعطال منطق الأعمال (Business Logic Failures)
 
-### Weekend/holiday rate — no CBX rates available (Saturday in Ethiopia)
-**System Behavior:** The FX service checks the CBX operating hours. Outside of business days (Saturday and Sunday in Ethiopia), the service returns an error indicating rates are unavailable.
+### انتهاء صلاحية تثبيت السعر قبل التحويل — يثبت المستخدم سعر 13,100 الساعة 10:00:00، يحاول تحويل الساعة 10:00:45
+**System Behavior:** يتحقق الخادم من `NOW() >= expires_at` ويجد أن التثبيت منتهي الصلاحية. يتم جلب سعر جديد قدره 13,250. الفرق (1.14%) ضمن حد الموافقة التلقائية البالغ 2%.
 
-**User Impact:** The user sees "أسعار الصرف متاحة فقط خلال أيام العمل الرسمية" (Exchange rates are available only during official business days.)
+**User Impact:** يرى المستخدم "انتهت صلاحية سعر الصرف. السعر الجديد: 13,250. هل توافق؟"
 
-**Recovery:** The user can schedule the conversion for the next business day. The rate is locked at the opening rate on Monday morning with a guaranteed 30-second lock window.
+**Recovery:** يقبل المستخدم السعر الجديد. يقوم النظام بتحديث معاينة السعر بشكل استباقي أثناء تدفق التحويل لتقليل مخاطر انتهاء الصلاحية.
 
-### Tier limit for FX conversion exceeded — Tier 1 user tries 50,000 USD/month (limit 10,000 USD)
-**System Behavior:** The `user_tier.monthly_fx_limit` check against the monthly aggregate of 50,000 USD exceeds the Tier 1 limit of 10,000 USD. The transaction is rejected.
+### فارق السعر واسع جداً خلال السوق المتقلب — الفارق الطبيعي 0.7%، الفارق الحالي 3.5%
+**System Behavior:** يتحقق محرك المخاطرة من الفارق الحالي مقابل الحد الأقصى المسموح به (2.0%). الفارق 3.5% يتجاوز العتبة ويتم رفض التحويل.
 
-**User Impact:** The user sees "الحد الشهري للتحويل هو $10,000 USD. قم بترقية حسابك" (The monthly FX limit is $10,000 USD. Please upgrade your account.)
+**User Impact:** يرى المستخدم "فروق الأسعار حالياً واسعة جداً. حاول مرة أخرى بعد 30 دقيقة."
 
-**Recovery:** The user can complete an in-app KYC upgrade to Tier 2 (monthly limit of $100,000 USD) by uploading identity and source of funds documentation. The upgrade is processed within 24 hours.
+**Recovery:** يعيد النظام التحقق من الفارق كل 5 دقائق. عندما تهدأ تقلبات السوق ويضيق الفارق دون العتبة، تستأنف التحويلات تلقائياً.
 
-## 7. Performance & Scalability Failures
+### الوصول إلى الحد الاتجاهي — تم شراء دولار أكثر من بيعه (يتجاوز صافي المركز حد المخاطرة)
+**System Behavior:** يراقب محرك مخاطرة الصرف صافي المركز في كل عملة. عندما يتجاوز صافي مركز الدولار حد المخاطرة المكوّن، يتم حظر المزيد من مشتريات الدولار.
 
-### Sudden rate feed spike — 100 rate updates per second during market volatility
-**System Behavior:** The CBX rate feed sends 100 updates per second during a volatile market period. The Kafka consumer processes 6,000 messages per minute. Consumer lag increases to 5,000 messages.
+**User Impact:** المستخدم الذي يحاول شراء دولار يرى "تم الوصول إلى الحد الأقصى لصافي المركز. حاول شراء عملة أخرى."
 
-**User Impact:** Users see rates that are 5-10 seconds stale during high volatility. Rate lock requests may use slightly outdated rates.
+**Recovery:** يقوم تاجر الصرف بالتحوط يدوياً مع مصرف سورية المركزي لإعادة توازن المركز. يتم إعادة تعيين الحد بعد تنفيذ التحوط.
 
-**Recovery:** Consumer group is auto-scaled from 3 to 10 partitions. Lag is cleared within 30 seconds. A rate throttling mechanism batches updates to 10 per second for the display tier.
+### عطلة رسمية — لا توجد أسعار من مصرف سورية المركزي (يوم الجمعة عطلة رسمية في سورية)
+**System Behavior:** تتحقق خدمة الصرف من ساعات عمل مصرف سورية المركزي. خارج أيام العمل الرسمية (الجمعة والسبت في سورية)، تعيد الخدمة خطأ يشير إلى أن الأسعار غير متوفرة.
 
-### High concurrency on rate locks — 1,000 concurrent lock requests
-**System Behavior:** The rate lock service receives 1,000 concurrent requests. The database row-level locking on the `rate_locks` table causes contention. Lock acquisition time increases from 10ms to 500ms.
+**User Impact:** يرى المستخدم "أسعار الصرف متاحة فقط خلال أيام العمل الرسمية."
 
-**User Impact:** Users experience 2-3 second delays when locking rates during peak periods.
+**Recovery:** يمكن للمستخدم جدولة التحويل ليوم العمل التالي. يتم تثبيت السعر بسعر الافتتاح صباح الأحد مع نافذة تثبيت مضمونة لمدة 30 ثانية.
 
-**Recovery:** Rate locking is moved to Redis for faster atomic operations. The database is used only for persistence. Concurrent lock capacity increases to 5,000 requests per second.
+### تجاوز الحد الشهري لتحويل العملات — مستخدم من المستوى 1 يحاول تحويل 50,000 دولار شهرياً (الحد 10,000 دولار)
+**System Behavior:** يتحقق `user_tier.monthly_fx_limit` من إجمالي 50,000 دولار شهرياً الذي يتجاوز حد المستوى 1 البالغ 10,000 دولار. يتم رفض المعاملة.
 
-### Memory leak in rate calculation engine — OOM after 4 hours of high load
-**System Behavior:** The rate calculation service has a memory leak in the spread calculation algorithm. After 4 hours under high load, memory usage reaches 90% and the pod is OOM-killed.
+**User Impact:** يرى المستخدم "الحد الشهري للتحويل هو $10,000 USD. قم بترقية حسابك."
 
-**User Impact:** Rate calculations fail for 30 seconds while the pod restarts. Users see "خدمة أسعار الصرف غير متوفرة" (Exchange rate service unavailable.)
+**Recovery:** يمكن للمستخدم إكمال ترقية KYC داخل التطبيق إلى المستوى 2 (حد شهري قدره 100,000 دولار) عن طريق تحميل الهوية ومستندات مصدر الأموال. تتم المعالجة خلال 24 ساعة.
 
-**Recovery:** Kubernetes auto-restarts the pod within 30 seconds. A hot standby pod serves requests during the restart. The memory leak is fixed in the next release.
+### عدم تطابق سعر الصرف بين السعر الرسمي وسعر السوق الموازي
+**System Behavior:** يكتشف محرك التسعير أن الفرق بين سعر مصرف سورية المركزي الرسمي (13,100) وسعر السوق الموازي (14,500) يتجاوز 10%. يتم تعليق التحويلات التلقائية.
 
-## 8. Operational Failures
+**User Impact:** يرى المستخدم "فارق كبير بين السعر الرسمي وسعر السوق. تم تعليق التحويلات التلقائية. يرجى الاتصال بخدمة العملاء."
 
-### Deployment rollback — v4.1.0 uses wrong spread formula, overcharging customers
-**System Behavior:** The canary deployment detects a 25% increase in FX revenue within 3 minutes. The automated rollback is triggered.
+**Recovery:** يقوم فريق إدارة المخاطر بمراجعة الفارق وتحديد السعر المناسب للتداول. يتم استئناف التحويلات بعد الموافقة اليدوية على السعر.
 
-**User Impact:** Approximately 200 customers were overcharged by an average of 0.5% on their conversions. Total overcharge: approximately 50,000 ETB.
+### عشرات الملايين من الليرات — رفض تحويل تجاوز حد السيولة اليومية للمنصة
+**System Behavior:** يحاول مستخدم من فئة الشركات تحويل مبلغ 500,000 دولار أمريكي (ما يعادل 6.5 مليار ليرة سورية). يتجاوز المبلغ حد السيولة اليومية للمنصة البالغ 300,000 دولار.
 
-**Recovery:** The rollback completes within 2 minutes. Overcharged customers are refunded automatically. The spread formula is corrected and tested.
+**User Impact:** يرى المستخدم "المبلغ يتجاوز حد السيولة اليومية. الحد الأقصى اليومي: $300,000 USD."
 
-### Configuration error — overnight margin set to 10% instead of 1%
-**System Behavior:** A configuration change sets the overnight FX margin to 10% instead of the standard 1%. Customers are charged 10× the normal spread.
+**Recovery:** يمكن للمستخدم تقسيم التحويل على عدة أيام أو الاتصال بفريق العمليات لترتيب سيولة خاصة للتحويلات الكبيرة.
 
-**User Impact:** 50 customers process conversions with a 10% spread during the 10-minute window. A 100,000 ETB conversion costs 10,000 ETB extra.
+## 7. أعطال الأداء وقابلية التوسع (Performance & Scalability Failures)
 
-**Recovery:** A monitoring alert fires on the margin exceeding the 5% threshold. The configuration is reverted. Affected customers receive full refunds plus 20% apology credit.
+### زيادة مفاجئة في تغذية الأسعار — 100 تحديث للسعر في الثانية خلال تقلبات السوق
+**System Behavior:** ترسل تغذية السوق 100 تحديث في الثانية خلال فترة تقلبات السوق. يعالج مستهلك Kafka 6,000 رسالة في الدقيقة. يزداد تأخر المستهلك إلى 5,000 رسالة.
 
-### CBX rate feed disconnected — manual intervention delayed
-**System Behavior:** The CBX rate feed disconnects at 2:00 AM EAT. The on-call engineer does not respond for 45 minutes. FX rates are frozen for 45 minutes.
+**User Impact:** يرى المستخدمون أسعاراً متأخرة بمقدار 5-10 ثوانٍ خلال التقلبات العالية. قد تستخدم طلبات تثبيت السعر أسعاراً قديمة قليلاً.
 
-**User Impact:** Users see stale rates. New conversions use rates that may not reflect market movements during the 45-minute window.
+**Recovery:** يتم توسيع نطاق مجموعة المستهلكين تلقائياً من 3 إلى 10 أقسام. يتم مسح التأخر خلال 30 ثانية. تقوم آلية الحد من الأسعار بتجميع التحديثات إلى 10 في الثانية لطبقة العرض.
 
-**Recovery:** The alerting severity is increased for CBX feed disconnections. An auto-reconnect mechanism is implemented with 30-second retry intervals. Escalation to secondary on-call after 15 minutes.
+### تزامن عالي على تثبيتات الأسعار — 1,000 طلب تثبيت متزامن
+**System Behavior:** تتلقى خدمة تثبيت السعر 1,000 طلب متزامن. يؤدي القفل على مستوى الصف في جدول `rate_locks` إلى تنافس. يزداد وقت الحصول على التثبيت من 10 مللي ثانية إلى 500 مللي ثانية.
 
-## 9. Recovery Time Objectives Summary
+**User Impact:** يواجه المستخدمون تأخيراً من 2-3 ثوانٍ عند تثبيت الأسعار خلال فترات الذروة.
 
-| Failure Category | Detection Time | Recovery Time | RPO | Maximum Impact |
+**Recovery:** يتم نقل تثبيت الأسعار إلى Redis لعمليات ذرية أسرع. تُستخدم قاعدة البيانات فقط للثبات. تزيد سعة التثبيت المتزامن إلى 5,000 طلب في الثانية.
+
+### تسرب ذاكرة في محرك حساب السعر — نفاد الذاكرة بعد 4 ساعات من الحمل العالي
+**System Behavior:** يوجد تسرب ذاكرة في خدمة حساب السعر في خوارزمية حساب الفارق. بعد 4 ساعات تحت حمل عالٍ، يصل استخدام الذاكرة إلى 90% ويتم قتل الحاوية بنفاد الذاكرة.
+
+**User Impact:** تفشل حسابات الأسعار لمدة 30 ثانية أثناء إعادة تشغيل الحاوية. يرى المستخدمون "خدمة أسعار الصرف غير متوفرة."
+
+**Recovery:** يعيد Kubernetes تشغيل الحاوية تلقائياً خلال 30 ثانية. تخدم حاوية احتياطية سريعة الطلبات أثناء إعادة التشغيل. يتم إصلاح تسرب الذاكرة في الإصدار التالي.
+
+## 8. أعطال تشغيلية (Operational Failures)
+
+### التراجع عن النشر — الإصدار v4.1.0 يستخدم صيغة فارق خاطئة، يتقاضى مبالغ زائدة من العملاء
+**System Behavior:** يكتشف النشر التجريبي زيادة بنسبة 25% في إيرادات الصرف خلال 3 دقائق. يتم تفعيل التراجع الآلي.
+
+**User Impact:** تمت محاسبة حوالي 200 عميل بمتوسط زيادة 0.5% على تحويلاتهم. إجمالي المبالغ الزائدة: حوالي 50,000,000 ليرة سورية.
+
+**Recovery:** يكتمل التراجع خلال دقيقتين. يتم رد المبالغ الزائدة للعملاء تلقائياً. يتم تصحيح صيغة الفارق واختبارها.
+
+### خطأ في التكوين — هامش التبييت مضبوط على 10% بدلاً من 1%
+**System Behavior:** تغيير في التكوين يضبط هامش التبييت للصرف على 10% بدلاً من 1% القياسي. يتم فرض 10 أضعاف الفارق الطبيعي على العملاء.
+
+**User Impact:** 50 عميلاً يعالجون تحويلات بهامش 10% خلال نافذة مدتها 10 دقائق. تحويل بقيمة 10,000,000 ليرة سورية يكلف 1,000,000 ليرة إضافية.
+
+**Recovery:** يتم إطلاق تنبيه مراقبة عند تجاوز الهامش حد 5%. يتم التراجع عن التكوين. يحصل العملاء المتأثرون على رد كامل بالإضافة إلى 20% كرصيد اعتذاري.
+
+### انقطاع تغذية مصرف سورية المركزي — تدخل يدوي متأخر
+**System Behavior:** تنقطع تغذية مصرف سورية المركزي الساعة 2:00 صباحاً. لا يستجيب المهندس المناوب لمدة 45 دقيقة. تتجمد أسعار الصرف لمدة 45 دقيقة.
+
+**User Impact:** يرى المستخدمون أسعاراً قديمة. تستخدم التحويلات الجديدة أسعاراً قد لا تعكس تحركات السوق خلال نافذة الـ 45 دقيقة.
+
+**Recovery:** يتم زيادة شدة التنبيه لانقطاعات تغذية مصرف سورية المركزي. يتم تطبيق آلية إعادة اتصال تلقائي بفاصل 30 ثانية. التصعيد إلى المناوب الثانوي بعد 15 دقيقة.
+
+## 9. ملخص أهداف وقت الاسترداد
+
+| فئة الفشل | وقت الاكتشاف | وقت الاسترداد | RPO | أقصى تأثير |
 |-----------------|----------------|---------------|-----|----------------|
-| Network (transient) | < 1 second | < 30 seconds | 0 | Single rate lock delayed |
-| Network (DNS outage) | 30 seconds | < 5 minutes | 0 | All FX operations blocked |
-| Transaction failure | < 100ms | < 5 seconds | 0 | Single conversion failed |
-| External dependency | < 10 seconds | < 30 minutes | 30 min stale rates | FX unavailable |
-| Data inconsistency | < 5 minutes | < 1 hour | < 5 seconds | Rate lock discrepancy |
-| Security incident | < 1 minute | < 4 hours | 0 | Conversion held |
-| Business logic | < 1 hour | < 24 hours | 0 | Rate expired / limit hit |
-| Performance degradation | < 1 minute | < 5 minutes | 0 | Slow rate locks |
-| Operational (deployment) | < 5 minutes | < 10 minutes | < 1 minute | Incorrect spread applied |
+| الشبكة (مؤقت) | < 1 ثانية | < 30 ثانية | 0 | تأخير تثبيت سعر واحد |
+| الشبكة (انقطاع DNS) | 30 ثانية | < 5 دقائق | 0 | حظر جميع عمليات الصرف |
+| فشل المعاملة | < 100 مللي ثانية | < 5 ثوانٍ | 0 | فشل تحويل واحد |
+| التبعية الخارجية | < 10 ثوانٍ | < 30 دقيقة | 30 دقيقة أسعار قديمة | الصرف غير متوفر |
+| عدم تناسق البيانات | < 5 دقائق | < 1 ساعة | < 5 ثوانٍ | اختلاف في تثبيت السعر |
+| حادث أمني | < 1 دقيقة | < 4 ساعات | 0 | تعليق التحويل |
+| منطق الأعمال | < 1 ساعة | < 24 ساعة | 0 | انتهاء صلاحية السعر / حد |
+| تدهور الأداء | < 1 دقيقة | < 5 دقائق | 0 | تثبيت أسعار بطيء |
+| تشغيلي (نشر) | < 5 دقائق | < 10 دقائق | < 1 دقيقة | تطبيق فارق غير صحيح |
 
-## Changelog
+## سجل التغييرات
 
-| Date | Version | Changes |
+| التاريخ | الإصدار | التغييرات |
 |------|---------|---------|
-| 2026-05-29 | 1.0 | Initial release — 7 categories covering network, transactions, external dependencies, data consistency, security, business logic, and performance failures for FX rate locking and conversion feature |
+| 2026-05-29 | 1.0 | الإصدار الأولي — 7 فئات تغطي الشبكة، المعاملات، التبعيات الخارجية، تناسق البيانات، الأمان، منطق الأعمال، والأداء لفشل تثبيت سعر الصرف وتحويل العملات |
 
 ---
 
-*Version: 1.0 | Last updated: 2026-05-29 | Owner: FX Engineering Team*
+*الإصدار: 1.0 | آخر تحديث: 2026-05-29 | المالك: فريق هندسة الصرف*
