@@ -46,7 +46,8 @@ Every API error returns this exact JSON structure. The `details` object is domai
 
 | Domain | Prefix | Total | HTTP Statuses Used |
 |--------|--------|-------|-------------------|
-| Wallet | `WALLET_*` | 16 | 400, 403, 404, 409, 422, 503 |
+| `Wallet (WALLET_*)` | 19 | 400, 403, 404, 409, 422, 503 |
+| **Agent (AGENT_*)** | **6** | **400, 403, 404, 422** |
 | FX | `FX_*` | 8 | 400, 422, 503 |
 | Remittance | `REMITTANCE_*` | 8 | 400, 403, 404, 422, 503 |
 | Agent | `AGENT_*` | 12 | 400, 403, 404, 409, 422 |
@@ -87,6 +88,17 @@ Every API error returns this exact JSON structure. The `details` object is domai
 | `WALLET_DEPOSIT_FAILED` | 422 | Deposit failed due to internal error | فشل الإيداع بسبب خطأ داخلي | Try again or contact support | حاول مرة أخرى أو اتصل بالدعم | Ledger/CFE posting failure during deposit |
 | `WALLET_WITHDRAWAL_FAILED` | 422 | Withdrawal failed due to internal error | فشل السحب بسبب خطأ داخلي | Try again or contact support | حاول مرة أخرى أو اتصل بالدعم | Ledger/CFE posting failure during withdrawal |
 | `WALLET_TRANSFER_FAILED` | 422 | Transfer failed due to internal error | فشل التحويل بسبب خطأ داخلي | Try again or contact support | حاول مرة أخرى أو اتصل بالدعم | Ledger/CFE posting failure during transfer |
+
+## Agent (AGENT_*)
+
+| Code | HTTP | Description | الوصف (AR) | Resolution | الحل (AR) | Trigger |
+|------|------|-------------|------------|------------|------------|---------|
+| `AGENT_NOT_FOUND` | 404 | Agent not found | الوكيل غير موجود | Verify the agent ID and try again | تحقق من رقم الوكيل وحاول مرة أخرى | Invalid or deleted agent ID |
+| `AGENT_NOT_APPROVED` | 403 | Agent is not yet approved | الوكيل غير معتمد بعد | Wait for admin approval or contact support | انتظر موافقة المشرف أو اتصل بالدعم | Attempted cash-in/out on pending agent |
+| `AGENT_LIMIT_EXCEEDED` | 422 | Agent daily transaction limit exceeded | تجاوز حد الوكيل اليومي للمعاملات | Reduce the amount or wait for limit reset | قلل المبلغ أو انتظر إعادة تعيين الحد | Daily cash-in/cash-out limit breached |
+| `AGENT_FLOAT_INSUFFICIENT` | 422 | Agent float is insufficient for cash-out | الرصيد النقدي للوكيل غير كافٍ للسحب | Choose a different agent with sufficient float | اختر وكيلاً آخر برصيد كافٍ | Agent balance < cash-out amount |
+| `CASH_IN_FAILED` | 422 | Cash-in failed due to internal error | فشل الإيداع النقدي بسبب خطأ داخلي | Try again or contact support | حاول مرة أخرى أو اتصل بالدعم | Wallet/CFE failure during cash-in |
+| `CASH_OUT_FAILED` | 422 | Cash-out failed due to internal error | فشل السحب النقدي بسبب خطأ داخلي | Try again or contact support | حاول مرة أخرى أو اتصل بالدعم | Wallet/CFE failure during cash-out |
 
 ---
 
