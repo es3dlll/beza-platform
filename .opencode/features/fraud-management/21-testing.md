@@ -42,14 +42,14 @@ class AmountSpikeRuleTest extends TestCase
             'user_avg_amount' => 45000,
             'user_std_amount' => 15000,
         ]);
-        
+
         $result = $rule->evaluate($event, new FeatureVector($event));
-        
+
         $this->assertTrue($result->triggered);
         $this->assertGreaterThan(0, $result->score);
         $this->assertEquals('slow', $result->action);
     }
-    
+
     /** @test */
     public function it_does_not_trigger_for_normal_amounts()
     {
@@ -59,13 +59,13 @@ class AmountSpikeRuleTest extends TestCase
             'user_avg_amount' => 45000,
             'user_std_amount' => 15000,
         ]);
-        
+
         $result = $rule->evaluate($event, new FeatureVector($event));
-        
+
         $this->assertFalse($result->triggered);
         $this->assertEquals(0, $result->score);
     }
-    
+
     /** @test */
     public function it_returns_syria_specific_thresholds()
     {
@@ -73,7 +73,7 @@ class AmountSpikeRuleTest extends TestCase
         // needs to be conservative for low-income users
         // but aggressive for high-income users
         $rule = new AmountSpikeRule();
-        
+
         // Low-income user: 3x avg should trigger
         $lowIncome = FraudEventFactory::make([
             'amount' => 30000,
@@ -81,7 +81,7 @@ class AmountSpikeRuleTest extends TestCase
             'user_std_amount' => 3000,
         ]);
         $this->assertTrue($rule->evaluate($lowIncome, new FeatureVector($lowIncome))->triggered);
-        
+
         // High-income user: 3x avg might be normal business
         $highIncome = FraudEventFactory::make([
             'amount' => 1500000,
@@ -161,7 +161,7 @@ Phase 1: Shadow Mode (24h)
 - Log: "Would have triggered: YES, Action: BLOCK, FP: YES"
 - Metrics: hit rate, estimated FP rate, estimated fraud caught
 
-Phase 2: Monitor Mode (48h)  
+Phase 2: Monitor Mode (48h)
 - Rule applies to 10% of transactions randomly
 - Compare metrics: fraud rate with/without rule
 - Measure: additional fraud caught, additional false positives
@@ -195,23 +195,23 @@ def validate_model(model, validation_data):
         'f1_score': calculate_f1(model, validation_data),
         'log_loss': calculate_log_loss(model, validation_data),
     }
-    
+
     # Acceptance criteria
     assert metrics['auc_roc'] > 0.90
     assert metrics['precision_at_80_recall'] > 0.70
     assert metrics['f1_score'] > 0.75
     assert metrics['log_loss'] < 0.15
-    
+
     # Performance test
     inference_time = benchmark_inference(model, 10000)
     assert inference_time.p50 < 30ms
     assert inference_time.p99 < 70ms
-    
+
     # Backward compatibility test
     old_model = load_model('previous_version')
     consistency = compare_predictions(model, old_model, validation_data)
     assert consistency['pearson_correlation'] > 0.90  # Not too different
-    
+
     # Fairness test (Syria-specific)
     for region in ['Damascus', 'Aleppo', 'Homs', 'Coastal', 'Northeast']:
         regional_data = validation_data.filter(region=region)
@@ -310,16 +310,16 @@ Appeal Flow Tests:
 
 ### 9. Syria-Specific Testing Considerations
 
-| Consideration | Testing Approach |
-|---------------|-----------------|
-| Arabic/RTL text | All UI tested in Arabic; proper RTL layout |
-| SYP amounts | Amount-based rules tested with SYP values (no decimal places) |
-| Syriatel/MTN networks | Latency tests simulating operator-specific delays |
-| Multiple SIM users | Test that multiple SIMs on one account don't trigger false flags |
-| IDP locations | Test that location changes from conflict zones don't auto-flag |
-| Friday (holiday) | Test that reduced Friday volume doesn't skew velocity rules |
-| Syrian holidays | Test pattern files for Ramadan, Eid, etc. |
-| Power outages | Test offline queue behavior |
+| Consideration         | Testing Approach                                                 |
+| --------------------- | ---------------------------------------------------------------- |
+| Arabic/RTL text       | All UI tested in Arabic; proper RTL layout                       |
+| SYP amounts           | Amount-based rules tested with SYP values (no decimal places)    |
+| Syriatel/MTN networks | Latency tests simulating operator-specific delays                |
+| Multiple SIM users    | Test that multiple SIMs on one account don't trigger false flags |
+| IDP locations         | Test that location changes from conflict zones don't auto-flag   |
+| Friday (holiday)      | Test that reduced Friday volume doesn't skew velocity rules      |
+| Syrian holidays       | Test pattern files for Ramadan, Eid, etc.                        |
+| Power outages         | Test offline queue behavior                                      |
 
 ### 10. Test Data
 

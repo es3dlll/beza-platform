@@ -8,16 +8,16 @@ Fraud prevention is a real-time safety system. Monitoring must detect anomalies 
 
 ### Primary Fraud KPIs (Real-time)
 
-| Metric | Unit | Refresh | Alert Threshold |
-|--------|------|---------|-----------------|
-| **Fraud Rate** | % of txn volume | 1 min | > 0.3% (single day) |
-| **False Positive Rate** | % of flagged txns | 1 min | > 5% (1h rolling) |
-| **Average Decision Time** | ms (P50/P99) | 1 min | P50 > 200ms, P99 > 500ms |
-| **Fraud Cases Opened** | count (24h) | 5 min | > 3σ from baseline |
-| **Blocked Amount** | SYP (24h) | 5 min | > 10M SYP/day (systematic) |
-| **Recovery Rate** | % (30d rolling) | 1h | < 15% |
-| **Model AUC** | score (0-1) | 1h (updated daily after training) | < 0.85 |
-| **Rule Hit Rate** | % of txns | 5 min | > 5% or < 0.1% |
+| Metric                    | Unit              | Refresh                           | Alert Threshold            |
+| ------------------------- | ----------------- | --------------------------------- | -------------------------- |
+| **Fraud Rate**            | % of txn volume   | 1 min                             | > 0.3% (single day)        |
+| **False Positive Rate**   | % of flagged txns | 1 min                             | > 5% (1h rolling)          |
+| **Average Decision Time** | ms (P50/P99)      | 1 min                             | P50 > 200ms, P99 > 500ms   |
+| **Fraud Cases Opened**    | count (24h)       | 5 min                             | > 3σ from baseline         |
+| **Blocked Amount**        | SYP (24h)         | 5 min                             | > 10M SYP/day (systematic) |
+| **Recovery Rate**         | % (30d rolling)   | 1h                                | < 15%                      |
+| **Model AUC**             | score (0-1)       | 1h (updated daily after training) | < 0.85                     |
+| **Rule Hit Rate**         | % of txns         | 5 min                             | > 5% or < 0.1%             |
 
 ### Dashboard Layout
 
@@ -87,36 +87,36 @@ Fraud prevention is a real-time safety system. Monitoring must detect anomalies 
 
 ### All Alert Rules
 
-| Alert | Condition | Severity | Channel | Auto-action |
-|-------|-----------|----------|---------|-------------|
-| Fraud rate spike | > 3σ baseline (1h) | P0 | Slack + SMS | Investigate rules + model |
-| Fraud rate critical | > 0.5% (1h) | P0 | Slack + SMS + Call | Auto-escalate to CTO |
-| FP rate spike | > 5% (1h) or > 3σ | P0 | Slack + SMS | Auto-disable recent rules |
-| FP rate critical | > 10% (1h) | P0 | Slack + SMS + Call | Switch to "all review" mode |
-| Decision time high | P50 > 200ms (5min) | P1 | Slack | Scale ML service |
-| Decision time critical | P50 > 500ms or P99 > 1s | P0 | Slack + SMS | Circuit break, reduce features |
-| ML service down | > 30s unavailable | P0 | Slack + SMS | Fallback to rules-only |
-| Database slow | Write latency > 100ms | P1 | Slack | Scale database |
-| Model AUC drop | < 0.85 after retrain | P1 | Slack | Auto-rollback to previous |
-| Rule hit rate anomaly | > 5% or < 0.1% per rule | P2 | Slack | Flag for review |
-| Fraud cases surge | > 3σ from baseline (1h) | P1 | Slack | Investigate attack vector |
-| Recovery rate low | < 10% (30d rolling) | P2 | Slack | Review recovery procedures |
-| Feature extraction fail | > 1% timeouts (5min) | P1 | Slack | Check feature service |
-| SIM swap API down | > 5min unavailable | P2 | Slack | Fallback to no SIM check |
-| Offline queue full | > 80% capacity | P2 | Slack | Check agent connectivity |
-| Batch screening alert | Daily batch > 100 flagged | P2 | Slack | Review offline txns |
+| Alert                   | Condition                 | Severity | Channel            | Auto-action                    |
+| ----------------------- | ------------------------- | -------- | ------------------ | ------------------------------ |
+| Fraud rate spike        | > 3σ baseline (1h)        | P0       | Slack + SMS        | Investigate rules + model      |
+| Fraud rate critical     | > 0.5% (1h)               | P0       | Slack + SMS + Call | Auto-escalate to CTO           |
+| FP rate spike           | > 5% (1h) or > 3σ         | P0       | Slack + SMS        | Auto-disable recent rules      |
+| FP rate critical        | > 10% (1h)                | P0       | Slack + SMS + Call | Switch to "all review" mode    |
+| Decision time high      | P50 > 200ms (5min)        | P1       | Slack              | Scale ML service               |
+| Decision time critical  | P50 > 500ms or P99 > 1s   | P0       | Slack + SMS        | Circuit break, reduce features |
+| ML service down         | > 30s unavailable         | P0       | Slack + SMS        | Fallback to rules-only         |
+| Database slow           | Write latency > 100ms     | P1       | Slack              | Scale database                 |
+| Model AUC drop          | < 0.85 after retrain      | P1       | Slack              | Auto-rollback to previous      |
+| Rule hit rate anomaly   | > 5% or < 0.1% per rule   | P2       | Slack              | Flag for review                |
+| Fraud cases surge       | > 3σ from baseline (1h)   | P1       | Slack              | Investigate attack vector      |
+| Recovery rate low       | < 10% (30d rolling)       | P2       | Slack              | Review recovery procedures     |
+| Feature extraction fail | > 1% timeouts (5min)      | P1       | Slack              | Check feature service          |
+| SIM swap API down       | > 5min unavailable        | P2       | Slack              | Fallback to no SIM check       |
+| Offline queue full      | > 80% capacity            | P2       | Slack              | Check agent connectivity       |
+| Batch screening alert   | Daily batch > 100 flagged | P2       | Slack              | Review offline txns            |
 
 ## Health Check Endpoints (Internal)
 
-| Endpoint | Check | Expected |
-|----------|-------|----------|
-| `GET /health/fraud-engine` | Full pipeline test transaction | Respond < 200ms, valid decision |
-| `GET /health/ml-service` | ML model loads + scores test | Probability returned < 50ms |
-| `GET /health/rules-engine` | Rule set loaded + test | Top N rules evaluate correctly |
-| `GET /health/feature-store` | Feature computation test | Features computed < 50ms |
-| `GET /health/database` | DB read/write test | Query < 10ms |
-| `GET /health/queue` | Queue depth | < 1000 messages |
-| `GET /health/cache` | Redis read/write | < 5ms |
+| Endpoint                    | Check                          | Expected                        |
+| --------------------------- | ------------------------------ | ------------------------------- |
+| `GET /health/fraud-engine`  | Full pipeline test transaction | Respond < 200ms, valid decision |
+| `GET /health/ml-service`    | ML model loads + scores test   | Probability returned < 50ms     |
+| `GET /health/rules-engine`  | Rule set loaded + test         | Top N rules evaluate correctly  |
+| `GET /health/feature-store` | Feature computation test       | Features computed < 50ms        |
+| `GET /health/database`      | DB read/write test             | Query < 10ms                    |
+| `GET /health/queue`         | Queue depth                    | < 1000 messages                 |
+| `GET /health/cache`         | Redis read/write               | < 5ms                           |
 
 ## Logging
 
@@ -143,25 +143,25 @@ Every transaction decision is logged:
 
 ### Structured Log Levels
 
-| Level | Use Case | Example |
-|-------|----------|---------|
-| ERROR | System failure | ML service unreachable, database timeout |
-| WARNING | Anomaly detected | FP rate > 5%, decision time > 300ms |
-| INFO | Normal operations | Transaction screened, decision made |
-| DEBUG | Detailed tracing | Feature values per transaction |
-| AUDIT | Immutable audit trail | State transition, user appeal |
+| Level   | Use Case              | Example                                  |
+| ------- | --------------------- | ---------------------------------------- |
+| ERROR   | System failure        | ML service unreachable, database timeout |
+| WARNING | Anomaly detected      | FP rate > 5%, decision time > 300ms      |
+| INFO    | Normal operations     | Transaction screened, decision made      |
+| DEBUG   | Detailed tracing      | Feature values per transaction           |
+| AUDIT   | Immutable audit trail | State transition, user appeal            |
 
 ## Monitoring Infrastructure
 
-| Tool | Purpose | Metrics |
-|------|---------|---------|
-| Laravel Horizon | Queue monitoring | Queue depth, processing time, failed jobs |
-| Grafana + Prometheus | Metrics dashboard | Fraud KPI charts, system health |
-| Laravel Telescope | Request profiling | Slow requests, query performance |
-| Sentry | Error tracking | Exception monitoring, stack traces |
-| PagerDuty / On-call | Alert routing | P0/P1 alerts routed to on-call |
-| Custom Slack Bot | Fraued alerts | Real-time alert feed in #fraud-alerts |
-| Logtail / ELK | Log aggregation | Fraud decision logs, searchable |
+| Tool                 | Purpose           | Metrics                                   |
+| -------------------- | ----------------- | ----------------------------------------- |
+| Laravel Horizon      | Queue monitoring  | Queue depth, processing time, failed jobs |
+| Grafana + Prometheus | Metrics dashboard | Fraud KPI charts, system health           |
+| Laravel Telescope    | Request profiling | Slow requests, query performance          |
+| Sentry               | Error tracking    | Exception monitoring, stack traces        |
+| PagerDuty / On-call  | Alert routing     | P0/P1 alerts routed to on-call            |
+| Custom Slack Bot     | Fraued alerts     | Real-time alert feed in #fraud-alerts     |
+| Logtail / ELK        | Log aggregation   | Fraud decision logs, searchable           |
 
 ## Runbook
 

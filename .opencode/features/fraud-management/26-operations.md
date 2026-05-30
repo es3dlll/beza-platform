@@ -36,26 +36,26 @@
 
 ### Team Roles & Responsibilities
 
-| Role | Count | Responsibilities |
-|------|-------|-----------------|
-| Head of Fraud Operations | 1 | Strategy, team management, CBS liaison, board reporting |
-| Senior Fraud Analyst | 3 (1 per shift) | Escalation handling, complex investigations, team lead on shift |
-| Fraud Analyst | 7 (3+3+1) | Day-to-day case investigation, alerts, user appeals |
-| Data Scientist (Fraud) | 1 | ML model management, feature engineering, performance monitoring |
-| ML Engineer | 1 | Model deployment, infrastructure, ONNX pipeline |
-| Compliance Officer (Fraud) | 1 | SAR filing, CBS reporting, regulatory compliance |
-| Engineering Support | 1 | System health, rule deployment, on-call rotation |
-| **Total** | **15** | |
+| Role                       | Count           | Responsibilities                                                 |
+| -------------------------- | --------------- | ---------------------------------------------------------------- |
+| Head of Fraud Operations   | 1               | Strategy, team management, CBS liaison, board reporting          |
+| Senior Fraud Analyst       | 3 (1 per shift) | Escalation handling, complex investigations, team lead on shift  |
+| Fraud Analyst              | 7 (3+3+1)       | Day-to-day case investigation, alerts, user appeals              |
+| Data Scientist (Fraud)     | 1               | ML model management, feature engineering, performance monitoring |
+| ML Engineer                | 1               | Model deployment, infrastructure, ONNX pipeline                  |
+| Compliance Officer (Fraud) | 1               | SAR filing, CBS reporting, regulatory compliance                 |
+| Engineering Support        | 1               | System health, rule deployment, on-call rotation                 |
+| **Total**                  | **15**          |                                                                  |
 
 ## Shift Schedule
 
 ### 24/7 Coverage (Syria Time — UTC+3)
 
-| Shift | Time | Team | Analysts | Coverage Rationale |
-|-------|------|------|----------|-------------------|
-| Alpha (Morning) | 06:00–14:00 | 4 analysts + senior | Peak hours: business transactions, morning activity, agent cash-in/out |
-| Beta (Afternoon) | 14:00–22:00 | 4 analysts + senior | Peak hours: afternoon activity, remittance processing, evening P2P |
-| Gamma (Night) | 22:00–06:00 | 2 analysts | Off-hours: lower volume, critical alerts only; focus on automated detection |
+| Shift            | Time        | Team                | Analysts                                                                    | Coverage Rationale |
+| ---------------- | ----------- | ------------------- | --------------------------------------------------------------------------- | ------------------ |
+| Alpha (Morning)  | 06:00–14:00 | 4 analysts + senior | Peak hours: business transactions, morning activity, agent cash-in/out      |
+| Beta (Afternoon) | 14:00–22:00 | 4 analysts + senior | Peak hours: afternoon activity, remittance processing, evening P2P          |
+| Gamma (Night)    | 22:00–06:00 | 2 analysts          | Off-hours: lower volume, critical alerts only; focus on automated detection |
 
 ### Shift Handoff Protocol
 
@@ -77,22 +77,22 @@ Format: Slack #fraud-handoff channel + 5-min verbal handoff
 
 ### Priority Levels
 
-| Priority | Definition | Examples | SLA (to decision) | Escalation |
-|----------|------------|----------|-------------------|------------|
-| **P0** | Active fraud in progress | Account takeover, large transfer attempt, confirmed credential theft | 15 minutes | Head of Fraud Ops + CTO |
-| **P1** | Confirmed fraud with loss | Fraudulent transaction completed, agent fraud detected | 1 hour | Head of Fraud Ops |
-| **P2** | Suspicious transaction | Transaction flagged for review, user reported unusual activity | 4 hours | Senior Fraud Analyst |
-| **P3** | User appeal / false positive | User disputes flagged transaction | 30 minutes | Fraud Analyst |
+| Priority | Definition                   | Examples                                                             | SLA (to decision) | Escalation              |
+| -------- | ---------------------------- | -------------------------------------------------------------------- | ----------------- | ----------------------- |
+| **P0**   | Active fraud in progress     | Account takeover, large transfer attempt, confirmed credential theft | 15 minutes        | Head of Fraud Ops + CTO |
+| **P1**   | Confirmed fraud with loss    | Fraudulent transaction completed, agent fraud detected               | 1 hour            | Head of Fraud Ops       |
+| **P2**   | Suspicious transaction       | Transaction flagged for review, user reported unusual activity       | 4 hours           | Senior Fraud Analyst    |
+| **P3**   | User appeal / false positive | User disputes flagged transaction                                    | 30 minutes        | Fraud Analyst           |
 
 ### SLA Monitoring
 
-| Metric | Target | Breach Consequence |
-|--------|--------|-------------------|
-| P0 resolved within 15min | 99% | Escalate to Head of Ops |
-| P1 resolved within 1h | 95% | Escalate to Head of Ops |
-| P2 resolved within 4h | 90% | Weekly review |
-| P3 resolved within 30min | 98% | Monthly review |
-| No case older than 24h | 99.9% | Auto-escalate to management |
+| Metric                   | Target | Breach Consequence          |
+| ------------------------ | ------ | --------------------------- |
+| P0 resolved within 15min | 99%    | Escalate to Head of Ops     |
+| P1 resolved within 1h    | 95%    | Escalate to Head of Ops     |
+| P2 resolved within 4h    | 90%    | Weekly review               |
+| P3 resolved within 30min | 98%    | Monthly review              |
+| No case older than 24h   | 99.9%  | Auto-escalate to management |
 
 ## Investigation Playbooks
 
@@ -183,15 +183,15 @@ Format: Slack #fraud-handoff channel + 5-min verbal handoff
 
 ### Other Playbooks
 
-| Fraud Type | Priority | Key Steps |
-|------------|----------|-----------|
-| SIM Swap | P0 | Freeze account, verify with user, check telecom API, restore original SIM |
-| Phishing | P1 | Take down phishing site, notify affected users, enhance URL filtering |
-| Social Engineering | P1 | Identify compromised credentials, freeze accounts, user education |
-| Mule Account Ring | P0 | Graph analysis to identify all accounts, batch freeze, file SAR |
-| Merchant Collusion | P1 | Freeze merchant account, review transaction history, escalate |
-| Synthetic Identity | P2 | Cross-reference KYC documents, check duplicates, report to CBS |
-| Insider Fraud | P0 | Isolate access, preserve evidence, HR investigation, legal |
+| Fraud Type         | Priority | Key Steps                                                                 |
+| ------------------ | -------- | ------------------------------------------------------------------------- |
+| SIM Swap           | P0       | Freeze account, verify with user, check telecom API, restore original SIM |
+| Phishing           | P1       | Take down phishing site, notify affected users, enhance URL filtering     |
+| Social Engineering | P1       | Identify compromised credentials, freeze accounts, user education         |
+| Mule Account Ring  | P0       | Graph analysis to identify all accounts, batch freeze, file SAR           |
+| Merchant Collusion | P1       | Freeze merchant account, review transaction history, escalate             |
+| Synthetic Identity | P2       | Cross-reference KYC documents, check duplicates, report to CBS            |
+| Insider Fraud      | P0       | Isolate access, preserve evidence, HR investigation, legal                |
 
 ## Weekly Model Review
 
@@ -230,12 +230,12 @@ AGENDA:
 
 ## Training & Knowledge Management
 
-| Training | Frequency | Audience | Content |
-|----------|-----------|----------|---------|
-| Fraud Detection Fundamentals | Onboarding | New analysts | Fraud types, tools, procedures |
-| Investigation Playbooks | Quarterly | All analysts | Deep dive into each fraud playbook |
-| ML Model Understanding | Quarterly | All analysts | How ML works, feature importance, limitations |
-| CBS Regulatory Training | Bi-annual | All fraud team | SAR filing, AML compliance, reporting |
-| System Updates | Per release | All fraud team | New features, rule changes, UI updates |
-| Syria Fraud Landscape | Annual | All fraud team | Evolving fraud patterns in Syria |
-| Red Team Results | After each test | All fraud team | Lessons from adversarial testing |
+| Training                     | Frequency       | Audience       | Content                                       |
+| ---------------------------- | --------------- | -------------- | --------------------------------------------- |
+| Fraud Detection Fundamentals | Onboarding      | New analysts   | Fraud types, tools, procedures                |
+| Investigation Playbooks      | Quarterly       | All analysts   | Deep dive into each fraud playbook            |
+| ML Model Understanding       | Quarterly       | All analysts   | How ML works, feature importance, limitations |
+| CBS Regulatory Training      | Bi-annual       | All fraud team | SAR filing, AML compliance, reporting         |
+| System Updates               | Per release     | All fraud team | New features, rule changes, UI updates        |
+| Syria Fraud Landscape        | Annual          | All fraud team | Evolving fraud patterns in Syria              |
+| Red Team Results             | After each test | All fraud team | Lessons from adversarial testing              |

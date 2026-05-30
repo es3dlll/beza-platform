@@ -12,12 +12,12 @@ Planning → Execution → Review & Simplify → Delivery
 
 ## Phases
 
-| # | Phase | Permission | Output |
-|---|-------|-----------|--------|
-| 1 | **Planning** | Read-Only + `plan.md` write | `plan.md` |
-| 2 | **Execution** | Skip Permissions | Code changes + Tests + Commits |
-| 3 | **Review & Simplify** | Skip Permissions | Refactored code + `/simplify` + Commits |
-| 4 | **Delivery** | Read/Write | Pull Request |
+| #   | Phase                 | Permission                  | Output                                  |
+| --- | --------------------- | --------------------------- | --------------------------------------- |
+| 1   | **Planning**          | Read-Only + `plan.md` write | `plan.md`                               |
+| 2   | **Execution**         | Skip Permissions            | Code changes + Tests + Commits          |
+| 3   | **Review & Simplify** | Skip Permissions            | Refactored code + `/simplify` + Commits |
+| 4   | **Delivery**          | Read/Write                  | Pull Request                            |
 
 ## Agent Files
 

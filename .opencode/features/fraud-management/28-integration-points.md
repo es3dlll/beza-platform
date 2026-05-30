@@ -39,23 +39,23 @@ Fraud Management is a **CROSS-CUTTING** feature that integrates with ALL other B
 
 ## Integration Matrix
 
-| Feature Module | Integration Type | Data Shared | Fraud Type Detected | Synchronous? |
-|---------------|-----------------|-------------|-------------------|--------------|
-| **Wallet** | Event: TransactionInitiated | Sender, recipient, amount, device, location | ATO, Mule, Social Engineering, Phishing | Yes (200ms SLA) |
-| **Agent** | Event: AgentTransactionInitiated | Agent ID, customer ID, amount, float, location | Agent Fraud, Float Theft, Ghost Agent | Yes (200ms) |
-| **Remittance** | Event: RemittanceInitiated | Sender (diaspora), recipient, amount, corridor, SIM | SIM Swap, Remittance Intercept | Yes (200ms) |
-| **Merchant** | Event: MerchantPaymentInitiated | Merchant ID, customer ID, amount, device | Merchant Collusion, Promo Abuse | Yes (200ms) |
-| **Bills** | Event: BillPaymentInitiated | Payer, biller, amount, bill type | Unusual Bill Payment, Stolen Account | Yes (200ms) |
-| **Payroll** | Event: BulkDisbursementInitiated | Employer, employee list, amounts, batch | Salary Diversion, Ghost Employee | Yes (300ms — batch) |
-| **Onboarding/KYC** | Event: UserRegistered | User ID, KYC level, device, location | Synthetic Identity, Mule Creation | Async |
-| **Login/Auth** | Event: UserLoggedIn | User ID, device, IP, session | ATO, Device Anomaly | Yes (100ms) |
-| **Password Reset** | Event: PasswordReset | User ID, device, IP | Account Takeover attempt | Yes (100ms) |
-| **Device Management** | Event: NewDeviceDetected | User ID, device FP, device name | Device Anomaly | Async |
-| **SIM Change** | Event: SIMChanged | User ID, phone, carrier | SIM Swap | Async |
-| **Compliance** | Event: FraudConfirmed | Full case data | AML/Sanctions intersection | Async |
-| **Notifications** | Event: FraudAlertRaised | Alert data (no PII) | All types | Async |
-| **Customer Support** | API: GET /cases, POST /appeal | Case data, appeal data | User Appeals | Yes |
-| **Finance (Provisioning)** | API: GET /fraud-stats | Fraud loss, recovery, rates | IFRS 9 Loss Provisioning | Async (daily batch) |
+| Feature Module             | Integration Type                 | Data Shared                                         | Fraud Type Detected                     | Synchronous?        |
+| -------------------------- | -------------------------------- | --------------------------------------------------- | --------------------------------------- | ------------------- |
+| **Wallet**                 | Event: TransactionInitiated      | Sender, recipient, amount, device, location         | ATO, Mule, Social Engineering, Phishing | Yes (200ms SLA)     |
+| **Agent**                  | Event: AgentTransactionInitiated | Agent ID, customer ID, amount, float, location      | Agent Fraud, Float Theft, Ghost Agent   | Yes (200ms)         |
+| **Remittance**             | Event: RemittanceInitiated       | Sender (diaspora), recipient, amount, corridor, SIM | SIM Swap, Remittance Intercept          | Yes (200ms)         |
+| **Merchant**               | Event: MerchantPaymentInitiated  | Merchant ID, customer ID, amount, device            | Merchant Collusion, Promo Abuse         | Yes (200ms)         |
+| **Bills**                  | Event: BillPaymentInitiated      | Payer, biller, amount, bill type                    | Unusual Bill Payment, Stolen Account    | Yes (200ms)         |
+| **Payroll**                | Event: BulkDisbursementInitiated | Employer, employee list, amounts, batch             | Salary Diversion, Ghost Employee        | Yes (300ms — batch) |
+| **Onboarding/KYC**         | Event: UserRegistered            | User ID, KYC level, device, location                | Synthetic Identity, Mule Creation       | Async               |
+| **Login/Auth**             | Event: UserLoggedIn              | User ID, device, IP, session                        | ATO, Device Anomaly                     | Yes (100ms)         |
+| **Password Reset**         | Event: PasswordReset             | User ID, device, IP                                 | Account Takeover attempt                | Yes (100ms)         |
+| **Device Management**      | Event: NewDeviceDetected         | User ID, device FP, device name                     | Device Anomaly                          | Async               |
+| **SIM Change**             | Event: SIMChanged                | User ID, phone, carrier                             | SIM Swap                                | Async               |
+| **Compliance**             | Event: FraudConfirmed            | Full case data                                      | AML/Sanctions intersection              | Async               |
+| **Notifications**          | Event: FraudAlertRaised          | Alert data (no PII)                                 | All types                               | Async               |
+| **Customer Support**       | API: GET /cases, POST /appeal    | Case data, appeal data                              | User Appeals                            | Yes                 |
+| **Finance (Provisioning)** | API: GET /fraud-stats            | Fraud loss, recovery, rates                         | IFRS 9 Loss Provisioning                | Async (daily batch) |
 
 ## Detailed Integration Contracts
 
@@ -70,7 +70,7 @@ class TransferService {
     {
         // 1. Validate balance
         // 2. Check limits
-        
+
         // 3. Fraud screening (SYNC — must complete < 200ms)
         $fraudResult = FraudEngineFacade::screen(
             new ScreenTransactionRequest(
@@ -104,7 +104,7 @@ class TransferService {
                 ],
             )
         );
-        
+
         // 4. Act on fraud decision
         return match ($fraudResult->decision) {
             'approve' => $transaction->complete(),
@@ -121,6 +121,7 @@ class TransferService {
 **Trigger:** Every agent transaction (cash-in, cash-out, balance check)
 
 **Additional agent context:**
+
 ```php
 $fraudResult = FraudEngineFacade::screen(
     featureSource: 'agent',
@@ -140,6 +141,7 @@ $fraudResult = FraudEngineFacade::screen(
 ```
 
 **Agent-specific fraud rules triggered:**
+
 - AGT-012: Agent Float Variance
 - AGT-013: Rapid In/Out to Same Recipient
 - AGT-014: Transaction Volume Spike
@@ -152,6 +154,7 @@ $fraudResult = FraudEngineFacade::screen(
 **Trigger:** Incoming remittance from diaspora sender to Syria recipient
 
 **Additional remittance context:**
+
 ```php
 $fraudResult = FraudEngineFacade::screen(
     featureSource: 'remittance',
@@ -169,6 +172,7 @@ $fraudResult = FraudEngineFacade::screen(
 ```
 
 **Remittance-specific rules:**
+
 - SIM-001: SIM Change + Remittance
 - RMT-001: Corridor High Risk
 - RMT-002: Recipient New Account
@@ -179,6 +183,7 @@ $fraudResult = FraudEngineFacade::screen(
 **Trigger:** Every merchant payment
 
 **Additional merchant context:**
+
 ```php
 $fraudResult = FraudEngineFacade::screen(
     featureSource: 'merchant',
@@ -234,6 +239,7 @@ event(new FraudConfirmed(
 ```
 
 **Compliance takes:**
+
 - If amount > 1M SYP → auto-generate SAR
 - If involved parties on sanctions list → notify CBS immediately
 - Add to quarterly fraud statistics
@@ -285,12 +291,12 @@ Wallet Module          FraudEngine             Compliance         Notifications
 
 ## API Contracts Summary
 
-| Endpoint | Method | Source | Destination | Format | SLA |
-|----------|--------|--------|-------------|--------|-----|
-| POST /fraud/screen | Internal API | Any feature | FraudEngine | JSON | < 200ms |
-| POST /fraud/screen-batch | Internal API | Payroll | FraudEngine | JSON | < 500ms |
-| GET /fraud/cases | REST API | Customer Support | FraudEngine | JSON | < 500ms |
-| POST /fraud/cases/{id}/decision | Internal API | FraudEngine → Actions | Various | Event | < 100ms |
-| GET /fraud/reports/cbs | REST API | Compliance | FraudEngine | JSON/PDF | < 5s |
-| GET /fraud/reports/provisioning | REST API | Finance | FraudEngine | JSON | < 5s |
-| GET /fraud/health | Internal API | Monitoring | FraudEngine | JSON | < 50ms |
+| Endpoint                        | Method       | Source                | Destination | Format   | SLA     |
+| ------------------------------- | ------------ | --------------------- | ----------- | -------- | ------- |
+| POST /fraud/screen              | Internal API | Any feature           | FraudEngine | JSON     | < 200ms |
+| POST /fraud/screen-batch        | Internal API | Payroll               | FraudEngine | JSON     | < 500ms |
+| GET /fraud/cases                | REST API     | Customer Support      | FraudEngine | JSON     | < 500ms |
+| POST /fraud/cases/{id}/decision | Internal API | FraudEngine → Actions | Various     | Event    | < 100ms |
+| GET /fraud/reports/cbs          | REST API     | Compliance            | FraudEngine | JSON/PDF | < 5s    |
+| GET /fraud/reports/provisioning | REST API     | Finance               | FraudEngine | JSON     | < 5s    |
+| GET /fraud/health               | Internal API | Monitoring            | FraudEngine | JSON     | < 50ms  |

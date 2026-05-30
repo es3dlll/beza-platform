@@ -5,7 +5,7 @@
 ```
 Incoming → Transaction Capture → Matching Engine → Exception Queue → Resolution
                ↓                       ↓                    ↓              ↓
-        Source Data (Beza txns)    Match Rules        Unmatched items   Manual review  
+        Source Data (Beza txns)    Match Rules        Unmatched items   Manual review
         External Data (bank files)  (exact/fuzzy)     → auto-retry      → force match
 ```
 
@@ -27,80 +27,80 @@ Incoming → Transaction Capture → Matching Engine → Exception Queue → Res
 
 ### 1. Internal Reconciliation (Beza ↔ CFE Postings)
 
-| Field | Detail |
-|-------|--------|
-| **Schedule** | Every 15 minutes, 24/7 |
-| **Source A** | Beza transaction ledger (`ledger.transactions`) |
-| **Source B** | CFE general ledger postings (`cfe.general_ledger`) |
-| **Matching Criteria** | transaction_id, amount (0 SYP tolerance), currency, timestamp ± 60s |
-| **Volume** | ~8,000–12,000 txns per run |
-| **Exception Handling** | Mismatches auto-retried at next cycle (×3), then escalated to finance ops |
-| **Reporting** | Dashboard on Grafana `recon/internal` — match rate %, exception count, aging |
-| **SLA** | 99.5% match rate within 30 min of txn posting |
+| Field                  | Detail                                                                       |
+| ---------------------- | ---------------------------------------------------------------------------- |
+| **Schedule**           | Every 15 minutes, 24/7                                                       |
+| **Source A**           | Beza transaction ledger (`ledger.transactions`)                              |
+| **Source B**           | CFE general ledger postings (`cfe.general_ledger`)                           |
+| **Matching Criteria**  | transaction_id, amount (0 SYP tolerance), currency, timestamp ± 60s          |
+| **Volume**             | ~8,000–12,000 txns per run                                                   |
+| **Exception Handling** | Mismatches auto-retried at next cycle (×3), then escalated to finance ops    |
+| **Reporting**          | Dashboard on Grafana `recon/internal` — match rate %, exception count, aging |
+| **SLA**                | 99.5% match rate within 30 min of txn posting                                |
 
 ### 2. External Reconciliation (Beza ↔ Bank Settlement Files)
 
-| Field | Detail |
-|-------|--------|
-| **Schedule** | Daily at 08:00, 14:00, 20:00 (aligned with CBS settlement windows) |
-| **Source A** | Beza settlement batch (`settlement.batches` where status = `SETTLED`) |
-| **Source B** | Bank MT940 statements from BBS, Bemo SIIB, Commercial Bank of Syria |
-| **Matching Criteria** | batch_id, net_amount ± 100 SYP, value_date = T or T+1 |
-| **Volume** | ~150–300 batches per run |
-| **Exception Handling** | Unmatched by T+1 10:00 → auto-create CBS breach notification ticket |
-| **Reporting** | PDF report generated for CBS monthly audit — `recon/external-report` |
-| **SLA** | 100% of batches matched within T+1 under CBS Decree 2023/45 |
+| Field                  | Detail                                                                |
+| ---------------------- | --------------------------------------------------------------------- |
+| **Schedule**           | Daily at 08:00, 14:00, 20:00 (aligned with CBS settlement windows)    |
+| **Source A**           | Beza settlement batch (`settlement.batches` where status = `SETTLED`) |
+| **Source B**           | Bank MT940 statements from BBS, Bemo SIIB, Commercial Bank of Syria   |
+| **Matching Criteria**  | batch_id, net_amount ± 100 SYP, value_date = T or T+1                 |
+| **Volume**             | ~150–300 batches per run                                              |
+| **Exception Handling** | Unmatched by T+1 10:00 → auto-create CBS breach notification ticket   |
+| **Reporting**          | PDF report generated for CBS monthly audit — `recon/external-report`  |
+| **SLA**                | 100% of batches matched within T+1 under CBS Decree 2023/45           |
 
 ### 3. Agent Reconciliation (Agent Float ↔ System)
 
-| Field | Detail |
-|-------|--------|
-| **Schedule** | Daily at 07:00 (before agent network opens) |
-| **Source A** | Agent float ledger (`agent.float_balances`) |
-| **Source B** | Physical cash declaration from agent mobile app (`agent.cash_declarations`) |
-| **Matching Criteria** | agent_id, float_amount ± 5,000 SYP, declaration timestamp within 24h |
-| **Volume** | ~3,500 agents across Syria |
+| Field                  | Detail                                                                      |
+| ---------------------- | --------------------------------------------------------------------------- |
+| **Schedule**           | Daily at 07:00 (before agent network opens)                                 |
+| **Source A**           | Agent float ledger (`agent.float_balances`)                                 |
+| **Source B**           | Physical cash declaration from agent mobile app (`agent.cash_declarations`) |
+| **Matching Criteria**  | agent_id, float_amount ± 5,000 SYP, declaration timestamp within 24h        |
+| **Volume**             | ~3,500 agents across Syria                                                  |
 | **Exception Handling** | Discrepancy >5,000 SYP → agent flagged; >50,000 SYP → field audit triggered |
-| **Reporting** | Agent float gap report emailed to regional supervisors |
-| **SLA** | 95% of agents reconciled within 24h |
+| **Reporting**          | Agent float gap report emailed to regional supervisors                      |
+| **SLA**                | 95% of agents reconciled within 24h                                         |
 
 ### 4. Merchant Reconciliation (MDR ↔ Settlements)
 
-| Field | Detail |
-|-------|--------|
-| **Schedule** | Daily at 06:00 |
-| **Source A** | MDR calculations (`billing.mdr_calculations`) |
-| **Source B** | Merchant settlement amounts (`settlement.merchant_payouts`) |
-| **Matching Criteria** | merchant_id, settlement_cycle, mdr_amount ± 50 SYP |
-| **Volume** | ~800 merchants |
+| Field                  | Detail                                                                             |
+| ---------------------- | ---------------------------------------------------------------------------------- |
+| **Schedule**           | Daily at 06:00                                                                     |
+| **Source A**           | MDR calculations (`billing.mdr_calculations`)                                      |
+| **Source B**           | Merchant settlement amounts (`settlement.merchant_payouts`)                        |
+| **Matching Criteria**  | merchant_id, settlement_cycle, mdr_amount ± 50 SYP                                 |
+| **Volume**             | ~800 merchants                                                                     |
 | **Exception Handling** | Mismatch >50 SYP → auto-recalculate MDR; still mismatched → ticket to merchant ops |
-| **Reporting** | Monthly MDR reconciliation for partner audit |
-| **SLA** | 99% merchant match rate within T+1 |
+| **Reporting**          | Monthly MDR reconciliation for partner audit                                       |
+| **SLA**                | 99% merchant match rate within T+1                                                 |
 
 ### 5. Biller Reconciliation (Payments ↔ Biller Confirmations)
 
-| Field | Detail |
-|-------|--------|
-| **Schedule** | Hourly (every :00) |
-| **Source A** | Beza bill payment ledger (`bill_payments.completed`) |
-| **Source B** | Biller confirmation files (CSV/API callback from Sawa, SyriaTel, MTN, Damascus Water, Public Electricity) |
-| **Matching Criteria** | biller_txn_id, amount ± 0 SYP, confirmation within 2h |
-| **Volume** | ~500–1,500 per hour |
-| **Exception Handling** | Unconfirmed after 2h → auto-refund to customer; biller dispute → manual queue |
-| **Reporting** | Hourly biller reconciliation report to biller relations team |
-| **SLA** | 99.9% of payments confirmed within 1h per CBS oversight requirements |
+| Field                  | Detail                                                                                                    |
+| ---------------------- | --------------------------------------------------------------------------------------------------------- |
+| **Schedule**           | Hourly (every :00)                                                                                        |
+| **Source A**           | Beza bill payment ledger (`bill_payments.completed`)                                                      |
+| **Source B**           | Biller confirmation files (CSV/API callback from Sawa, SyriaTel, MTN, Damascus Water, Public Electricity) |
+| **Matching Criteria**  | biller_txn_id, amount ± 0 SYP, confirmation within 2h                                                     |
+| **Volume**             | ~500–1,500 per hour                                                                                       |
+| **Exception Handling** | Unconfirmed after 2h → auto-refund to customer; biller dispute → manual queue                             |
+| **Reporting**          | Hourly biller reconciliation report to biller relations team                                              |
+| **SLA**                | 99.9% of payments confirmed within 1h per CBS oversight requirements                                      |
 
 ## Matching Rules
 
-| Rule | Tolerance | Frequency | Action on Mismatch |
-|------|-----------|-----------|-------------------|
-| Exact match | 0 SYP | Every txn | Auto-pass |
-| Amount tolerance | ±100 SYP | Every txn | Auto-pass with memo |
-| Date tolerance | T+1 | Daily | Flag for review |
-| Missing external | N/A | Daily | Create exception ticket |
-| Duplicate detection | N/A | Every txn | Flag, hold settlement |
-| Currency mismatch | N/A | Every txn | Hard fail, escalate |
-| Beneficiary mismatch | N/A | Every txn | Flag for AML review |
+| Rule                 | Tolerance | Frequency | Action on Mismatch      |
+| -------------------- | --------- | --------- | ----------------------- |
+| Exact match          | 0 SYP     | Every txn | Auto-pass               |
+| Amount tolerance     | ±100 SYP  | Every txn | Auto-pass with memo     |
+| Date tolerance       | T+1       | Daily     | Flag for review         |
+| Missing external     | N/A       | Daily     | Create exception ticket |
+| Duplicate detection  | N/A       | Every txn | Flag, hold settlement   |
+| Currency mismatch    | N/A       | Every txn | Hard fail, escalate     |
+| Beneficiary mismatch | N/A       | Every txn | Flag for AML review     |
 
 ## Exception Handling Pipeline
 
@@ -122,13 +122,13 @@ Audit Trail written to recon.audit_log
 
 ### SLA Tiers for Exception Resolution
 
-| Priority | Definition | Resolution SLA |
-|----------|------------|----------------|
-| P0 | Amount > 10M SYP or CBS audit item | 2 hours |
-| P1 | Amount 1M–10M SYP or agent float discrepancy | 4 hours |
-| P2 | Amount 100K–1M SYP | 24 hours |
-| P3 | Amount < 100K SYP | 72 hours |
-| P4 | Informational / memo-only | Next business day |
+| Priority | Definition                                   | Resolution SLA    |
+| -------- | -------------------------------------------- | ----------------- |
+| P0       | Amount > 10M SYP or CBS audit item           | 2 hours           |
+| P1       | Amount 1M–10M SYP or agent float discrepancy | 4 hours           |
+| P2       | Amount 100K–1M SYP                           | 24 hours          |
+| P3       | Amount < 100K SYP                            | 72 hours          |
+| P4       | Informational / memo-only                    | Next business day |
 
 ## CBS Compliance Requirements
 
@@ -141,13 +141,13 @@ Audit Trail written to recon.audit_log
 
 ## Monitoring & Alerting
 
-| Metric | Alert Threshold | Channel |
-|--------|----------------|---------|
-| Match rate < 95% | Any run | PagerDuty + Slack #recon-alerts |
-| Exception queue > 100 items | Any time | PagerDuty + Slack |
-| Unreconciled > 48h | Any item | Email to CFO + Head of Finance Ops |
-| CBS report deadline missed | 5th of month | Email to CEO + Compliance |
-| Bank file not received | By 09:00 daily | PagerDuty + Slack #bank-files |
+| Metric                      | Alert Threshold | Channel                            |
+| --------------------------- | --------------- | ---------------------------------- |
+| Match rate < 95%            | Any run         | PagerDuty + Slack #recon-alerts    |
+| Exception queue > 100 items | Any time        | PagerDuty + Slack                  |
+| Unreconciled > 48h          | Any item        | Email to CFO + Head of Finance Ops |
+| CBS report deadline missed  | 5th of month    | Email to CEO + Compliance          |
+| Bank file not received      | By 09:00 daily  | PagerDuty + Slack #bank-files      |
 
 ## Database Schema (Core Tables)
 
@@ -214,10 +214,10 @@ CREATE TABLE recon.audit_log (
 
 ## Dashboards
 
-| Dashboard | URL | Purpose |
-|-----------|-----|---------|
-| Reconciliation Overview | `https://grafana.beza-sy.com/d/recon-overview` | Match rates, exception counts, SLA compliance |
-| Internal Recon | `https://grafana.beza-sy.com/d/recon-internal` | CFE posting match details |
-| External Recon | `https://grafana.beza-sy.com/d/recon-external` | Bank settlement match status |
-| Agent Recon | `https://grafana.beza-sy.com/d/recon-agent` | Agent float reconciliation |
-| Exception Queue | `https://grafana.beza-sy.com/d/recon-exceptions` | Real-time exception monitoring |
+| Dashboard               | URL                                              | Purpose                                       |
+| ----------------------- | ------------------------------------------------ | --------------------------------------------- |
+| Reconciliation Overview | `https://grafana.beza-sy.com/d/recon-overview`   | Match rates, exception counts, SLA compliance |
+| Internal Recon          | `https://grafana.beza-sy.com/d/recon-internal`   | CFE posting match details                     |
+| External Recon          | `https://grafana.beza-sy.com/d/recon-external`   | Bank settlement match status                  |
+| Agent Recon             | `https://grafana.beza-sy.com/d/recon-agent`      | Agent float reconciliation                    |
+| Exception Queue         | `https://grafana.beza-sy.com/d/recon-exceptions` | Real-time exception monitoring                |

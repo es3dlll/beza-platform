@@ -228,21 +228,21 @@ Fraud management motion should convey **urgency without panic**, **security with
 
 ## Push Notification Strategy
 
-| Alert Type | Channel | Sound | Priority | Dismissible |
-|------------|---------|-------|----------|-------------|
-| P0 (Critical fraud) | Push + SMS + Dashboard | Critical alert sound | Highest | No (must view) |
-| P1 (High fraud) | Push + Dashboard | Default | High | Yes, after 5 min |
-| P2 (Medium) | Dashboard only | None | Normal | Yes |
-| FP resolution | Push + SMS | Success | Normal | Yes |
-| Case update | Push | None | Normal | Yes |
-| Weekly report | Dashboard notification | None | Low | Yes |
+| Alert Type          | Channel                | Sound                | Priority | Dismissible      |
+| ------------------- | ---------------------- | -------------------- | -------- | ---------------- |
+| P0 (Critical fraud) | Push + SMS + Dashboard | Critical alert sound | Highest  | No (must view)   |
+| P1 (High fraud)     | Push + Dashboard       | Default              | High     | Yes, after 5 min |
+| P2 (Medium)         | Dashboard only         | None                 | Normal   | Yes              |
+| FP resolution       | Push + SMS             | Success              | Normal   | Yes              |
+| Case update         | Push                   | None                 | Normal   | Yes              |
+| Weekly report       | Dashboard notification | None                 | Low      | Yes              |
 
 ## Performance Considerations
 
-| Animation | Target | Concern |
-|-----------|--------|---------|
-| Dashboard auto-refresh | No jank, smooth update | Large data sets may cause layout shift |
-| Alert slide-in | < 400ms | Avoid layout shift on alert panel |
-| Gauge transitions | 60fps | SVG/Canvas rendering on frequently updating graphs |
-| Mobile push response | < 1s tap-to-open | Deep link to correct screen |
-| SMS arrival | < 30s | External dependency (SMS gateway) |
+| Animation              | Target                 | Concern                                            |
+| ---------------------- | ---------------------- | -------------------------------------------------- |
+| Dashboard auto-refresh | No jank, smooth update | Large data sets may cause layout shift             |
+| Alert slide-in         | < 400ms                | Avoid layout shift on alert panel                  |
+| Gauge transitions      | 60fps                  | SVG/Canvas rendering on frequently updating graphs |
+| Mobile push response   | < 1s tap-to-open       | Deep link to correct screen                        |
+| SMS arrival            | < 30s                  | External dependency (SMS gateway)                  |

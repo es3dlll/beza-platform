@@ -169,18 +169,18 @@ Fraud Management Portal
 
 ## Screen Priority
 
-| Screen | Priority | Phase | Rationale |
-|--------|----------|-------|-----------|
-| Dashboard | P0 | Phase 1 | Ops team needs central view |
-| Transaction Detail | P0 | Phase 1 | Core investigation unit |
-| Case Management | P0 | Phase 1 | Investigation workflow |
-| Rule Engine Config | P0 | Phase 1 | Rules must be configurable |
-| User Appeal Portal | P1 | Phase 2 | User-facing feature |
-| Reports (CBS) | P1 | Phase 2 | Regulatory requirements |
-| Agent Fraud Monitoring | P1 | Phase 2 | Agent-specific fraud |
-| Model Management | P2 | Phase 2 | ML team needs |
-| Settings | P2 | Phase 2 | Admin functions |
-| Real-time Map | P3 | Phase 3 | Advanced visualization |
+| Screen                 | Priority | Phase   | Rationale                   |
+| ---------------------- | -------- | ------- | --------------------------- |
+| Dashboard              | P0       | Phase 1 | Ops team needs central view |
+| Transaction Detail     | P0       | Phase 1 | Core investigation unit     |
+| Case Management        | P0       | Phase 1 | Investigation workflow      |
+| Rule Engine Config     | P0       | Phase 1 | Rules must be configurable  |
+| User Appeal Portal     | P1       | Phase 2 | User-facing feature         |
+| Reports (CBS)          | P1       | Phase 2 | Regulatory requirements     |
+| Agent Fraud Monitoring | P1       | Phase 2 | Agent-specific fraud        |
+| Model Management       | P2       | Phase 2 | ML team needs               |
+| Settings               | P2       | Phase 2 | Admin functions             |
+| Real-time Map          | P3       | Phase 3 | Advanced visualization      |
 
 ## Navigation Flow
 

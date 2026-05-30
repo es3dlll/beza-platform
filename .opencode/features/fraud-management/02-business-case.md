@@ -18,12 +18,12 @@ Syria's digital payments industry faces disproportionately high fraud risk due t
 
 ### Estimated Fraud Cost
 
-| Metric | Estimate | Source |
-|--------|----------|--------|
-| Digital fraud rate (Syria fintech) | 0.5%–2% of txn volume | Industry estimates |
-| Beza projected monthly volume (target) | 50M SYP initially, scaling 10x | Internal |
-| Estimated monthly fraud loss (at 0.8%) | 400,000 SYP → 4M+ SYP | Extrapolation |
-| Annual fraud loss (scale) | 5M–50M+ SYP | Conservative |
+| Metric                                 | Estimate                       | Source             |
+| -------------------------------------- | ------------------------------ | ------------------ |
+| Digital fraud rate (Syria fintech)     | 0.5%–2% of txn volume          | Industry estimates |
+| Beza projected monthly volume (target) | 50M SYP initially, scaling 10x | Internal           |
+| Estimated monthly fraud loss (at 0.8%) | 400,000 SYP → 4M+ SYP          | Extrapolation      |
+| Annual fraud loss (scale)              | 5M–50M+ SYP                    | Conservative       |
 
 Fraud is not just a financial loss — it's a trust killer. In a market where trust in digital payments is fragile, one high-profile fraud incident can derail adoption for months.
 
@@ -31,42 +31,42 @@ Fraud is not just a financial loss — it's a trust killer. In a market where tr
 
 ### Fraud Prevention as Revenue Driver
 
-| Value Driver | Impact | Mechanism |
-|-------------|--------|-----------|
-| Reduced direct fraud loss | 2–5% of volume saved | Block fraudulent transactions |
-| Increased transaction volume | 15–30% uplift | User trust → more digital txns |
-| Reduced churn | 10–20% reduction | Fewer fraud victims leave platform |
-| Agent network retention | 5–15% improvement | Agents trust platform, fewer disputes |
-| Regulatory compliance | Avoid fines, license protection | CBS AML/fraud requirements met |
-| Brand differentiation | Premium positioning | "Safest wallet in Syria" |
+| Value Driver                 | Impact                          | Mechanism                             |
+| ---------------------------- | ------------------------------- | ------------------------------------- |
+| Reduced direct fraud loss    | 2–5% of volume saved            | Block fraudulent transactions         |
+| Increased transaction volume | 15–30% uplift                   | User trust → more digital txns        |
+| Reduced churn                | 10–20% reduction                | Fewer fraud victims leave platform    |
+| Agent network retention      | 5–15% improvement               | Agents trust platform, fewer disputes |
+| Regulatory compliance        | Avoid fines, license protection | CBS AML/fraud requirements met        |
+| Brand differentiation        | Premium positioning             | "Safest wallet in Syria"              |
 
 ### Total Addressable Value
 
-| Year | Protected Volume | Loss Prevented (at 0.5% fraud) | Revenue Impact |
-|------|-----------------|-------------------------------|----------------|
-| Y1 | 1B SYP | 5M SYP | 15M SYP (txn growth + loss saved) |
-| Y2 | 10B SYP | 50M SYP | 150M SYP |
-| Y3 | 100B SYP | 500M SYP | 1.5B SYP |
+| Year | Protected Volume | Loss Prevented (at 0.5% fraud) | Revenue Impact                    |
+| ---- | ---------------- | ------------------------------ | --------------------------------- |
+| Y1   | 1B SYP           | 5M SYP                         | 15M SYP (txn growth + loss saved) |
+| Y2   | 10B SYP          | 50M SYP                        | 150M SYP                          |
+| Y3   | 100B SYP         | 500M SYP                       | 1.5B SYP                          |
 
 ## Cost-Benefit Analysis
 
 ### Investment Required
 
-| Component | Year 1 | Year 2 | Year 3 |
-|-----------|--------|--------|--------|
-| Engineering (3 FTE) | 120K USD | 120K USD | 120K USD |
-| ML infrastructure | 30K USD | 50K USD | 70K USD |
-| Operations team (5 FTE) | 60K USD | 80K USD | 100K USD |
-| Telecom partnerships | 20K USD | 30K USD | 40K USD |
-| Total | ~230K USD | ~280K USD | ~330K USD |
+| Component               | Year 1    | Year 2    | Year 3    |
+| ----------------------- | --------- | --------- | --------- |
+| Engineering (3 FTE)     | 120K USD  | 120K USD  | 120K USD  |
+| ML infrastructure       | 30K USD   | 50K USD   | 70K USD   |
+| Operations team (5 FTE) | 60K USD   | 80K USD   | 100K USD  |
+| Telecom partnerships    | 20K USD   | 30K USD   | 40K USD   |
+| Total                   | ~230K USD | ~280K USD | ~330K USD |
 
 ### ROI Calculation
 
-| Year | Investment | Loss Prevented | Additional Revenue | Total Benefit | ROI |
-|------|-----------|---------------|-------------------|---------------|-----|
-| Y1 | 230K USD | 300K USD | 150K USD | 450K USD | 1.96x |
-| Y2 | 280K USD | 1.5M USD | 500K USD | 2M USD | 7.14x |
-| Y3 | 330K USD | 5M USD | 2M USD | 7M USD | 21.2x |
+| Year | Investment | Loss Prevented | Additional Revenue | Total Benefit | ROI   |
+| ---- | ---------- | -------------- | ------------------ | ------------- | ----- |
+| Y1   | 230K USD   | 300K USD       | 150K USD           | 450K USD      | 1.96x |
+| Y2   | 280K USD   | 1.5M USD       | 500K USD           | 2M USD        | 7.14x |
+| Y3   | 330K USD   | 5M USD         | 2M USD             | 7M USD        | 21.2x |
 
 ## Why Now?
 
@@ -80,13 +80,13 @@ Fraud is not just a financial loss — it's a trust killer. In a market where tr
 
 ## Risks
 
-| Risk | Mitigation |
-|------|-----------|
+| Risk                        | Mitigation                                              |
+| --------------------------- | ------------------------------------------------------- |
 | False positives anger users | Graduated actions (slow → warn → block), instant appeal |
-| ML model drift | Daily retraining, automated drift detection |
-| Fraudsters adapt to rules | Model rotation, feature obfuscation, ensemble methods |
-| Cost overruns | Phased approach, prove value at each stage |
-| Data quality issues | Feature engineering resilient to missing data |
+| ML model drift              | Daily retraining, automated drift detection             |
+| Fraudsters adapt to rules   | Model rotation, feature obfuscation, ensemble methods   |
+| Cost overruns               | Phased approach, prove value at each stage              |
+| Data quality issues         | Feature engineering resilient to missing data           |
 
 ## Recommendation
 

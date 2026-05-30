@@ -27,7 +27,12 @@ function log(emoji: string, msg: string) {
 
 async function ex(cmd: string, opts?: Record<string, any>): Promise<string> {
   try {
-    const r = await execa(cmd, { shell: true, cwd: ROOT, timeout: 120_000, ...opts });
+    const r = await execa(cmd, {
+      shell: true,
+      cwd: ROOT,
+      timeout: 120_000,
+      ...opts,
+    });
     return r.stdout;
   } catch (e) {
     const err = e as ExecaError;
@@ -46,7 +51,11 @@ async function loadTasks(): Promise<Task[]> {
     for (const line of content.split("\n")) {
       const m = line.match(/^\s*[-*]\s*\[.\]\s*(.+?)(?:\s*[-–]\s*(.+))?$/);
       if (m) {
-        tasks.push({ name: m[1].trim(), description: m[2]?.trim() ?? "", domain });
+        tasks.push({
+          name: m[1].trim(),
+          description: m[2]?.trim() ?? "",
+          domain,
+        });
       }
     }
   }
@@ -55,7 +64,11 @@ async function loadTasks(): Promise<Task[]> {
 
 function getFallback(): Task[] {
   return [
-    { name: "Run backend tests", description: "Verify all tests pass", domain: "backend" },
+    {
+      name: "Run backend tests",
+      description: "Verify all tests pass",
+      domain: "backend",
+    },
   ];
 }
 
@@ -63,11 +76,22 @@ function getFallback(): Task[] {
 async function phasePlanning(task: Task): Promise<void> {
   log("🧠", `Planning: ${pc.bold(task.name)}`);
 
-  const files = await fg.glob([
-    `**/*${task.name.replace(/\s+/g, "*")}*`,
-    `**/${task.domain}/**/*.md`,
-    `**/${task.domain}/**/*.php`,
-  ], { cwd: ROOT, ignore: ["node_modules/**", "vendor/**", ".git/**", ".pipeline-worktrees/**"] });
+  const files = await fg.glob(
+    [
+      `**/*${task.name.replace(/\s+/g, "*")}*`,
+      `**/${task.domain}/**/*.md`,
+      `**/${task.domain}/**/*.php`,
+    ],
+    {
+      cwd: ROOT,
+      ignore: [
+        "node_modules/**",
+        "vendor/**",
+        ".git/**",
+        ".pipeline-worktrees/**",
+      ],
+    },
+  );
 
   const plan = [
     `# Plan: ${task.name}`,
@@ -104,13 +128,19 @@ async function phaseExecution(): Promise<void> {
 
   // Commit all current changes onto a new branch
   const steps = [
-    { title: `Create branch ${pc.cyan(branch)}`, task: async () => ex(`git checkout -b ${branch}`) },
+    {
+      title: `Create branch ${pc.cyan(branch)}`,
+      task: async () => ex(`git checkout -b ${branch}`),
+    },
     { title: "Stage all changes", task: async () => ex(`git add -A`) },
     {
       title: "Commit",
       task: async () => {
-        const out = await ex(`git commit -m "wip: pipeline execution" --no-verify 2>&1`);
-        if (out.includes("nothing to commit")) log("ℹ️", "No changes to commit");
+        const out = await ex(
+          `git commit -m "wip: pipeline execution" --no-verify 2>&1`,
+        );
+        if (out.includes("nothing to commit"))
+          log("ℹ️", "No changes to commit");
       },
     },
     {
@@ -126,11 +156,16 @@ async function phaseExecution(): Promise<void> {
         log("✅", "All tests passed");
       },
     },
-    { title: `Push ${pc.cyan(branch)}`, task: async () => ex(`git push origin ${branch}`) },
+    {
+      title: `Push ${pc.cyan(branch)}`,
+      task: async () => ex(`git push origin ${branch}`),
+    },
   ];
 
   const ctx: any = {};
-  await new Listr(steps, { rendererOptions: { collapseSubtasks: false } }).run(ctx);
+  await new Listr(steps, { rendererOptions: { collapseSubtasks: false } }).run(
+    ctx,
+  );
   ctx.branchName = branch;
   return ctx;
 }
@@ -139,27 +174,40 @@ async function phaseExecution(): Promise<void> {
 async function phaseReview(): Promise<void> {
   log("🔍", "Review & Simplify");
 
-  const modified = (await ex(`git diff --name-only HEAD~1..HEAD`)).split("\n").filter(Boolean);
+  const modified = (await ex(`git diff --name-only HEAD~1..HEAD`))
+    .split("\n")
+    .filter(Boolean);
 
   // PHP CS Fixer for changed PHP files
   const phpFiles = modified.filter((f) => f.endsWith(".php"));
-  if (phpFiles.length > 0 && existsSync(resolve(ROOT, "backend/vendor/bin/php-cs-fixer"))) {
-    await ex(`php backend/vendor/bin/php-cs-fixer fix --allow-risky=yes --quiet 2>&1 || true`);
+  if (
+    phpFiles.length > 0 &&
+    existsSync(resolve(ROOT, "backend/vendor/bin/php-cs-fixer"))
+  ) {
+    await ex(
+      `php backend/vendor/bin/php-cs-fixer fix --allow-risky=yes --quiet 2>&1 || true`,
+    );
     log("✅", "PHP CS Fixer");
   }
 
   // Prettier for changed TS/JS files
   const tsFiles = modified.filter((f) => /\.(ts|tsx|js|jsx|json|md)$/.test(f));
   if (tsFiles.length > 0) {
-    await ex(`npx prettier --write ${tsFiles.join(" ")} --ignore-path .gitignore 2>&1 || true`);
+    await ex(
+      `npx prettier --write ${tsFiles.join(" ")} --ignore-path .gitignore 2>&1 || true`,
+    );
     log("✅", "Prettier");
   }
 
   const status = await ex("git status --porcelain");
   if (status.trim()) {
     await ex(`git add -A`);
-    await ex(`git commit -m "refactor: simplify and optimize code structure" --no-verify`);
-    await ex(`git push origin ${(await ex("git rev-parse --abbrev-ref HEAD")).trim()}`);
+    await ex(
+      `git commit -m "refactor: simplify and optimize code structure" --no-verify`,
+    );
+    await ex(
+      `git push origin ${(await ex("git rev-parse --abbrev-ref HEAD")).trim()}`,
+    );
     log("📦", "Refactor commit pushed");
   } else {
     log("ℹ️", "No linting changes — skipping refactor commit");
@@ -170,8 +218,11 @@ async function phaseReview(): Promise<void> {
 async function phaseDelivery(branchName?: string): Promise<void> {
   log("🚀", "Delivery");
 
-  const branch = branchName ?? (await ex("git rev-parse --abbrev-ref HEAD")).trim();
-  const planContent = existsSync(PLAN_FILE) ? readFileSync(PLAN_FILE, "utf-8") : "";
+  const branch =
+    branchName ?? (await ex("git rev-parse --abbrev-ref HEAD")).trim();
+  const planContent = existsSync(PLAN_FILE)
+    ? readFileSync(PLAN_FILE, "utf-8")
+    : "";
   const steps = planContent.match(/`[^`]+`\s*[-–]\s*.+/g) ?? [];
 
   const body = [
@@ -190,7 +241,7 @@ async function phaseDelivery(branchName?: string): Promise<void> {
   const title = `pipeline: ${steps.length} file(s) modified`;
 
   const prUrl = await ex(
-    `gh pr create --base main --head "${branch}" --title "${title}" --body "${body.replace(/"/g, '\\"')}" 2>&1 || true`
+    `gh pr create --base main --head "${branch}" --title "${title}" --body "${body.replace(/"/g, '\\"')}" 2>&1 || true`,
   );
 
   if (prUrl && (prUrl.includes("github.com") || prUrl.includes("https://"))) {
@@ -224,10 +275,14 @@ async function main() {
     const phase = args[phaseIdx + 1];
     const tasks = await loadTasks();
     switch (phase) {
-      case "planning": return phasePlanning(tasks[0] ?? getFallback()[0]);
-      case "execution": return phaseExecution();
-      case "review": return phaseReview();
-      case "delivery": return phaseDelivery();
+      case "planning":
+        return phasePlanning(tasks[0] ?? getFallback()[0]);
+      case "execution":
+        return phaseExecution();
+      case "review":
+        return phaseReview();
+      case "delivery":
+        return phaseDelivery();
     }
   }
 
@@ -237,33 +292,41 @@ async function main() {
 
   for (let i = 0; i < tasks.length; i++) {
     const task = tasks[i];
-    console.log(pc.yellow(pc.bold(`\n▸ [${i + 1}/${tasks.length}] ${task.name}`)));
+    console.log(
+      pc.yellow(pc.bold(`\n▸ [${i + 1}/${tasks.length}] ${task.name}`)),
+    );
 
-    const execCtx = await new Listr([
-      {
-        title: "🧠  Planning",
-        task: () => phasePlanning(task),
-      },
-      {
-        title: "🛠️  Execution",
-        task: () => phaseExecution(),
-      },
-    ], { rendererOptions: { collapseSubtasks: false }, exitOnError: true }).run();
+    const execCtx = await new Listr(
+      [
+        {
+          title: "🧠  Planning",
+          task: () => phasePlanning(task),
+        },
+        {
+          title: "🛠️  Execution",
+          task: () => phaseExecution(),
+        },
+      ],
+      { rendererOptions: { collapseSubtasks: false }, exitOnError: true },
+    ).run();
 
     // phaseExecution returns ctx; extract branchName
     const branchName = execCtx?.branchName;
 
     try {
-      await new Listr([
-        {
-          title: "🔍  Review & Simplify",
-          task: () => phaseReview(),
-        },
-        {
-          title: "🚀  Delivery",
-          task: () => phaseDelivery(branchName),
-        },
-      ], { rendererOptions: { collapseSubtasks: false } }).run();
+      await new Listr(
+        [
+          {
+            title: "🔍  Review & Simplify",
+            task: () => phaseReview(),
+          },
+          {
+            title: "🚀  Delivery",
+            task: () => phaseDelivery(branchName),
+          },
+        ],
+        { rendererOptions: { collapseSubtasks: false } },
+      ).run();
     } catch (err) {
       log("⚠️", `${pc.yellow("Post-execution phase skipped")}`);
     }

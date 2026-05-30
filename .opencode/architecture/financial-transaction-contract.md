@@ -39,18 +39,18 @@
 
 ## 2. Operation Types
 
-| Type | Debit Account | Credit Account | Fee Trigger | Hold Required |
-|------|--------------|----------------|-------------|---------------|
-| `wallet_deposit` | User Wallet | Settlement | No | No |
-| `wallet_withdrawal` | Settlement | User Wallet | Yes | Yes |
-| `wallet_transfer` | Sender Wallet | Receiver Wallet | Maybe | Yes |
-| `bill_payment` | User Wallet | Biller Account | Yes | Yes |
-| `agent_cash_in` | Agent Wallet | User Wallet | No | No |
-| `agent_cash_out` | User Wallet | Agent Wallet | Yes | Yes |
-| `fx_conversion` | Source Wallet | Target Wallet | Yes | Yes |
-| `fee_charge` | User Wallet | Income Account | N/A | No |
-| `reversal` | Reversed | Reversed | No | No |
-| `settlement` | Various | Settlement Account | No | No |
+| Type                | Debit Account | Credit Account     | Fee Trigger | Hold Required |
+| ------------------- | ------------- | ------------------ | ----------- | ------------- |
+| `wallet_deposit`    | User Wallet   | Settlement         | No          | No            |
+| `wallet_withdrawal` | Settlement    | User Wallet        | Yes         | Yes           |
+| `wallet_transfer`   | Sender Wallet | Receiver Wallet    | Maybe       | Yes           |
+| `bill_payment`      | User Wallet   | Biller Account     | Yes         | Yes           |
+| `agent_cash_in`     | Agent Wallet  | User Wallet        | No          | No            |
+| `agent_cash_out`    | User Wallet   | Agent Wallet       | Yes         | Yes           |
+| `fx_conversion`     | Source Wallet | Target Wallet      | Yes         | Yes           |
+| `fee_charge`        | User Wallet   | Income Account     | N/A         | No            |
+| `reversal`          | Reversed      | Reversed           | No          | No            |
+| `settlement`        | Various       | Settlement Account | No          | No            |
 
 ## 3. Data Contract
 
@@ -59,11 +59,11 @@ Every financial transaction MUST include:
 ```json
 {
   "reference_type": "wallet_transfer",
-  "reference_id": "01AR...",          // ULID
+  "reference_id": "01AR...", // ULID
   "description": "Transfer from X to Y",
   "channel": "mobile_app | web | agent | ussd | api",
   "initiated_by": "user_id | agent_id | system",
-  "idempotency_key": "req_...",       // Prevents double processing
+  "idempotency_key": "req_...", // Prevents double processing
   "metadata": {
     "wallet_id": "...",
     "sender_phone": "963...",
@@ -130,12 +130,12 @@ $result = $reversalEngine->reverse($reversal);
 
 ## 7. Fee Assessment Rules
 
-| Scenario | Fee Type | Charged To | Revenue Account |
-|----------|----------|------------|-----------------|
-| External transfer | `transfer_out` | Sender | `4000-001` |
-| Cash withdrawal (agent) | `agent_cash_out` | User | `4000-005` |
-| Bill payment | `bill_payment` | User | `4000-003` |
-| FX conversion | `fx_conversion` | User | `4000-006` |
-| Wallet-to-wallet | `wallet_to_wallet` | Free | N/A |
+| Scenario                | Fee Type           | Charged To | Revenue Account |
+| ----------------------- | ------------------ | ---------- | --------------- |
+| External transfer       | `transfer_out`     | Sender     | `4000-001`      |
+| Cash withdrawal (agent) | `agent_cash_out`   | User       | `4000-005`      |
+| Bill payment            | `bill_payment`     | User       | `4000-003`      |
+| FX conversion           | `fx_conversion`    | User       | `4000-006`      |
+| Wallet-to-wallet        | `wallet_to_wallet` | Free       | N/A             |
 
 Fee rules are DB-driven (`fee_rules` table) and modifiable via admin panel.

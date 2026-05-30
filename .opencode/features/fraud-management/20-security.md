@@ -14,36 +14,38 @@ Fraudsters will systematically probe and attempt to reverse-engineer the fraud d
 
 ### Threat Model
 
-| Attack | Description | Syria-Specific | Mitigation |
-|--------|-------------|---------------|------------|
-| **Probing** | Fraudsters send test transactions to determine rule thresholds | Low-value probing (50 SYP transactions) | Threshold randomization, honeypot rules |
-| **Feature poisoning** | Fraudsters manipulate behavior to influence training data | Creating fake "normal" patterns | Outlier detection, robust training |
-| **Evasion** | Crafting transactions to avoid detection (just below thresholds) | Amount thresholds (49,999 instead of 50,000) | Ensemble methods, soft thresholds |
-| **Model extraction** | Reverse-engineering ML model via API queries | Limited (low volume) but growing | Rate limiting, query monitoring |
-| **Data poisoning** | Injecting false fraud reports to corrupt training data | Fake false positive claims | Verification before feedback loop |
-| **Insider threat** | Fraud team member abuses access | Higher risk in Syria (economic pressure) | All actions logged, dual control for critical ops |
+| Attack                | Description                                                      | Syria-Specific                               | Mitigation                                        |
+| --------------------- | ---------------------------------------------------------------- | -------------------------------------------- | ------------------------------------------------- |
+| **Probing**           | Fraudsters send test transactions to determine rule thresholds   | Low-value probing (50 SYP transactions)      | Threshold randomization, honeypot rules           |
+| **Feature poisoning** | Fraudsters manipulate behavior to influence training data        | Creating fake "normal" patterns              | Outlier detection, robust training                |
+| **Evasion**           | Crafting transactions to avoid detection (just below thresholds) | Amount thresholds (49,999 instead of 50,000) | Ensemble methods, soft thresholds                 |
+| **Model extraction**  | Reverse-engineering ML model via API queries                     | Limited (low volume) but growing             | Rate limiting, query monitoring                   |
+| **Data poisoning**    | Injecting false fraud reports to corrupt training data           | Fake false positive claims                   | Verification before feedback loop                 |
+| **Insider threat**    | Fraud team member abuses access                                  | Higher risk in Syria (economic pressure)     | All actions logged, dual control for critical ops |
 
 ### Feature Obfuscation
 
 **What NOT to expose to users:**
+
 - Exact risk score (show "medium" not "72/100")
 - Which rules triggered (show "unusual activity" not "VEL-003")
 - Feature weights (don't reveal amount counts more than device)
 - Model confidence (don't show "75% probability of fraud")
 
 **What to expose:**
+
 - Transaction is "paused for security" (generic)
 - "Verify your identity" (action-oriented)
 - "Contact support if this wasn't you" (help-oriented)
 
 ### Model Rotation
 
-| Strategy | Frequency | Benefit |
-|----------|-----------|---------|
-| Model version update | Every 24–48h | Fraudsters can't learn current model |
-| Feature set rotation | Every 7 days | Different features used in scoring |
-| Threshold randomization | Per-transaction ±5% | Can't probe exact thresholds |
-| Ensemble switching | Every hour | Randomly select from 3 active models |
+| Strategy                | Frequency           | Benefit                              |
+| ----------------------- | ------------------- | ------------------------------------ |
+| Model version update    | Every 24–48h        | Fraudsters can't learn current model |
+| Feature set rotation    | Every 7 days        | Different features used in scoring   |
+| Threshold randomization | Per-transaction ±5% | Can't probe exact thresholds         |
+| Ensemble switching      | Every hour          | Randomly select from 3 active models |
 
 ### Honeypot Rules
 
@@ -62,36 +64,36 @@ Honeypot Rule Example:
 
 ### Role-Based Access Control (RBAC)
 
-| Role | Permissions | Description |
-|------|------------|-------------|
-| **fraud_viewer** | Read dashboard, read cases | View-only access |
-| **fraud_analyst** | View + investigate cases, mark false positives | Day-to-day ops |
-| **fraud_senior** | Analyst + confirm fraud, freeze accounts | Experienced analysts |
-| **fraud_manager** | Senior + rule management, model management | Team lead |
-| **fraud_admin** | Manager + user management, audit log | System admin |
-| **compliance** | View + SAR filing, CBS reporting | Compliance team |
-| **data_scientist** | View + model management, training | ML team |
+| Role               | Permissions                                    | Description          |
+| ------------------ | ---------------------------------------------- | -------------------- |
+| **fraud_viewer**   | Read dashboard, read cases                     | View-only access     |
+| **fraud_analyst**  | View + investigate cases, mark false positives | Day-to-day ops       |
+| **fraud_senior**   | Analyst + confirm fraud, freeze accounts       | Experienced analysts |
+| **fraud_manager**  | Senior + rule management, model management     | Team lead            |
+| **fraud_admin**    | Manager + user management, audit log           | System admin         |
+| **compliance**     | View + SAR filing, CBS reporting               | Compliance team      |
+| **data_scientist** | View + model management, training              | ML team              |
 
 ### Dual Control Requirements
 
-| Action | Required Approvals |
-|--------|-------------------|
-| Freeze a user account | 1 fraud analyst → approved by senior |
-| Confirm fraud > 1M SYP | 1 senior analyst + compliance officer |
-| Deploy new ML model | Data scientist + fraud manager |
-| Disable a rule | Fraud manager (logged) |
-| Restore incorrectly frozen account | Senior analyst + manager |
-| Access raw ML training data | Data scientist + security officer |
+| Action                             | Required Approvals                    |
+| ---------------------------------- | ------------------------------------- |
+| Freeze a user account              | 1 fraud analyst → approved by senior  |
+| Confirm fraud > 1M SYP             | 1 senior analyst + compliance officer |
+| Deploy new ML model                | Data scientist + fraud manager        |
+| Disable a rule                     | Fraud manager (logged)                |
+| Restore incorrectly frozen account | Senior analyst + manager              |
+| Access raw ML training data        | Data scientist + security officer     |
 
 ### API Authentication
 
-| Endpoint | Auth Method | Rate Limit |
-|----------|------------|------------|
-| POST /screen (internal) | Internal API key + HMAC | 10,000 req/min |
-| GET /cases | JWT (ops team) | 100 req/min |
-| POST /cases/{id}/decision | JWT + signature | 30 req/min |
-| GET /reports | JWT (compliance) | 20 req/min |
-| Admin endpoints | JWT + IP whitelist | 10 req/min |
+| Endpoint                  | Auth Method             | Rate Limit     |
+| ------------------------- | ----------------------- | -------------- |
+| POST /screen (internal)   | Internal API key + HMAC | 10,000 req/min |
+| GET /cases                | JWT (ops team)          | 100 req/min    |
+| POST /cases/{id}/decision | JWT + signature         | 30 req/min     |
+| GET /reports              | JWT (compliance)        | 20 req/min     |
+| Admin endpoints           | JWT + IP whitelist      | 10 req/min     |
 
 ## Rules Secrecy
 
@@ -122,14 +124,14 @@ Honeypot Rule Example:
 
 ### Sensitive Data Classification
 
-| Data Class | Examples | Storage Requirement |
-|------------|----------|---------------------|
-| Fraud case data | Investigation notes, evidence, user statements | Encrypted at rest (AES-256) |
-| Transaction data | Amount, sender, recipient, device | Encrypted at rest in DB (columns) |
-| ML features | Engineered features (not raw data) | Encrypted at rest |
-| ML model | Model weights, feature importance | Access controlled, encrypted |
-| Audit logs | All state transitions, decisions | Append-only, tamper-proof |
-| User PII | National ID, phone, address | Only via KYC module (not stored in fraud) |
+| Data Class       | Examples                                       | Storage Requirement                       |
+| ---------------- | ---------------------------------------------- | ----------------------------------------- |
+| Fraud case data  | Investigation notes, evidence, user statements | Encrypted at rest (AES-256)               |
+| Transaction data | Amount, sender, recipient, device              | Encrypted at rest in DB (columns)         |
+| ML features      | Engineered features (not raw data)             | Encrypted at rest                         |
+| ML model         | Model weights, feature importance              | Access controlled, encrypted              |
+| Audit logs       | All state transitions, decisions               | Append-only, tamper-proof                 |
+| User PII         | National ID, phone, address                    | Only via KYC module (not stored in fraud) |
 
 ### Data Minimization
 
@@ -140,26 +142,26 @@ Honeypot Rule Example:
 
 ## Audit Trail
 
-| Event | Logged | Retention |
-|-------|--------|-----------|
-| Every fraud decision | Who, what, when, result | 10 years |
-| Case state change | From, to, who, why | 10 years |
-| Rule modification | Before, after, who | 10 years |
-| Model deployment | Version, who, metrics | 10 years |
-| User appeal | Appeal + resolution | 5 years |
-| Access to sensitive data | Who, what, when | 2 years |
-| Failed login attempts | IP, user, timestamp | 90 days |
+| Event                    | Logged                  | Retention |
+| ------------------------ | ----------------------- | --------- |
+| Every fraud decision     | Who, what, when, result | 10 years  |
+| Case state change        | From, to, who, why      | 10 years  |
+| Rule modification        | Before, after, who      | 10 years  |
+| Model deployment         | Version, who, metrics   | 10 years  |
+| User appeal              | Appeal + resolution     | 5 years   |
+| Access to sensitive data | Who, what, when         | 2 years   |
+| Failed login attempts    | IP, user, timestamp     | 90 days   |
 
 ## Incident Response
 
 ### Security Incident Severity
 
-| Level | Description | Response Time |
-|-------|-------------|---------------|
-| SEV-1 | Fraud rules leaked publicly | Immediate (15 min) |
-| SEV-2 | Unauthorized access to fraud data | < 1 hour |
-| SEV-3 | Suspicious access pattern detected | < 4 hours |
-| SEV-4 | Security policy violation | < 24 hours |
+| Level | Description                        | Response Time      |
+| ----- | ---------------------------------- | ------------------ |
+| SEV-1 | Fraud rules leaked publicly        | Immediate (15 min) |
+| SEV-2 | Unauthorized access to fraud data  | < 1 hour           |
+| SEV-3 | Suspicious access pattern detected | < 4 hours          |
+| SEV-4 | Security policy violation          | < 24 hours         |
 
 ### Breach Response Plan
 
@@ -174,11 +176,11 @@ Honeypot Rule Example:
 
 ## Syria-Specific Security Considerations
 
-| Concern | Implication | Mitigation |
-|---------|-------------|------------|
-| Economic pressure on employees | Insider threat risk higher | All actions logged, dual control, salary loading for fraud team = premium |
-| Limited cybersecurity talent | Harder to hire security staff | Automated security tooling, external audit |
-| State-sponsored actor risk | Nation-state interest in financial data | Data localization, encryption, access restriction |
-| Device security (users) | Many users on old/unpatched Android | Client-side fingerprinting, behavioral checks compensate |
-| Syriatel/MTN as transit | Network-level interception possible | End-to-end encryption for mobile API |
-| Social engineering risk | Fraudsters target Beza staff | Security awareness training, verification protocols |
+| Concern                        | Implication                             | Mitigation                                                                |
+| ------------------------------ | --------------------------------------- | ------------------------------------------------------------------------- |
+| Economic pressure on employees | Insider threat risk higher              | All actions logged, dual control, salary loading for fraud team = premium |
+| Limited cybersecurity talent   | Harder to hire security staff           | Automated security tooling, external audit                                |
+| State-sponsored actor risk     | Nation-state interest in financial data | Data localization, encryption, access restriction                         |
+| Device security (users)        | Many users on old/unpatched Android     | Client-side fingerprinting, behavioral checks compensate                  |
+| Syriatel/MTN as transit        | Network-level interception possible     | End-to-end encryption for mobile API                                      |
+| Social engineering risk        | Fraudsters target Beza staff            | Security awareness training, verification protocols                       |

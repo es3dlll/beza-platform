@@ -1,43 +1,44 @@
 # Infrastructure Engineering Spec — Kubernetes + Cloud
 
 ## Deployment Architecture
+
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │                     Production Cluster                       │
 │                      Kubernetes (EKS/AKS)                    │
 ├──────────────────────────────────────────────────────────────┤
-│                                                               
-│  Namespace: beza-platform                                     
-│                                                               
+│
+│  Namespace: beza-platform
+│
 │  ┌─────────────────────┐  ┌─────────────────────┐            │
 │  │  API Gateway (Kong)  │  │  Web App (React)    │            │
 │  │  Replicas: 2-5       │  │  Replicas: 2-3      │            │
 │  │  CPU: 1, RAM: 2GB   │  │  CPU: 1, RAM: 2GB   │            │
 │  └─────────────────────┘  └─────────────────────┘            │
-│                                                               
+│
 │  ┌─────────────────────┐  ┌─────────────────────┐            │
 │  │  Laravel API         │  │  Laravel Queue      │            │
 │  │  Replicas: 3-10      │  │  Replicas: 2-5      │            │
 │  │  CPU: 2, RAM: 4GB   │  │  CPU: 2, RAM: 4GB   │            │
 │  └─────────────────────┘  └─────────────────────┘            │
-│                                                               
+│
 │  ┌─────────────────────┐  ┌─────────────────────┐            │
 │  │  MySQL (Primary)     │  │  MySQL (Read Replica)│           │
 │  │  CPU: 4, RAM: 16GB  │  │  CPU: 4, RAM: 16GB  │           │
 │  │  Storage: 200GB SSD │  │  Storage: 200GB SSD │           │
 │  └─────────────────────┘  └─────────────────────┘            │
-│                                                               
+│
 │  ┌─────────────────────┐  ┌─────────────────────┐            │
 │  │  Redis (Cache)       │  │  Redis (Session)    │            │
 │  │  CPU: 2, RAM: 8GB   │  │  CPU: 2, RAM: 4GB   │            │
 │  └─────────────────────┘  └─────────────────────┘            │
-│                                                               
+│
 │  ┌─────────────────────┐  ┌─────────────────────┐            │
 │  │  RabbitMQ            │  │  Elasticsearch      │            │
 │  │  Replicas: 3         │  │  Replicas: 3        │            │
 │  │  CPU: 2, RAM: 4GB   │  │  CPU: 4, RAM: 8GB   │            │
 │  └─────────────────────┘  └─────────────────────┘            │
-│                                                               
+│
 │  ┌─────────────────────┐  ┌─────────────────────┐            │
 │  │  ClickHouse          │  │  Prometheus +       │            │
 │  │  CPU: 4, RAM: 16GB  │  │  Grafana            │            │
@@ -46,6 +47,7 @@
 ```
 
 ## CI/CD Pipeline (GitLab CI)
+
 ```yaml
 stages:
   - test
@@ -96,11 +98,12 @@ deploy-production:
 ```
 
 ## Infrastructure as Code (Terraform)
+
 ```hcl
 # Main infrastructure module
 module "kubernetes_cluster" {
   source = "./modules/eks"
-  
+
   cluster_name    = "beza-production"
   node_groups = {
     api = {
@@ -120,7 +123,7 @@ module "kubernetes_cluster" {
 
 module "mysql" {
   source = "./modules/rds"
-  
+
   instance_class = "db.r5.large"
   storage_gb     = 200
   multi_az       = true
@@ -129,7 +132,7 @@ module "mysql" {
 
 module "redis" {
   source = "./modules/elasticache"
-  
+
   node_type = "cache.r5.large"
   num_nodes = 2
   multi_az  = true
@@ -137,6 +140,7 @@ module "redis" {
 ```
 
 ## Disaster Recovery
+
 ```
 Recovery Point Objective (RPO): 5 minutes
 Recovery Time Objective (RTO): 1 hour

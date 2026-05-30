@@ -31,6 +31,7 @@ All money movement:
 ```
 
 **Violation examples:**
+
 - `WalletService` calling `JournalService::post()` directly
 - A Controller doing `$account->balance += $amount`
 - Any `DB::raw('UPDATE accounts SET balance = ...')`
@@ -46,6 +47,7 @@ Repository  ← Data access (queries, persistence)
 ```
 
 **Rules:**
+
 - Controller NEVER calls Repository directly
 - Controller NEVER contains `if` business logic
 - Service NEVER returns JSON/HTTP response
@@ -142,6 +144,7 @@ Each module owns its Events. Listeners can be in other modules.
 **No generic error messages. No `500` without code.**
 
 Every response error includes:
+
 ```json
 {
   "success": false,
@@ -169,15 +172,16 @@ Error codes must be registered in `docs/api/02-error-catalog.md`.
 
 ## Violation Protocol
 
-| Severity | Action |
-|----------|--------|
+| Severity                                 | Action                                              |
+| ---------------------------------------- | --------------------------------------------------- |
 | **BLOCKER** (G-001, G-002, G-004, G-005) | PR rejected immediately. Fix required before merge. |
-| **MAJOR** (G-003, G-006, G-008) | PR flagged. Requires explanation + fix within 24h. |
-| **MINOR** (G-009, G-010) | Warning issued. Must be fixed before next PR. |
+| **MAJOR** (G-003, G-006, G-008)          | PR flagged. Requires explanation + fix within 24h.  |
+| **MINOR** (G-009, G-010)                 | Warning issued. Must be fixed before next PR.       |
 
 ## Enforcement Automation
 
 To be implemented:
+
 - [ ] PHPStan rule: no `Modules\Ledger\*` import outside Ledger/CFE
 - [ ] PHPStan rule: no `float` type hint for monetary values
 - [ ] PHPStan rule: every Controller method returns `JsonResponse`

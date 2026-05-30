@@ -51,13 +51,13 @@ $total = Money::fromInt((int) $dbValue, Currency::SYP());
 
 ### 2.1 Column Types
 
-| Concept | Column Type | Example |
-|---------|------------|---------|
-| Amount | `bigint` NOT NULL | `50000` = SYP 500.00 |
-| Balance | `bigint` DEFAULT 0 | `1000000` = SYP 10,000.00 |
-| Fee | `bigint` DEFAULT 0 | `500` = SYP 5.00 |
-| Rate | `bigint` (scaled 1e6) | `13100` = SYP 13,100 per 1 USD |
-| Percentage | `integer` (basis points) | `50` = 0.50% |
+| Concept    | Column Type              | Example                        |
+| ---------- | ------------------------ | ------------------------------ |
+| Amount     | `bigint` NOT NULL        | `50000` = SYP 500.00           |
+| Balance    | `bigint` DEFAULT 0       | `1000000` = SYP 10,000.00      |
+| Fee        | `bigint` DEFAULT 0       | `500` = SYP 5.00               |
+| Rate       | `bigint` (scaled 1e6)    | `13100` = SYP 13,100 per 1 USD |
+| Percentage | `integer` (basis points) | `50` = 0.50%                   |
 
 ### 2.2 Currency Column
 
@@ -103,14 +103,15 @@ All monetary values in API are **integer minor units**.
 
 ### 4.1 Formatting Rules
 
-| Currency | Minor Unit | Format | Example |
-|----------|-----------|--------|---------|
-| SYP | 2 (piasters) | `#,##0.00` ل.س | `٥٠٠٫٠٠ ل.س` |
-| USD | 2 (cents) | `$#,##0.00` | `$500.00` |
+| Currency | Minor Unit   | Format         | Example      |
+| -------- | ------------ | -------------- | ------------ |
+| SYP      | 2 (piasters) | `#,##0.00` ل.س | `٥٠٠٫٠٠ ل.س` |
+| USD      | 2 (cents)    | `$#,##0.00`    | `$500.00`    |
 
 ### 4.2 No Arithmetic in Frontend
 
 Frontend NEVER performs:
+
 - Addition/subtraction of amounts
 - Fee calculation
 - Currency conversion
@@ -119,14 +120,14 @@ All calculations happen server-side. Frontend displays only.
 
 ## 5. Key Conversions
 
-| Value | Storage (bigint) | Display |
-|-------|-----------------|---------|
-| SYP 1.00 | 100 | `١٫٠٠ ل.س` |
-| SYP 500.00 | 50000 | `٥٠٠٫٠٠ ل.س` |
-| SYP 1,000,000.00 | 100000000 | `١٬٠٠٠٬٠٠٠٫٠٠ ل.س` |
-| USD 1.00 | 100 | `$1.00` |
-| 0.50% fee | 50 (basis points) | 0.50% |
-| Rate 13,100 | 1310000000 (×100,000) | 13,100 SYP/USD |
+| Value            | Storage (bigint)      | Display            |
+| ---------------- | --------------------- | ------------------ |
+| SYP 1.00         | 100                   | `١٫٠٠ ل.س`         |
+| SYP 500.00       | 50000                 | `٥٠٠٫٠٠ ل.س`       |
+| SYP 1,000,000.00 | 100000000             | `١٬٠٠٠٬٠٠٠٫٠٠ ل.س` |
+| USD 1.00         | 100                   | `$1.00`            |
+| 0.50% fee        | 50 (basis points)     | 0.50%              |
+| Rate 13,100      | 1310000000 (×100,000) | 13,100 SYP/USD     |
 
 ## 6. Validation Rules
 

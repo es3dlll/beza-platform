@@ -6,13 +6,13 @@ Fraud management is primarily a real-time, server-side function. However, Syria'
 
 ## Offline Scenarios
 
-| Scenario | Frequency | Duration | Impact |
-|----------|-----------|----------|--------|
-| Mobile device offline (user) | High (daily) | Minutes to hours | Transactions queued locally |
-| Agent POS offline | Medium | Minutes to hours | Local rule engine fallback |
-| Backend service disruption | Low | Minutes | Degraded fraud screening |
-| Network outage (region) | Medium (Syria-specific) | Hours to days | Manual agent reconciliation |
-| Syriatel/MTN network issue | Medium | 30min–4h | Delayed real-time screening |
+| Scenario                     | Frequency               | Duration         | Impact                      |
+| ---------------------------- | ----------------------- | ---------------- | --------------------------- |
+| Mobile device offline (user) | High (daily)            | Minutes to hours | Transactions queued locally |
+| Agent POS offline            | Medium                  | Minutes to hours | Local rule engine fallback  |
+| Backend service disruption   | Low                     | Minutes          | Degraded fraud screening    |
+| Network outage (region)      | Medium (Syria-specific) | Hours to days    | Manual agent reconciliation |
+| Syriatel/MTN network issue   | Medium                  | 30min–4h         | Delayed real-time screening |
 
 ## Client-Side (Mobile) Offline Behavior
 
@@ -79,13 +79,13 @@ Fraud management is primarily a real-time, server-side function. However, Syria'
 
 ### Mobile Offline Risk Mitigation
 
-| Risk | Mitigation |
-|------|------------|
-| Fraudster goes offline to bypass real-time screening | Local rules still apply; max queue value limit; max queue items limit |
-| Stale rules on device | Rules expire after 7 days; force online check for high-value txns |
-| Queued transaction approved locally but flagged server-side | Transaction reversed if blocked on server reconciliation |
-| Device compromised, local rules tampered | Rules stored in tamper-proof area; device integrity check |
-| User creates multiple offline transactions to exploit velocity | Local velocity rules cached |
+| Risk                                                           | Mitigation                                                            |
+| -------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Fraudster goes offline to bypass real-time screening           | Local rules still apply; max queue value limit; max queue items limit |
+| Stale rules on device                                          | Rules expire after 7 days; force online check for high-value txns     |
+| Queued transaction approved locally but flagged server-side    | Transaction reversed if blocked on server reconciliation              |
+| Device compromised, local rules tampered                       | Rules stored in tamper-proof area; device integrity check             |
+| User creates multiple offline transactions to exploit velocity | Local velocity rules cached                                           |
 
 ## Agent POS Offline Behavior
 
@@ -202,12 +202,12 @@ Fraud management is primarily a real-time, server-side function. However, Syria'
 
 ## Data Consistency
 
-| Scenario | Approach | Rationale |
-|----------|----------|-----------|
-| Queued txn approved locally, blocked server-side | Transaction reversed; SMS notification sent | Server is source of truth |
-| Server-side fraud rule updated while device offline | Rules expire after 7 days; force online check for new rules | Stale rules favor approval, which is acceptable for low value |
-| Device lost/stolen with queued transactions | Queue encrypted at rest; device integrity check; remote wipe capability | Security |
-| POS device stolen with offline txns | Agent PIN required for each txn; device-level authentication | Limit fraud window |
+| Scenario                                            | Approach                                                                | Rationale                                                     |
+| --------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Queued txn approved locally, blocked server-side    | Transaction reversed; SMS notification sent                             | Server is source of truth                                     |
+| Server-side fraud rule updated while device offline | Rules expire after 7 days; force online check for new rules             | Stale rules favor approval, which is acceptable for low value |
+| Device lost/stolen with queued transactions         | Queue encrypted at rest; device integrity check; remote wipe capability | Security                                                      |
+| POS device stolen with offline txns                 | Agent PIN required for each txn; device-level authentication            | Limit fraud window                                            |
 
 ## User Experience During Offline
 
@@ -256,10 +256,10 @@ When offline:
 
 ## Regional Offline Considerations (Syria)
 
-| Region | Connectivity | Offline Risk Level | Strategy |
-|--------|-------------|-------------------|----------|
-| Damascus | Good (4G, fiber) | Low | Standard online only |
-| Aleppo | Moderate (4G, some outages) | Medium | Local cache + queue |
-| Rural areas | Poor (2G/3G, intermittent) | High | POS local rules + extended queue |
-| IDP camps | Variable (limited infrastructure) | Very High | Max offline queue increased; SMS-based verification |
-| Opposition-held areas | Blocked/reduced | Very High | Extended offline mode; manual reconciliation; paper-based fallback |
+| Region                | Connectivity                      | Offline Risk Level | Strategy                                                           |
+| --------------------- | --------------------------------- | ------------------ | ------------------------------------------------------------------ |
+| Damascus              | Good (4G, fiber)                  | Low                | Standard online only                                               |
+| Aleppo                | Moderate (4G, some outages)       | Medium             | Local cache + queue                                                |
+| Rural areas           | Poor (2G/3G, intermittent)        | High               | POS local rules + extended queue                                   |
+| IDP camps             | Variable (limited infrastructure) | Very High          | Max offline queue increased; SMS-based verification                |
+| Opposition-held areas | Blocked/reduced                   | Very High          | Extended offline mode; manual reconciliation; paper-based fallback |

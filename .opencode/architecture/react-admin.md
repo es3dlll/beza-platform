@@ -1,19 +1,21 @@
 # Frontend Engineering Spec — React Admin Panel
 
 ## Technology Stack
-| Component | Choice | Version |
-|-----------|--------|---------|
-| Framework | React | 18.x |
-| Language | TypeScript | 5.x |
-| State Management | Redux Toolkit + RTK Query | Latest |
-| UI Library | MUI (Material UI) | 5.x |
-| Forms | React Hook Form | Latest |
-| Charts | Recharts | Latest |
-| Maps | Mapbox GL JS | Latest |
-| Table | TanStack Table (React Table) | Latest |
-| Testing | Vitest + Playwright | Latest |
+
+| Component        | Choice                       | Version |
+| ---------------- | ---------------------------- | ------- |
+| Framework        | React                        | 18.x    |
+| Language         | TypeScript                   | 5.x     |
+| State Management | Redux Toolkit + RTK Query    | Latest  |
+| UI Library       | MUI (Material UI)            | 5.x     |
+| Forms            | React Hook Form              | Latest  |
+| Charts           | Recharts                     | Latest  |
+| Maps             | Mapbox GL JS                 | Latest  |
+| Table            | TanStack Table (React Table) | Latest  |
+| Testing          | Vitest + Playwright          | Latest  |
 
 ## Architecture
+
 ```
 src/
 ├── api/                     # RTK Query API definitions
@@ -113,10 +115,11 @@ src/
 ## Key Pages
 
 ### Dashboard
+
 ```tsx
 // Routes: /admin/dashboard
 // Sections:
-//   - KPI Row: Active Users (12,450 ↑12%), TP Today (845M SYP), 
+//   - KPI Row: Active Users (12,450 ↑12%), TP Today (845M SYP),
 //              Success Rate (99.7%), Pending KYC (342)
 //   - Chart: Transaction Volume (7d, 30d, 90d)
 //   - Chart: Revenue Breakdown (fees, FX, MDR, interchange)
@@ -126,6 +129,7 @@ src/
 ```
 
 ### User Management
+
 ```tsx
 // Routes: /admin/users, /admin/users/:id
 // DataTable columns: ID, Name, Phone, KYC Level, Status, Balance, Last Active
@@ -134,6 +138,7 @@ src/
 ```
 
 ### Transaction Monitoring
+
 ```tsx
 // Routes: /admin/transactions, /admin/transactions/:id
 // Filters: Type, Status, Amount Range, Date Range, User, Phone, Reference
@@ -143,27 +148,28 @@ src/
 ```
 
 ## Permissions (RBAC)
+
 ```typescript
 const PERMISSIONS = {
   users: {
-    view: ['super_admin', 'ops_manager', 'compliance_officer', 'support_agent'],
-    suspend: ['super_admin', 'compliance_officer'],
-    delete: ['super_admin'],
+    view: ["super_admin", "ops_manager", "compliance_officer", "support_agent"],
+    suspend: ["super_admin", "compliance_officer"],
+    delete: ["super_admin"],
   },
   transactions: {
-    view: ['super_admin', 'ops_manager', 'compliance_officer'],
-    reverse: ['super_admin', 'ops_manager'],
-    export: ['super_admin', 'ops_manager', 'compliance_officer'],
+    view: ["super_admin", "ops_manager", "compliance_officer"],
+    reverse: ["super_admin", "ops_manager"],
+    export: ["super_admin", "ops_manager", "compliance_officer"],
   },
   agents: {
-    view: ['super_admin', 'ops_manager'],
-    approve: ['super_admin', 'ops_manager'],
-    suspend: ['super_admin', 'ops_manager', 'compliance_officer'],
+    view: ["super_admin", "ops_manager"],
+    approve: ["super_admin", "ops_manager"],
+    suspend: ["super_admin", "ops_manager", "compliance_officer"],
   },
   compliance: {
-    view: ['super_admin', 'compliance_officer'],
-    approve_kyc: ['super_admin', 'compliance_officer'],
-    file_str: ['super_admin', 'compliance_officer'],
+    view: ["super_admin", "compliance_officer"],
+    approve_kyc: ["super_admin", "compliance_officer"],
+    file_str: ["super_admin", "compliance_officer"],
   },
 } as const;
 ```

@@ -1,23 +1,26 @@
 # Core Financial Engine V2
 
 ## Architecture
+
 The CFE is the central nervous system of Beza. Every financial transaction passes through CFE regardless of feature origin.
 
 ## Sub-Engines
-| Engine | Responsibility | Key Method |
-|--------|---------------|------------|
-| Account Engine | Manages user accounts per currency | `getOrCreate(userId, currency)` |
-| Balance Engine | Tracks available/held/reserved balances | `getBalance(accountId)` |
-| Hold Engine | Places and releases holds | `hold(accountId, amount, reason)` → `release(holdId)` |
-| Posting Engine | Records double-entry journal entries | `post(debitEntry, creditEntry)` |
-| Fee Engine | Calculates fees per transaction type/tier | `calculate(txnType, amount, userTier)` |
-| FX Engine | Resolves and locks exchange rates | `resolve(pair, amount, context)` → `lock(rateId, txnId)` |
-| Settlement Engine | Manages settlement lifecycle | `settle(batchId)` → `release(batchId)` |
-| Reserve Engine | Manages regulatory reserve requirements | `checkReserve(currency)` |
-| Reversal Engine | Reverses completed transactions | `reverse(originalTxnId, reason)` |
-| Liquidity Engine | Monitors and forecasts liquidity | `forecast(currency, horizon)` |
+
+| Engine            | Responsibility                            | Key Method                                               |
+| ----------------- | ----------------------------------------- | -------------------------------------------------------- |
+| Account Engine    | Manages user accounts per currency        | `getOrCreate(userId, currency)`                          |
+| Balance Engine    | Tracks available/held/reserved balances   | `getBalance(accountId)`                                  |
+| Hold Engine       | Places and releases holds                 | `hold(accountId, amount, reason)` → `release(holdId)`    |
+| Posting Engine    | Records double-entry journal entries      | `post(debitEntry, creditEntry)`                          |
+| Fee Engine        | Calculates fees per transaction type/tier | `calculate(txnType, amount, userTier)`                   |
+| FX Engine         | Resolves and locks exchange rates         | `resolve(pair, amount, context)` → `lock(rateId, txnId)` |
+| Settlement Engine | Manages settlement lifecycle              | `settle(batchId)` → `release(batchId)`                   |
+| Reserve Engine    | Manages regulatory reserve requirements   | `checkReserve(currency)`                                 |
+| Reversal Engine   | Reverses completed transactions           | `reverse(originalTxnId, reason)`                         |
+| Liquidity Engine  | Monitors and forecasts liquidity          | `forecast(currency, horizon)`                            |
 
 ## Transaction Lifecycle (State Machine)
+
 ```
                      ┌──────────────────────────────┐
                      │        Transaction Init       │
@@ -60,6 +63,7 @@ The CFE is the central nervous system of Beza. Every financial transaction passe
 ```
 
 ## Hold Engine Detail
+
 ```
 States:
   Available  → Held     (pending authorization)
@@ -80,7 +84,9 @@ Methods:
 ```
 
 ## Ledger Integration
+
 Every CFE posting creates a double-entry journal entry:
+
 ```
 Example: P2P Transfer of 10,000 SYP
 
@@ -92,6 +98,7 @@ Accounts affected: sender_wallet, recipient_wallet, fee_income
 ```
 
 ## CFE API (Internal — Service-to-Service)
+
 ```json
 POST /internal/cfe/hold
 { "account_id": "acc_123", "amount": 10000, "currency": "SYP",

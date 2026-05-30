@@ -9,6 +9,7 @@
 ## V3 TIER D (Month 17–24)
 
 ### 1 — محاذاة V3 والامتثال
+
 - [x] 04-v3-scope.md created
 - [x] Financing backend enhanced: Murabaha, Qard Hasan, BNPL, credit scoring, admin dashboard
 - [x] Financing routes extended with schedule, BNPL checkout, admin dashboard
@@ -24,6 +25,7 @@
 - [ ] UN/NGO agreements (WFP/UNHCR) + OFAC general license
 
 ### 2 — التمويل والائتمان (Chapters 6–8 in product prioritization)
+
 - [x] Credit scoring engine (transaction volume, regularity, KYC tier, account age, fraud history)
 - [x] Murabaha: cost-plus pricing, installment schedule (principal + markup)
 - [x] Qard Hasan: 0% interest, short term, low ceiling
@@ -43,6 +45,7 @@
 - [ ] E2E: apply murabaha → approve → disburse → repay via CFE
 
 ### 3 — التعليم
+
 - [ ] Institution → Student → Fee hierarchy
 - [ ] Fee inquiry (student ID / registration number) + partial pay + receipt number
 - [ ] ERP integration adapter (CSV bulk import Phase 1)
@@ -56,6 +59,7 @@
 - [ ] E2E: pay school fee (mock institution in staging)
 
 ### 4 — المساعدات الإنسانية
+
 - [ ] Organization → Program → Disbursement + budget tracking
 - [ ] Batch disbursement for thousands of beneficiaries (queue chunked)
 - [ ] Voucher vs cash-to-wallet — dual path
@@ -72,6 +76,7 @@
 - [ ] E2E: batch 100 beneficiaries + UN template report
 
 ### 5 — Open Finance وبوابة المطورين
+
 - [ ] OAuth2: Application → Consent → Token (scopes: read_balance, initiate_payment, …)
 - [ ] TTL 2h + refresh token rotation + revocation
 - [ ] User consent screen in app (Arabic scopes)
@@ -89,6 +94,7 @@
 - [ ] E2E: sandbox app → OAuth → initiate mock payment → webhook received
 
 ### 6 — Flutter V3
+
 - [ ] Features: financing, education, humanitarian (beneficiary), developer_consent
 - [ ] Router + deep links (education receipt, OAuth consent)
 - [ ] Financing: product catalog, application wizard, loan detail, repayment, BNPL checkout
@@ -99,6 +105,7 @@
 - [ ] RTL for all new text
 
 ### 7 — Admin V3 + بوابات B2B
+
 - [ ] Financing ops: approval queue, NPL dashboard, product config
 - [ ] Education: institution CRUD, fee monitoring
 - [ ] Humanitarian: program oversight, budget alerts
@@ -109,12 +116,14 @@
 - [ ] Developer portal (static site or separate)
 
 ### 8 — تدويل موسّع
+
 - [ ] app_ku.arb — Kurdish translations for all V3 texts
 - [ ] app_hy.arb — Armenian translations for all V3 texts
 - [ ] Native speaker review
 - [ ] USSD/SMS templates in all 3 languages
 
 ### 9 — QA والأمان V3
+
 - [ ] Feature + integration tests: Financing, Education, Humanitarian, OpenFinance
 - [ ] E2E HTTP: full loan, school fee, humanitarian batch 50, OAuth sandbox payment
 - [ ] Regression V1+V2 (daily smoke suite)
@@ -125,6 +134,7 @@
 - [ ] Open API 100 RPS sustained
 
 ### 10 — إطلاق V3
+
 - [ ] Phased: Education → Humanitarian (pilot NGO) → Financing (limited geography) → Open Finance (sandbox public → production keys)
 - [ ] Feature flags per governorate
 - [ ] Runbooks: default loan, NGO batch failure, API key compromise
@@ -138,23 +148,23 @@
 
 ## NOT IN V3 (V4+)
 
-| Item | Reason |
-|------|--------|
-| Marketplace / third-party store | ADR-007 → V4+ |
-| Crypto / stablecoin | Regulatory rejection — v1 exclusions |
-| P2P lending between strangers | Strategic rejection — v1 exclusions |
-| Takaful / Investments | Tier E (24+ months) |
-| Core iOS/Android features | Completed in V2 |
+| Item                            | Reason                               |
+| ------------------------------- | ------------------------------------ |
+| Marketplace / third-party store | ADR-007 → V4+                        |
+| Crypto / stablecoin             | Regulatory rejection — v1 exclusions |
+| P2P lending between strangers   | Strategic rejection — v1 exclusions  |
+| Takaful / Investments           | Tier E (24+ months)                  |
+| Core iOS/Android features       | Completed in V2                      |
 
 ---
 
 ## V3 KPIs
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| Loan book volume | SYP 500M by M24 | Total disbursed |
-| NPL ratio | <5% at M24 | Overdue >90 days / total portfolio |
-| Education fee GMV | SYP 50M/month by M24 | Monthly collection volume |
-| Beneficiaries served (Humanitarian) | 10,000 by M24 | Unique beneficiaries |
-| Open API partners | 5 by M24 | Active developer apps |
-| i18n coverage | 100% of V3 screens | Kurdish + Armenian |
+| Metric                              | Target               | Measurement                        |
+| ----------------------------------- | -------------------- | ---------------------------------- |
+| Loan book volume                    | SYP 500M by M24      | Total disbursed                    |
+| NPL ratio                           | <5% at M24           | Overdue >90 days / total portfolio |
+| Education fee GMV                   | SYP 50M/month by M24 | Monthly collection volume          |
+| Beneficiaries served (Humanitarian) | 10,000 by M24        | Unique beneficiaries               |
+| Open API partners                   | 5 by M24             | Active developer apps              |
+| i18n coverage                       | 100% of V3 screens   | Kurdish + Armenian                 |

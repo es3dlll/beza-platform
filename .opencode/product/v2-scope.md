@@ -9,6 +9,7 @@
 ## V2 CORE (Month 7–16)
 
 ### Settlement Module
+
 - [x] Daily batch: merchant T+1, agent same-day
 - [x] Reconciliation: CFE vs bank statement (BSO/SIIB SFTP adapter)
 - [x] Settlement states: pending → processing → completed → failed → retry
@@ -18,6 +19,7 @@
 - [ ] Bank partner reconciliation report (XML/CSV daily)
 
 ### Payroll Module
+
 - [x] Employer registration + business wallet + KYC
 - [x] CSV upload with Syrian phone validation
 - [x] Batch processing via CFE (PAYROLL_SUBMITTED → SALARY_DISBURSED)
@@ -28,6 +30,7 @@
 - [x] Fee: 0.5% capped at 50,000 SYP per batch
 
 ### Savings Module
+
 - [x] Goal-based savings (Umrah, School, Custom)
 - [x] Target amount + target date
 - [x] Auto-sweep from wallet (daily configurable)
@@ -38,6 +41,7 @@
 - [x] Admin: pool balance, profit reports
 
 ### Cards Module
+
 - [x] Virtual card: instant issuance
 - [x] Prepaid physical card: request + shipping
 - [x] CardAuthorizationService: merchant, MCC, daily limits
@@ -50,6 +54,7 @@
 - [x] Admin: card program management, shipping, disputes
 
 ### Loyalty Module
+
 - [x] Points earning: P2P, bills, merchant, FX (configurable rules)
 - [x] Tiers: bronze/silver/gold — auto-recalculate monthly
 - [x] Points redemption → wallet balance or fee discount
@@ -57,6 +62,7 @@
 - [x] Mobile: points balance, history, rewards catalog
 
 ### Government Collections Module
+
 - [x] Providers: CBS, BSO, tax, utility — inquire→pay pattern
 - [x] Passport/civil registry fee inquiry (MoF)
 - [x] Government receipt with QR verification
@@ -65,6 +71,7 @@
 - [x] Admin: collection volume, daily MoF report
 
 ### Platform Capabilities
+
 - [x] iOS app (TestFlight beta, App Store release)
 - [x] Wallet-to-bank transfer SYP (Tier 2+)
 - [x] Wallet-to-bank transfer USD (Tier 3)
@@ -79,6 +86,7 @@
 - [x] Offline store-and-forward (non-financial ops)
 
 ### Fraud V2
+
 - [x] LightGBM ML scorer (features from 90-day transactions)
 - [x] Offline training + versioned model deployment
 - [x] Score + rules weighted decision
@@ -89,6 +97,7 @@
 - [x] CreditScore read-only from wallet history
 
 ### Agent POS Application
+
 - [x] Login PIN (no biometric — POS shared devices)
 - [x] Dashboard: float balance, daily volume, commission
 - [x] Cash-in: scan user QR or enter phone → amount → confirm
@@ -118,11 +127,11 @@
 
 ## V2 KPIs
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| Payroll volume (employers) | 50 by M12 | Active employers |
-| Savings AUM | SYP 500M by M16 | Total pool balance |
-| Card activation rate | >60% within 30 days | Activated / issued |
-| Gov collection success rate | >95% | Successful / total inquiries |
-| iOS users | 5,000 by M16 | App Store downloads |
-| Wallet-to-bank volume | SYP 100M/month by M16 | Monthly transfer volume |
+| Metric                      | Target                | Measurement                  |
+| --------------------------- | --------------------- | ---------------------------- |
+| Payroll volume (employers)  | 50 by M12             | Active employers             |
+| Savings AUM                 | SYP 500M by M16       | Total pool balance           |
+| Card activation rate        | >60% within 30 days   | Activated / issued           |
+| Gov collection success rate | >95%                  | Successful / total inquiries |
+| iOS users                   | 5,000 by M16          | App Store downloads          |
+| Wallet-to-bank volume       | SYP 100M/month by M16 | Monthly transfer volume      |

@@ -23,6 +23,7 @@ This catalog documents all fraud types that Beza's Fraud Prevention Platform gua
 **Syria Risk:** **HIGH** — Weak digital literacy, common PIN sharing, phishing via SMS, carrier-grade NAT makes IP-based detection unreliable.
 
 **Prevention:**
+
 - Device fingerprinting at login
 - Step-up authentication for new devices
 - Behavioral biometrics (typing patterns)
@@ -30,6 +31,7 @@ This catalog documents all fraud types that Beza's Fraud Prevention Platform gua
 - Login anomaly detection (time, location, device)
 
 **If confirmed:**
+
 1. Freeze account immediately
 2. Invalidate all sessions and tokens
 3. Reverse unauthorized transactions (if in-flight)
@@ -54,6 +56,7 @@ This catalog documents all fraud types that Beza's Fraud Prevention Platform gua
 **Syria Risk:** **HIGH** — Weak carrier controls at Syriatel/MTN, lack of biometric SIM registration enforcement, corruption risk at carrier retail points. SIM swap is one of the most common attack vectors in Syria.
 
 **Prevention:**
+
 - Telecom API integration for SIM change detection (Syriatel + MTN)
 - Cooldown period after SIM change (48h before high-value txns)
 - Out-of-band verification via USSD callback
@@ -61,6 +64,7 @@ This catalog documents all fraud types that Beza's Fraud Prevention Platform gua
 - Notify user when SIM change detected on their line
 
 **If confirmed:**
+
 1. Freeze account immediately
 2. Notify user via alternate channel (email, in-app message)
 3. Coordinate with Syriatel/MTN to restore original SIM
@@ -87,6 +91,7 @@ This catalog documents all fraud types that Beza's Fraud Prevention Platform gua
 **Syria Risk:** **MEDIUM** — Economic hardship makes Syrians vulnerable to becoming mules (paid small fees for account use). ID verification at KYC provides some barrier but not sufficient.
 
 **Prevention:**
+
 - Graph analysis (device/IP sharing across accounts)
 - Velocity limits on new accounts (receiving + cash-out)
 - KYC review for new accounts with unusual patterns
@@ -94,6 +99,7 @@ This catalog documents all fraud types that Beza's Fraud Prevention Platform gua
 - Enhanced monitoring for accounts ≤ 30 days old
 
 **If confirmed:**
+
 1. Freeze all identified mule accounts
 2. Trace funds and identify ultimate recipients
 3. File comprehensive SAR with account network map
@@ -104,6 +110,7 @@ This catalog documents all fraud types that Beza's Fraud Prevention Platform gua
 ### 4. Agent Fraud
 
 **Description:** Beza agents commit fraud through:
+
 - **Float theft:** Recording fake cash-ins to inflate float, then stealing physical cash
 - **Fake transactions:** Creating phantom transactions to earn commissions
 - **Customer collusion:** Agent colludes with fraudsters to bypass checks
@@ -125,6 +132,7 @@ This catalog documents all fraud types that Beza's Fraud Prevention Platform gua
 **Syria Risk:** **HIGH** — Large agent network with varying levels of training and oversight. Rural agents particularly hard to monitor. Economic pressure increases fraud incentive. Weak legal enforcement in some regions.
 
 **Prevention:**
+
 - Agent cash and digital float reconciliation (daily automated)
 - Mystery shopping program (audit agents)
 - Agent training on fraud prevention
@@ -133,6 +141,7 @@ This catalog documents all fraud types that Beza's Fraud Prevention Platform gua
 - Agent location verification via GPS
 
 **If confirmed:**
+
 1. Suspend agent immediately
 2. Send field auditor to reconcile float
 3. Freeze agent's personal accounts
@@ -147,6 +156,7 @@ This catalog documents all fraud types that Beza's Fraud Prevention Platform gua
 **Description:** Fraudster psychologically manipulates user into revealing sensitive information (PIN, OTP) or performing actions that benefit the fraudster.
 
 **Types in Syria:**
+
 - **Grandparent scam:** "I'm your relative, I need money urgently"
 - **Beza support impersonation:** "I'm from Beza support, verify your account"
 - **Prize scam:** "You won a prize, pay a fee to claim"
@@ -166,6 +176,7 @@ This catalog documents all fraud types that Beza's Fraud Prevention Platform gua
 **Syria Risk:** **MEDIUM** — Social engineering is prevalent in Syria. Low digital literacy, family-centric culture (trusting "relatives"), and economic desperation make people vulnerable.
 
 **Prevention:**
+
 - User education: push notifications about common scams (Arabic)
 - Transaction warnings: "Are you sure you know this person?"
 - Delayed settlement for first-time recipients
@@ -174,6 +185,7 @@ This catalog documents all fraud types that Beza's Fraud Prevention Platform gua
 - SMS alerts for every login from new device
 
 **If confirmed:**
+
 1. Freeze affected accounts
 2. Trace and freeze receiving accounts
 3. Notify user with guidance on avoiding future scams
@@ -187,6 +199,7 @@ This catalog documents all fraud types that Beza's Fraud Prevention Platform gua
 **Description:** Fraudster sends fraudulent communications (SMS, WhatsApp, fake website) impersonating Beza to steal credentials.
 
 **Syria-specific:**
+
 - SMS phishing (smishing) is most common — "Your Beza account has been locked, click here to verify"
 - Fake Beza mobile apps distributed via WhatsApp groups
 - Fake agent portals collecting agent credentials
@@ -204,6 +217,7 @@ This catalog documents all fraud types that Beza's Fraud Prevention Platform gua
 **Syria Risk:** **MEDIUM** — Growing threat as digital adoption increases. CBS has issued warnings about SMS phishing targeting mobile wallet users.
 
 **Prevention:**
+
 - Anti-phishing: SMS sender ID registration (Beza as registered sender)
 - URL monitoring: identify and takedown fake Beza websites
 - In-app security: Never ask for PIN/OTP outside the official app
@@ -212,6 +226,7 @@ This catalog documents all fraud types that Beza's Fraud Prevention Platform gua
 - Report phishing button in Beza app
 
 **If confirmed:**
+
 1. Takedown phishing site/phone number
 2. Notify all potentially affected users
 3. Reset credentials for affected accounts
@@ -237,6 +252,7 @@ This catalog documents all fraud types that Beza's Fraud Prevention Platform gua
 | Account unusual behavior (perfect pattern) | Medium | SYN-006 |
 
 **Prevention:**
+
 - Physical KYC at agents (in-person verification)
 - National ID validation against civil registry (if API available)
 - Liveness detection during agent verification
@@ -263,6 +279,7 @@ This catalog documents all fraud types that Beza's Fraud Prevention Platform gua
 | Customer only transacts with one merchant | Medium | MER-006 |
 
 **Prevention:**
+
 - Merchant transaction pattern monitoring
 - Device fingerprinting for merchant and customer
 - Promo abuse detection rules
@@ -276,6 +293,7 @@ This catalog documents all fraud types that Beza's Fraud Prevention Platform gua
 **Description:** Beza employee or agent abuses their privileged access to commit fraud.
 
 **Types:**
+
 - Unauthorized access to user accounts
 - Manipulation of transaction records
 - Creating fraudulent accounts
@@ -296,6 +314,7 @@ This catalog documents all fraud types that Beza's Fraud Prevention Platform gua
 **Syria Risk:** **MEDIUM** — Economic pressure increases insider threat risk. Limited background check infrastructure. Must have strong access controls and monitoring.
 
 **Prevention:**
+
 - Strict role-based access control
 - All actions logged and audited
 - Dual control for sensitive actions (fraud override, account unfreeze)
@@ -307,18 +326,18 @@ This catalog documents all fraud types that Beza's Fraud Prevention Platform gua
 
 ### 10. Additional Fraud Types
 
-| Type | Syria Risk | Description | Detection |
-|------|-----------|-------------|-----------|
-| **Friendly Fraud** | Medium | User disputes legitimate transaction as fraud | Behavioral analysis, device matching |
-| **Chargeback Fraud** | Low | Merchant claims customer didn't pay (digital goods) | Transaction confirmation matching |
-| **Round Amount Fraud** | Medium | Fraudsters use round amounts (50K, 100K, 250K, 500K) | Amount pattern rule |
-| **Micro-Fraud / Structuring** | High | Multiple small transactions under radar | Velocity + cumulative amount rules |
-| **Ghost Agent** | High | Fraudster poses as Beza agent, collects cash | Agent registration verification |
-| **Fake Remittance** | Medium | Fraudster claims to send remittance, doesn't | Remittance confirmation matching |
-| **Cash-out Mule** | High | Mule receives funds and immediately cashes out | Velocity + immediate cash-out pattern |
-| **Abandoned Cart Fraud** | Low | Fraud uses testing accounts left dormant | Account activity monitoring |
-| **SYP Arbitrage** | Low | Exploit rate differences between official/parallel market | Amount ratio monitoring |
-| **Promo Abuse** | Medium | Create multiple accounts to exploit referral/cashback | Device/IP duplicate detection |
+| Type                          | Syria Risk | Description                                               | Detection                             |
+| ----------------------------- | ---------- | --------------------------------------------------------- | ------------------------------------- |
+| **Friendly Fraud**            | Medium     | User disputes legitimate transaction as fraud             | Behavioral analysis, device matching  |
+| **Chargeback Fraud**          | Low        | Merchant claims customer didn't pay (digital goods)       | Transaction confirmation matching     |
+| **Round Amount Fraud**        | Medium     | Fraudsters use round amounts (50K, 100K, 250K, 500K)      | Amount pattern rule                   |
+| **Micro-Fraud / Structuring** | High       | Multiple small transactions under radar                   | Velocity + cumulative amount rules    |
+| **Ghost Agent**               | High       | Fraudster poses as Beza agent, collects cash              | Agent registration verification       |
+| **Fake Remittance**           | Medium     | Fraudster claims to send remittance, doesn't              | Remittance confirmation matching      |
+| **Cash-out Mule**             | High       | Mule receives funds and immediately cashes out            | Velocity + immediate cash-out pattern |
+| **Abandoned Cart Fraud**      | Low        | Fraud uses testing accounts left dormant                  | Account activity monitoring           |
+| **SYP Arbitrage**             | Low        | Exploit rate differences between official/parallel market | Amount ratio monitoring               |
+| **Promo Abuse**               | Medium     | Create multiple accounts to exploit referral/cashback     | Device/IP duplicate detection         |
 
 ## Fraud Type Risk Matrix
 

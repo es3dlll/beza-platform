@@ -23,6 +23,7 @@
 ```
 
 ## Quick Nav
+
 - **Vision**: `product/vision-2026.md`
 - **Build Order**: `engineering/build-order.md`
 - **API Matrix**: `engineering/api-matrix.md`

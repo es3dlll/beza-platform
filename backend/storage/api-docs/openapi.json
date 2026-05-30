@@ -6,7 +6,7 @@
     "description": "Syria's Financial Operating System — 30 modules, 360+ endpoints"
   },
   "servers": [
-    {"url": "https://api.beza.sy/api/v1", "description": "Production"}
+    { "url": "https://api.beza.sy/api/v1", "description": "Production" }
   ],
   "paths": {
     "/auth/register": {
@@ -20,9 +20,9 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "phone": {"type": "string", "example": "963933123456"},
-                  "name": {"type": "string"},
-                  "device_id": {"type": "string"}
+                  "phone": { "type": "string", "example": "963933123456" },
+                  "name": { "type": "string" },
+                  "device_id": { "type": "string" }
                 },
                 "required": ["phone"]
               }
@@ -30,8 +30,8 @@
           }
         },
         "responses": {
-          "201": {"description": "User registered, OTP sent"},
-          "422": {"description": "Validation error"}
+          "201": { "description": "User registered, OTP sent" },
+          "422": { "description": "Validation error" }
         }
       }
     },
@@ -46,11 +46,14 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "phone": {"type": "string"},
-                  "pin": {"type": "string"},
-                  "device_id": {"type": "string"},
-                  "device_type": {"type": "string", "enum": ["mobile", "web"]},
-                  "fcm_token": {"type": "string"}
+                  "phone": { "type": "string" },
+                  "pin": { "type": "string" },
+                  "device_id": { "type": "string" },
+                  "device_type": {
+                    "type": "string",
+                    "enum": ["mobile", "web"]
+                  },
+                  "fcm_token": { "type": "string" }
                 },
                 "required": ["phone", "pin"]
               }
@@ -65,21 +68,21 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": {"type": "boolean", "example": true},
+                    "success": { "type": "boolean", "example": true },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "user": {"type": "object"},
-                        "token": {"type": "string"},
-                        "refresh_token": {"type": "string"},
-                        "token_type": {"type": "string", "example": "Bearer"},
-                        "expires_in": {"type": "integer"}
+                        "user": { "type": "object" },
+                        "token": { "type": "string" },
+                        "refresh_token": { "type": "string" },
+                        "token_type": { "type": "string", "example": "Bearer" },
+                        "expires_in": { "type": "integer" }
                       }
                     },
                     "meta": {
                       "type": "object",
                       "properties": {
-                        "message": {"type": "string"}
+                        "message": { "type": "string" }
                       }
                     }
                   }
@@ -87,7 +90,7 @@
               }
             }
           },
-          "401": {"description": "Invalid credentials"}
+          "401": { "description": "Invalid credentials" }
         }
       }
     },
@@ -102,8 +105,11 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "phone": {"type": "string"},
-                  "purpose": {"type": "string", "enum": ["registration", "login", "pin_reset"]}
+                  "phone": { "type": "string" },
+                  "purpose": {
+                    "type": "string",
+                    "enum": ["registration", "login", "pin_reset"]
+                  }
                 },
                 "required": ["phone", "purpose"]
               }
@@ -111,8 +117,8 @@
           }
         },
         "responses": {
-          "200": {"description": "OTP sent"},
-          "429": {"description": "Too many requests — rate limited"}
+          "200": { "description": "OTP sent" },
+          "429": { "description": "Too many requests — rate limited" }
         }
       }
     },
@@ -127,9 +133,9 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "phone": {"type": "string"},
-                  "otp": {"type": "string"},
-                  "verification_id": {"type": "string"}
+                  "phone": { "type": "string" },
+                  "otp": { "type": "string" },
+                  "verification_id": { "type": "string" }
                 },
                 "required": ["phone", "otp", "verification_id"]
               }
@@ -137,8 +143,8 @@
           }
         },
         "responses": {
-          "200": {"description": "OTP verified"},
-          "422": {"description": "Invalid or expired OTP"}
+          "200": { "description": "OTP verified" },
+          "422": { "description": "Invalid or expired OTP" }
         }
       }
     },
@@ -153,19 +159,24 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "phone": {"type": "string"},
-                  "pin": {"type": "string"},
-                  "pin_confirmation": {"type": "string"},
-                  "verification_id": {"type": "string"}
+                  "phone": { "type": "string" },
+                  "pin": { "type": "string" },
+                  "pin_confirmation": { "type": "string" },
+                  "verification_id": { "type": "string" }
                 },
-                "required": ["phone", "pin", "pin_confirmation", "verification_id"]
+                "required": [
+                  "phone",
+                  "pin",
+                  "pin_confirmation",
+                  "verification_id"
+                ]
               }
             }
           }
         },
         "responses": {
-          "201": {"description": "PIN created"},
-          "422": {"description": "PINs do not match or invalid"}
+          "201": { "description": "PIN created" },
+          "422": { "description": "PINs do not match or invalid" }
         }
       }
     },
@@ -173,9 +184,9 @@
       "post": {
         "tags": ["Auth"],
         "summary": "Logout and invalidate session",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "responses": {
-          "200": {"description": "Logged out"}
+          "200": { "description": "Logged out" }
         }
       }
     },
@@ -190,7 +201,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "refresh_token": {"type": "string"}
+                  "refresh_token": { "type": "string" }
                 },
                 "required": ["refresh_token"]
               }
@@ -198,7 +209,7 @@
           }
         },
         "responses": {
-          "200": {"description": "Token refreshed"}
+          "200": { "description": "Token refreshed" }
         }
       }
     },
@@ -206,13 +217,13 @@
       "get": {
         "tags": ["Wallet"],
         "summary": "List user wallets",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "List of wallets"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "List of wallets" } }
       },
       "post": {
         "tags": ["Wallet"],
         "summary": "Create new wallet",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -220,17 +231,17 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "currency": {"type": "string", "default": "SYP"},
-                  "kyc_tier_required": {"type": "integer", "default": 1},
-                  "daily_limit": {"type": "integer", "default": 5000000}
+                  "currency": { "type": "string", "default": "SYP" },
+                  "kyc_tier_required": { "type": "integer", "default": 1 },
+                  "daily_limit": { "type": "integer", "default": 5000000 }
                 }
               }
             }
           }
         },
         "responses": {
-          "201": {"description": "Wallet created"},
-          "422": {"description": "Validation error"}
+          "201": { "description": "Wallet created" },
+          "422": { "description": "Validation error" }
         }
       }
     },
@@ -238,13 +249,18 @@
       "get": {
         "tags": ["Wallet"],
         "summary": "Get wallet balance",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
         "responses": {
-          "200": {"description": "Wallet balance"},
-          "404": {"description": "Wallet not found"}
+          "200": { "description": "Wallet balance" },
+          "404": { "description": "Wallet not found" }
         }
       }
     },
@@ -252,9 +268,14 @@
       "post": {
         "tags": ["Wallet"],
         "summary": "Deposit funds to wallet",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
         "requestBody": {
           "required": true,
@@ -263,12 +284,15 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "amount": {"type": "integer", "description": "Amount in SYP minor units"},
-                  "currency": {"type": "string", "default": "SYP"},
-                  "reference_type": {"type": "string"},
-                  "reference_id": {"type": "string"},
-                  "channel": {"type": "string", "default": "api"},
-                  "description": {"type": "string"}
+                  "amount": {
+                    "type": "integer",
+                    "description": "Amount in SYP minor units"
+                  },
+                  "currency": { "type": "string", "default": "SYP" },
+                  "reference_type": { "type": "string" },
+                  "reference_id": { "type": "string" },
+                  "channel": { "type": "string", "default": "api" },
+                  "description": { "type": "string" }
                 },
                 "required": ["amount"]
               }
@@ -276,8 +300,8 @@
           }
         },
         "responses": {
-          "200": {"description": "Deposit successful"},
-          "422": {"description": "Deposit failed"}
+          "200": { "description": "Deposit successful" },
+          "422": { "description": "Deposit failed" }
         }
       }
     },
@@ -285,9 +309,14 @@
       "post": {
         "tags": ["Wallet"],
         "summary": "Withdraw funds from wallet",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
         "requestBody": {
           "required": true,
@@ -296,11 +325,11 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "amount": {"type": "integer"},
-                  "currency": {"type": "string", "default": "SYP"},
-                  "reference_id": {"type": "string"},
-                  "apply_fee": {"type": "boolean", "default": true},
-                  "description": {"type": "string"}
+                  "amount": { "type": "integer" },
+                  "currency": { "type": "string", "default": "SYP" },
+                  "reference_id": { "type": "string" },
+                  "apply_fee": { "type": "boolean", "default": true },
+                  "description": { "type": "string" }
                 },
                 "required": ["amount"]
               }
@@ -308,8 +337,8 @@
           }
         },
         "responses": {
-          "200": {"description": "Withdrawal successful"},
-          "422": {"description": "Insufficient balance or limit exceeded"}
+          "200": { "description": "Withdrawal successful" },
+          "422": { "description": "Insufficient balance or limit exceeded" }
         }
       }
     },
@@ -317,9 +346,14 @@
       "post": {
         "tags": ["Wallet"],
         "summary": "Transfer funds between wallets",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
         "requestBody": {
           "required": true,
@@ -328,11 +362,11 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "to_wallet_id": {"type": "string"},
-                  "amount": {"type": "integer"},
-                  "currency": {"type": "string", "default": "SYP"},
-                  "apply_fee": {"type": "boolean", "default": true},
-                  "description": {"type": "string"}
+                  "to_wallet_id": { "type": "string" },
+                  "amount": { "type": "integer" },
+                  "currency": { "type": "string", "default": "SYP" },
+                  "apply_fee": { "type": "boolean", "default": true },
+                  "description": { "type": "string" }
                 },
                 "required": ["to_wallet_id", "amount"]
               }
@@ -340,8 +374,8 @@
           }
         },
         "responses": {
-          "200": {"description": "Transfer successful"},
-          "422": {"description": "Insufficient balance"}
+          "200": { "description": "Transfer successful" },
+          "422": { "description": "Insufficient balance" }
         }
       }
     },
@@ -349,24 +383,29 @@
       "get": {
         "tags": ["Wallet"],
         "summary": "List wallet transactions",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
-        "responses": {"200": {"description": "List of transactions"}}
+        "responses": { "200": { "description": "List of transactions" } }
       }
     },
     "/escrow": {
       "get": {
         "tags": ["Escrow"],
         "summary": "List escrow agreements",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "List of escrow agreements"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "List of escrow agreements" } }
       },
       "post": {
         "tags": ["Escrow"],
         "summary": "Create escrow agreement",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -374,21 +413,26 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "seller_id": {"type": "string"},
-                  "amount": {"type": "integer"},
-                  "reference_type": {"type": "string"},
-                  "reference_id": {"type": "string"},
-                  "description": {"type": "string"},
-                  "fee_percent": {"type": "integer", "default": 1}
+                  "seller_id": { "type": "string" },
+                  "amount": { "type": "integer" },
+                  "reference_type": { "type": "string" },
+                  "reference_id": { "type": "string" },
+                  "description": { "type": "string" },
+                  "fee_percent": { "type": "integer", "default": 1 }
                 },
-                "required": ["seller_id", "amount", "reference_type", "reference_id"]
+                "required": [
+                  "seller_id",
+                  "amount",
+                  "reference_type",
+                  "reference_id"
+                ]
               }
             }
           }
         },
         "responses": {
-          "201": {"description": "Escrow created"},
-          "422": {"description": "Validation error"}
+          "201": { "description": "Escrow created" },
+          "422": { "description": "Validation error" }
         }
       }
     },
@@ -396,13 +440,18 @@
       "get": {
         "tags": ["Escrow"],
         "summary": "Show escrow agreement",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
         "responses": {
-          "200": {"description": "Escrow details"},
-          "404": {"description": "Escrow not found"}
+          "200": { "description": "Escrow details" },
+          "404": { "description": "Escrow not found" }
         }
       }
     },
@@ -410,13 +459,18 @@
       "post": {
         "tags": ["Escrow"],
         "summary": "Release escrow funds to seller",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
         "responses": {
-          "200": {"description": "Funds released"},
-          "422": {"description": "Already resolved or expired"}
+          "200": { "description": "Funds released" },
+          "422": { "description": "Already resolved or expired" }
         }
       }
     },
@@ -424,13 +478,18 @@
       "post": {
         "tags": ["Escrow"],
         "summary": "Refund escrow funds to buyer",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
         "responses": {
-          "200": {"description": "Funds refunded"},
-          "422": {"description": "Already resolved or expired"}
+          "200": { "description": "Funds refunded" },
+          "422": { "description": "Already resolved or expired" }
         }
       }
     },
@@ -438,9 +497,14 @@
       "post": {
         "tags": ["Escrow"],
         "summary": "Open a dispute on escrow",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
         "requestBody": {
           "required": true,
@@ -449,7 +513,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "reason": {"type": "string", "maxLength": 500}
+                  "reason": { "type": "string", "maxLength": 500 }
                 },
                 "required": ["reason"]
               }
@@ -457,8 +521,8 @@
           }
         },
         "responses": {
-          "201": {"description": "Dispute opened"},
-          "404": {"description": "Escrow not found"}
+          "201": { "description": "Dispute opened" },
+          "404": { "description": "Escrow not found" }
         }
       }
     },
@@ -466,9 +530,14 @@
       "post": {
         "tags": ["Escrow"],
         "summary": "Resolve escrow dispute",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
         "requestBody": {
           "required": true,
@@ -477,8 +546,12 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "resolution": {"type": "string", "maxLength": 500},
-                  "action": {"type": "string", "enum": ["release", "refund"], "default": "release"}
+                  "resolution": { "type": "string", "maxLength": 500 },
+                  "action": {
+                    "type": "string",
+                    "enum": ["release", "refund"],
+                    "default": "release"
+                  }
                 },
                 "required": ["resolution"]
               }
@@ -486,8 +559,8 @@
           }
         },
         "responses": {
-          "200": {"description": "Dispute resolved"},
-          "404": {"description": "Dispute not found"}
+          "200": { "description": "Dispute resolved" },
+          "404": { "description": "Dispute not found" }
         }
       }
     },
@@ -495,13 +568,13 @@
       "get": {
         "tags": ["Ledger"],
         "summary": "List all ledger accounts",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "List of accounts"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "List of accounts" } }
       },
       "post": {
         "tags": ["Ledger"],
         "summary": "Create ledger account",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -509,12 +582,21 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "account_number": {"type": "string"},
-                  "name": {"type": "string"},
-                  "type": {"type": "string", "enum": ["asset", "liability", "equity", "revenue", "expense"]},
-                  "currency": {"type": "string", "default": "SYP"},
-                  "parent_id": {"type": "string"},
-                  "metadata": {"type": "object"}
+                  "account_number": { "type": "string" },
+                  "name": { "type": "string" },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "asset",
+                      "liability",
+                      "equity",
+                      "revenue",
+                      "expense"
+                    ]
+                  },
+                  "currency": { "type": "string", "default": "SYP" },
+                  "parent_id": { "type": "string" },
+                  "metadata": { "type": "object" }
                 },
                 "required": ["account_number", "name", "type"]
               }
@@ -522,8 +604,8 @@
           }
         },
         "responses": {
-          "201": {"description": "Account created"},
-          "422": {"description": "Validation error"}
+          "201": { "description": "Account created" },
+          "422": { "description": "Validation error" }
         }
       }
     },
@@ -531,18 +613,23 @@
       "get": {
         "tags": ["Ledger"],
         "summary": "Get account balance",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
-        "responses": {"200": {"description": "Balance in minor units"}}
+        "responses": { "200": { "description": "Balance in minor units" } }
       }
     },
     "/ledger/journal": {
       "post": {
         "tags": ["Ledger"],
         "summary": "Post journal entry (double-entry)",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -550,18 +637,21 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "reference_type": {"type": "string"},
-                  "reference_id": {"type": "string"},
-                  "description": {"type": "string"},
+                  "reference_type": { "type": "string" },
+                  "reference_id": { "type": "string" },
+                  "description": { "type": "string" },
                   "lines": {
                     "type": "array",
                     "items": {
                       "type": "object",
                       "properties": {
-                        "account_id": {"type": "string"},
-                        "amount": {"type": "integer"},
-                        "type": {"type": "string", "enum": ["debit", "credit"]},
-                        "description": {"type": "string"}
+                        "account_id": { "type": "string" },
+                        "amount": { "type": "integer" },
+                        "type": {
+                          "type": "string",
+                          "enum": ["debit", "credit"]
+                        },
+                        "description": { "type": "string" }
                       }
                     }
                   }
@@ -572,8 +662,8 @@
           }
         },
         "responses": {
-          "201": {"description": "Journal entry posted"},
-          "422": {"description": "Double entry violation"}
+          "201": { "description": "Journal entry posted" },
+          "422": { "description": "Double entry violation" }
         }
       }
     },
@@ -581,15 +671,15 @@
       "get": {
         "tags": ["Ledger"],
         "summary": "Generate trial balance report",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "Trial balance data"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Trial balance data" } }
       }
     },
     "/ledger/holds": {
       "post": {
         "tags": ["Ledger"],
         "summary": "Place hold on account balance",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -597,12 +687,12 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "account_id": {"type": "string"},
-                  "amount": {"type": "integer"},
-                  "reason": {"type": "string"},
-                  "reference_type": {"type": "string"},
-                  "reference_id": {"type": "string"},
-                  "expires_at": {"type": "string", "format": "date-time"}
+                  "account_id": { "type": "string" },
+                  "amount": { "type": "integer" },
+                  "reason": { "type": "string" },
+                  "reference_type": { "type": "string" },
+                  "reference_id": { "type": "string" },
+                  "expires_at": { "type": "string", "format": "date-time" }
                 },
                 "required": ["account_id", "amount", "reason"]
               }
@@ -610,8 +700,8 @@
           }
         },
         "responses": {
-          "201": {"description": "Hold placed"},
-          "422": {"description": "Insufficient available balance"}
+          "201": { "description": "Hold placed" },
+          "422": { "description": "Insufficient available balance" }
         }
       }
     },
@@ -619,7 +709,7 @@
       "post": {
         "tags": ["Merchant"],
         "summary": "Register as merchant",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -627,23 +717,28 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "business_name": {"type": "string"},
-                  "business_name_ar": {"type": "string"},
-                  "phone": {"type": "string"},
-                  "governorate": {"type": "string"},
-                  "city": {"type": "string"},
-                  "commercial_registration": {"type": "string"},
-                  "tax_number": {"type": "string"},
-                  "category": {"type": "string"}
+                  "business_name": { "type": "string" },
+                  "business_name_ar": { "type": "string" },
+                  "phone": { "type": "string" },
+                  "governorate": { "type": "string" },
+                  "city": { "type": "string" },
+                  "commercial_registration": { "type": "string" },
+                  "tax_number": { "type": "string" },
+                  "category": { "type": "string" }
                 },
-                "required": ["business_name", "phone", "governorate", "category"]
+                "required": [
+                  "business_name",
+                  "phone",
+                  "governorate",
+                  "category"
+                ]
               }
             }
           }
         },
         "responses": {
-          "201": {"description": "Merchant registered"},
-          "422": {"description": "Validation error"}
+          "201": { "description": "Merchant registered" },
+          "422": { "description": "Validation error" }
         }
       }
     },
@@ -651,7 +746,7 @@
       "post": {
         "tags": ["Merchant"],
         "summary": "Pay merchant via QR code",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -659,10 +754,10 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "qr_code": {"type": "string"},
-                  "merchant_id": {"type": "string"},
-                  "amount": {"type": "integer"},
-                  "store_id": {"type": "string"}
+                  "qr_code": { "type": "string" },
+                  "merchant_id": { "type": "string" },
+                  "amount": { "type": "integer" },
+                  "store_id": { "type": "string" }
                 },
                 "required": ["amount"]
               }
@@ -670,8 +765,8 @@
           }
         },
         "responses": {
-          "201": {"description": "Payment completed"},
-          "422": {"description": "Payment failed"}
+          "201": { "description": "Payment completed" },
+          "422": { "description": "Payment failed" }
         }
       }
     },
@@ -679,7 +774,7 @@
       "post": {
         "tags": ["CoreFinancialEngine"],
         "summary": "Post a financial transaction",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -687,19 +782,22 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "reference_type": {"type": "string"},
-                  "reference_id": {"type": "string"},
-                  "description": {"type": "string"},
-                  "channel": {"type": "string", "default": "api"},
-                  "initiated_by": {"type": "string"},
+                  "reference_type": { "type": "string" },
+                  "reference_id": { "type": "string" },
+                  "description": { "type": "string" },
+                  "channel": { "type": "string", "default": "api" },
+                  "initiated_by": { "type": "string" },
                   "lines": {
                     "type": "array",
                     "items": {
                       "type": "object",
                       "properties": {
-                        "account_id": {"type": "string"},
-                        "amount": {"type": "integer"},
-                        "type": {"type": "string", "enum": ["debit", "credit"]}
+                        "account_id": { "type": "string" },
+                        "amount": { "type": "integer" },
+                        "type": {
+                          "type": "string",
+                          "enum": ["debit", "credit"]
+                        }
                       }
                     }
                   }
@@ -710,8 +808,8 @@
           }
         },
         "responses": {
-          "201": {"description": "Transaction posted"},
-          "422": {"description": "Posting failed"}
+          "201": { "description": "Transaction posted" },
+          "422": { "description": "Posting failed" }
         }
       }
     },
@@ -719,9 +817,14 @@
       "post": {
         "tags": ["CoreFinancialEngine"],
         "summary": "Reverse a transaction",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
         "requestBody": {
           "required": true,
@@ -730,8 +833,8 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "reason": {"type": "string"},
-                  "initiated_by": {"type": "string", "default": "system"}
+                  "reason": { "type": "string" },
+                  "initiated_by": { "type": "string", "default": "system" }
                 },
                 "required": ["reason"]
               }
@@ -739,8 +842,8 @@
           }
         },
         "responses": {
-          "200": {"description": "Transaction reversed"},
-          "422": {"description": "Reversal failed"}
+          "200": { "description": "Transaction reversed" },
+          "422": { "description": "Reversal failed" }
         }
       }
     },
@@ -748,7 +851,7 @@
       "post": {
         "tags": ["CoreFinancialEngine"],
         "summary": "Calculate applicable fees",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -756,30 +859,30 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "fee_type": {"type": "string"},
-                  "account_id": {"type": "string"},
-                  "transaction_amount": {"type": "integer"},
-                  "reference_type": {"type": "string"}
+                  "fee_type": { "type": "string" },
+                  "account_id": { "type": "string" },
+                  "transaction_amount": { "type": "integer" },
+                  "reference_type": { "type": "string" }
                 },
                 "required": ["fee_type", "account_id", "transaction_amount"]
               }
             }
           }
         },
-        "responses": {"200": {"description": "Fee calculation result"}}
+        "responses": { "200": { "description": "Fee calculation result" } }
       }
     },
     "/iam/permissions": {
       "get": {
         "tags": ["IAM"],
         "summary": "List all permissions",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "List of permissions"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "List of permissions" } }
       },
       "post": {
         "tags": ["IAM"],
         "summary": "Create permission",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -787,30 +890,30 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "name": {"type": "string"},
-                  "guard_name": {"type": "string", "default": "api"},
-                  "module": {"type": "string"},
-                  "description": {"type": "string"}
+                  "name": { "type": "string" },
+                  "guard_name": { "type": "string", "default": "api" },
+                  "module": { "type": "string" },
+                  "description": { "type": "string" }
                 },
                 "required": ["name", "module"]
               }
             }
           }
         },
-        "responses": {"201": {"description": "Permission created"}}
+        "responses": { "201": { "description": "Permission created" } }
       }
     },
     "/iam/roles": {
       "get": {
         "tags": ["IAM"],
         "summary": "List all roles",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "List of roles"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "List of roles" } }
       },
       "post": {
         "tags": ["IAM"],
         "summary": "Create role",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -818,25 +921,33 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "name": {"type": "string"},
-                  "guard_name": {"type": "string", "default": "api"},
-                  "permissions": {"type": "array", "items": {"type": "string"}}
+                  "name": { "type": "string" },
+                  "guard_name": { "type": "string", "default": "api" },
+                  "permissions": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  }
                 },
                 "required": ["name"]
               }
             }
           }
         },
-        "responses": {"201": {"description": "Role created"}}
+        "responses": { "201": { "description": "Role created" } }
       }
     },
     "/iam/roles/{id}/assign": {
       "post": {
         "tags": ["IAM"],
         "summary": "Assign role to user",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
         "requestBody": {
           "required": true,
@@ -845,29 +956,29 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "user_id": {"type": "string"}
+                  "user_id": { "type": "string" }
                 },
                 "required": ["user_id"]
               }
             }
           }
         },
-        "responses": {"200": {"description": "Role assigned"}}
+        "responses": { "200": { "description": "Role assigned" } }
       }
     },
     "/bills": {
       "get": {
         "tags": ["Bills"],
         "summary": "List available bills",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "List of billers"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "List of billers" } }
       }
     },
     "/bills/pay": {
       "post": {
         "tags": ["Bills"],
         "summary": "Pay a bill",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -875,39 +986,39 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "biller_code": {"type": "string"},
-                  "account_number": {"type": "string"},
-                  "amount": {"type": "integer"}
+                  "biller_code": { "type": "string" },
+                  "account_number": { "type": "string" },
+                  "amount": { "type": "integer" }
                 },
                 "required": ["biller_code", "account_number", "amount"]
               }
             }
           }
         },
-        "responses": {"200": {"description": "Bill paid"}}
+        "responses": { "200": { "description": "Bill paid" } }
       }
     },
     "/cards": {
       "get": {
         "tags": ["Cards"],
         "summary": "List linked cards",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "List of cards"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "List of cards" } }
       }
     },
     "/agent/dashboard": {
       "get": {
         "tags": ["Agent"],
         "summary": "Agent dashboard stats",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "Dashboard data"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Dashboard data" } }
       }
     },
     "/identity/kyc/submit": {
       "post": {
         "tags": ["Identity"],
         "summary": "Submit KYC documents",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -915,65 +1026,74 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "id_type": {"type": "string", "enum": ["national_id", "passport"]},
-                  "id_number": {"type": "string"},
-                  "id_front": {"type": "string", "format": "binary"},
-                  "id_back": {"type": "string", "format": "binary"},
-                  "selfie": {"type": "string", "format": "binary"}
+                  "id_type": {
+                    "type": "string",
+                    "enum": ["national_id", "passport"]
+                  },
+                  "id_number": { "type": "string" },
+                  "id_front": { "type": "string", "format": "binary" },
+                  "id_back": { "type": "string", "format": "binary" },
+                  "selfie": { "type": "string", "format": "binary" }
                 },
-                "required": ["id_type", "id_number", "id_front", "id_back", "selfie"]
+                "required": [
+                  "id_type",
+                  "id_number",
+                  "id_front",
+                  "id_back",
+                  "selfie"
+                ]
               }
             }
           }
         },
-        "responses": {"200": {"description": "KYC submitted for review"}}
+        "responses": { "200": { "description": "KYC submitted for review" } }
       }
     },
     "/loyalty/points": {
       "get": {
         "tags": ["Loyalty"],
         "summary": "Get loyalty points balance",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "Points balance"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Points balance" } }
       }
     },
     "/notifications": {
       "get": {
         "tags": ["Notifications"],
         "summary": "List notifications",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "List of notifications"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "List of notifications" } }
       }
     },
     "/fraud/cases": {
       "get": {
         "tags": ["Fraud"],
         "summary": "List fraud cases (admin)",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "List of fraud cases"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "List of fraud cases" } }
       }
     },
     "/fx/rates": {
       "get": {
         "tags": ["FX"],
         "summary": "Get current FX rates",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "Exchange rates"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Exchange rates" } }
       }
     },
     "/float/balance": {
       "get": {
         "tags": ["Float"],
         "summary": "Get float account balance",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "Float balance"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Float balance" } }
       }
     },
     "/gov-collections/pay": {
       "post": {
         "tags": ["Government Collections"],
         "summary": "Pay government fees",
-        "security": [{"bearerAuth": []}],
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -981,88 +1101,88 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "service_code": {"type": "string"},
-                  "reference_number": {"type": "string"},
-                  "amount": {"type": "integer"}
+                  "service_code": { "type": "string" },
+                  "reference_number": { "type": "string" },
+                  "amount": { "type": "integer" }
                 },
                 "required": ["service_code", "reference_number", "amount"]
               }
             }
           }
         },
-        "responses": {"200": {"description": "Payment completed"}}
+        "responses": { "200": { "description": "Payment completed" } }
       }
     },
     "/education/applications": {
       "get": {
         "tags": ["Education"],
         "summary": "List education financing applications",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "List of applications"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "List of applications" } }
       }
     },
     "/humanitarian/programs": {
       "get": {
         "tags": ["Humanitarian"],
         "summary": "List humanitarian aid programs",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "List of programs"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "List of programs" } }
       }
     },
     "/financing/loans": {
       "get": {
         "tags": ["Financing"],
         "summary": "List loans",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "List of loans"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "List of loans" } }
       }
     },
     "/investments/portfolios": {
       "get": {
         "tags": ["Investments"],
         "summary": "List investment portfolios",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "List of portfolios"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "List of portfolios" } }
       }
     },
     "/open-finance/accounts": {
       "get": {
         "tags": ["OpenFinance"],
         "summary": "List connected bank accounts",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "List of accounts"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "List of accounts" } }
       }
     },
     "/payroll/batches": {
       "post": {
         "tags": ["Payroll"],
         "summary": "Create payroll batch",
-        "security": [{"bearerAuth": []}],
-        "responses": {"201": {"description": "Batch created"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "201": { "description": "Batch created" } }
       }
     },
     "/remittance/send": {
       "post": {
         "tags": ["Remittance"],
         "summary": "Send remittance",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "Remittance sent"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Remittance sent" } }
       }
     },
     "/savings/goals": {
       "get": {
         "tags": ["Savings"],
         "summary": "List savings goals",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "List of goals"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "List of goals" } }
       }
     },
     "/takaful/products": {
       "get": {
         "tags": ["Takaful"],
         "summary": "List takaful products",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "List of products"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "List of products" } }
       }
     },
     "/ussd/menu": {
@@ -1076,33 +1196,33 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "session_id": {"type": "string"},
-                  "msisdn": {"type": "string"},
-                  "input": {"type": "string"},
-                  "operator": {"type": "string", "enum": ["Syriatel", "MTN"]}
+                  "session_id": { "type": "string" },
+                  "msisdn": { "type": "string" },
+                  "input": { "type": "string" },
+                  "operator": { "type": "string", "enum": ["Syriatel", "MTN"] }
                 },
                 "required": ["session_id", "msisdn", "input"]
               }
             }
           }
         },
-        "responses": {"200": {"description": "USSD menu response"}}
+        "responses": { "200": { "description": "USSD menu response" } }
       }
     },
     "/admin/escrow": {
       "get": {
         "tags": ["Admin"],
         "summary": "Admin escrow management",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "Escrow list"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Escrow list" } }
       }
     },
     "/admin/users": {
       "get": {
         "tags": ["Admin"],
         "summary": "Admin user management",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "User list"}}
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "User list" } }
       }
     }
   },
@@ -1118,18 +1238,18 @@
       "Error": {
         "type": "object",
         "properties": {
-          "success": {"type": "boolean", "example": false},
+          "success": { "type": "boolean", "example": false },
           "error": {
             "type": "object",
             "properties": {
-              "code": {"type": "string"},
-              "message": {"type": "string"},
-              "message_ar": {"type": "string"}
+              "code": { "type": "string" },
+              "message": { "type": "string" },
+              "message_ar": { "type": "string" }
             }
           }
         }
       }
     }
   },
-  "security": [{"bearerAuth": []}]
+  "security": [{ "bearerAuth": [] }]
 }

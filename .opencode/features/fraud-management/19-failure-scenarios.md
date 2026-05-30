@@ -11,6 +11,7 @@ Fraud prevention is a **safety-critical** system. Failures must be detected quic
 **Description:** ML model's prediction accuracy degrades over time as fraud patterns shift. Fraudsters adapt, new transaction types emerge, or economic conditions change.
 
 **Detection:**
+
 - AUC-ROC drops below 0.85 (alert triggered)
 - Precision-recall curve shifts
 - Feature importance distribution changes significantly
@@ -18,6 +19,7 @@ Fraud prevention is a **safety-critical** system. Failures must be detected quic
 - Fraud rate increases > 0.3% in 24h
 
 **Impact:**
+
 - Increased false positives (frustrated users)
 - OR decreased fraud detection (increased losses)
 - Typically one worsens while the other improves (precision-recall tradeoff)
@@ -32,6 +34,7 @@ Fraud prevention is a **safety-critical** system. Failures must be detected quic
 | Regulatory change | New KYC requirements change user onboarding patterns |
 
 **Mitigation:**
+
 ```
 1. AUTOMATED: Daily drift detection on model metrics
 2. AUTOMATED: Daily retraining with last 90 days data
@@ -42,6 +45,7 @@ Fraud prevention is a **safety-critical** system. Failures must be detected quic
 ```
 
 **Recovery:**
+
 - Rollback to last known good model (within 5 minutes)
 - Rules engine operates independently during model retraining
 - Manual review queue increased until new model deployed
@@ -51,11 +55,13 @@ Fraud prevention is a **safety-critical** system. Failures must be detected quic
 **Description:** New rules deployed without adequate testing, causing unexpected behavior (too aggressive or too permissive).
 
 **Detection:**
+
 - Rule hit rate significantly different from expected (e.g., > 5% or < 0.1%)
 - False positive rate spike on specific rule
 - Dashboard alert: "Rule [X] hit rate anomaly"
 
 **Prevention:**
+
 ```
 All new rules go through:
 ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
@@ -68,6 +74,7 @@ Duration: 24h    24h            48h             Permanent
 ```
 
 **Mitigation:**
+
 - Immediate rule deactivation (ops team dashboard: 1-click disable)
 - Affected users notified and transactions released
 - Rule returned to shadow mode for refinement
@@ -77,6 +84,7 @@ Duration: 24h    24h            48h             Permanent
 **Description:** A sudden spike in false positives affecting a large percentage of legitimate users.
 
 **Triggers:**
+
 - New rule deployed too aggressively
 - ML model update misclassifies a legitimate pattern
 - Feature data source changes (e.g., location service down)
@@ -84,17 +92,20 @@ Duration: 24h    24h            48h             Permanent
 - Bulk user behavior change (e.g., pension payment day)
 
 **Detection:**
+
 - Automated alert: false positive rate > 10% (3σ from baseline)
 - Alert within 5 minutes of onset
 - Dashboard shows FP rate spike in real-time
 
 **Impact:**
+
 - Thousands of legitimate users frustrated
 - Support team overwhelmed with appeals
 - Reputational damage
 - User churn
 
 **Response Plan:**
+
 ```
 ┌─────────────┬──────────────────────────────────────┐
 │ Time        │ Action                               │
@@ -111,6 +122,7 @@ Duration: 24h    24h            48h             Permanent
 ```
 
 **Safeguards:**
+
 - New rules: 24h shadow mode → 48h limited → full rollout
 - Model updates: A/B test against 10% of traffic first
 - Feature dependency monitoring (if location service down, disable location rules)
@@ -130,12 +142,14 @@ Duration: 24h    24h            48h             Permanent
 | Mule networks | Distributed transactions | Single-account velocity rules miss this |
 
 **Detection:**
+
 - Fraud rate increases despite stable ML metrics (adversarial adapting)
 - "Near-miss" transactions cluster just below thresholds
 - Same IP/device across multiple accounts (mule network)
 - Unusual patterns of legitimate-to-flagged ratio
 
 **Mitigation:**
+
 ```
 LAYERED DEFENSE:
 1. Feature obfuscation: Don't expose which features triggered
@@ -149,6 +163,7 @@ LAYERED DEFENSE:
 ```
 
 **Recovery:**
+
 - If adversarial attack detected → rotate all active models
 - Increase manual review percentage temporarily
 - Deploy honeypot rules to confirm attack pattern
@@ -159,6 +174,7 @@ LAYERED DEFENSE:
 **Description:** Feature data arrives late or is missing, causing incorrect scoring.
 
 **Scenarios:**
+
 - Device fingerprint service timeout
 - Location geocoding delay
 - User profile data stale (replicated with lag)
@@ -166,10 +182,12 @@ LAYERED DEFENSE:
 - KYC verification data incomplete
 
 **Impact:**
+
 - Transactions scored with incomplete features → incorrect decisions
 - Sicker: missing data may fall back to default values → systematic bias
 
 **Mitigation:**
+
 ```
 Feature availability requirements:
 ┌──────────────────────┬──────────┬─────────────────────┐
@@ -195,30 +213,31 @@ Timeout handling:
 
 **Description:** Core data stores become unavailable.
 
-| Failure | Impact | Mitigation |
-|---------|--------|------------|
-| Redis (cache) down | Velocity checks fail, session data lost | Fall back to database queries (slower) |
-| PostgreSQL (main) down | Cannot read historical data | Redis fallback for recent data; fail-open for new txns |
-| Feature Store down | Cannot compute ML features | Rules-only mode (no ML) |
-| Queue (RabbitMQ/Redis) down | Async alerts delayed | Direct alert dispatch as fallback |
+| Failure                     | Impact                                  | Mitigation                                             |
+| --------------------------- | --------------------------------------- | ------------------------------------------------------ |
+| Redis (cache) down          | Velocity checks fail, session data lost | Fall back to database queries (slower)                 |
+| PostgreSQL (main) down      | Cannot read historical data             | Redis fallback for recent data; fail-open for new txns |
+| Feature Store down          | Cannot compute ML features              | Rules-only mode (no ML)                                |
+| Queue (RabbitMQ/Redis) down | Async alerts delayed                    | Direct alert dispatch as fallback                      |
 
 ### 7. Third-Party Service Failure
 
 **Description:** External services used in fraud detection are unavailable.
 
-| Service | Impact | Fallback |
-|---------|--------|----------|
-| Device fingerprint (e.g., FingerprintJS) | Cannot detect new/known devices | Skip new-device scoring. Flag for manual review all txns without fd |
-| SMS gateway | Cannot send fraud alerts via SMS | Push notification + email only |
-| Telecom API (SIM swap check) | Cannot detect recent SIM swaps | Assume no SIM swap. Flag high-value remittances for manual review |
-| Geolocation API | Cannot verify location | Use IP-based country only. Flag for manual review |
-| ML model server | Cannot compute ML score | Rules-only scoring |
+| Service                                  | Impact                           | Fallback                                                            |
+| ---------------------------------------- | -------------------------------- | ------------------------------------------------------------------- |
+| Device fingerprint (e.g., FingerprintJS) | Cannot detect new/known devices  | Skip new-device scoring. Flag for manual review all txns without fd |
+| SMS gateway                              | Cannot send fraud alerts via SMS | Push notification + email only                                      |
+| Telecom API (SIM swap check)             | Cannot detect recent SIM swaps   | Assume no SIM swap. Flag high-value remittances for manual review   |
+| Geolocation API                          | Cannot verify location           | Use IP-based country only. Flag for manual review                   |
+| ML model server                          | Cannot compute ML score          | Rules-only scoring                                                  |
 
 ### 8. Cascade Failure
 
 **Description:** One failure triggers another, creating a domino effect.
 
 **Example Cascade:**
+
 ```
 Feature Store latency spikes → ML scoring times out → Fall back to rules-only
 → Rules engine overloaded (handles 2x traffic) → Rules engine latency spikes
@@ -227,6 +246,7 @@ Feature Store latency spikes → ML scoring times out → Fall back to rules-onl
 ```
 
 **Prevention:**
+
 - Bulkheads: Each component runs in isolated process/container
 - Circuit breakers: If ML scoring > 100ms, trip circuit → rules-only
 - Backpressure: If queue > 10K items, reject new requests
@@ -238,6 +258,7 @@ Feature Store latency spikes → ML scoring times out → Fall back to rules-onl
 **Description:** System appears to work (low fraud rate) but misses significant fraud.
 
 **Detection:**
+
 - Low fraud rate + low false positive rate can mean "rules are too permissive"
 - Compare fraud rate to industry benchmarks
 - Conduct periodic "red team" exercises — ethical hackers attempt fraud
@@ -245,6 +266,7 @@ Feature Store latency spikes → ML scoring times out → Fall back to rules-onl
 - User-reported fraud that slipped through is a key metric
 
 **Mitigation:**
+
 - Independent validation team reviews fraud detection effectiveness quarterly
 - Red team exercises every 6 months
 - External fraud audit annually
@@ -252,11 +274,11 @@ Feature Store latency spikes → ML scoring times out → Fall back to rules-onl
 
 ### 10. Syria-Specific Failure Scenarios
 
-| Scenario | Risk | Mitigation |
-|----------|------|------------|
-| Syriatel/MTN network blackout | No connectivity → all txns offline | Extended offline queue; fail-open for small amounts |
-| CBS system outage | Cannot file SARs | Queue SARs, file when system restores |
-| SYP hyperinflation event | Amount-based rules break | Dynamic thresholds based on market rate |
-| Public holiday (Eid, etc.) | Transaction patterns change drastically | Holiday mode: relaxed rules, manual review |
-| Conflict escalation | Population displacement, network disruption | Regional degradation, extended offline mode |
-| Electricity outage | Server/comms infrastructure affected | Multi-region hosting, backup power |
+| Scenario                      | Risk                                        | Mitigation                                          |
+| ----------------------------- | ------------------------------------------- | --------------------------------------------------- |
+| Syriatel/MTN network blackout | No connectivity → all txns offline          | Extended offline queue; fail-open for small amounts |
+| CBS system outage             | Cannot file SARs                            | Queue SARs, file when system restores               |
+| SYP hyperinflation event      | Amount-based rules break                    | Dynamic thresholds based on market rate             |
+| Public holiday (Eid, etc.)    | Transaction patterns change drastically     | Holiday mode: relaxed rules, manual review          |
+| Conflict escalation           | Population displacement, network disruption | Regional degradation, extended offline mode         |
+| Electricity outage            | Server/comms infrastructure affected        | Multi-region hosting, backup power                  |

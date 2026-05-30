@@ -1,6 +1,7 @@
 # Zero Trust Security Model
 
 ## Principles
+
 1. **Never trust, always verify** — Every request, internal or external, must be authenticated and authorized
 2. **Least privilege** — Every service, user, and device gets minimum required access
 3. **Assume breach** — Design for compromised credentials, insider threats, and zero-day exploits
@@ -10,14 +11,16 @@
 ## Authentication
 
 ### Multi-Factor Strategy
-| Factor | Implementation | Used For |
-|--------|---------------|----------|
-| Something you know | PIN (6 digits), Password (12+ chars) | All logins |
-| Something you have | TOTP (30s rotation), SMS OTP | Admin, High-value txns |
-| Something you are | Face ID, Fingerprint | Mobile app |
-| Something you do | Behavioral biometrics | Continuous auth |
+
+| Factor             | Implementation                       | Used For               |
+| ------------------ | ------------------------------------ | ---------------------- |
+| Something you know | PIN (6 digits), Password (12+ chars) | All logins             |
+| Something you have | TOTP (30s rotation), SMS OTP         | Admin, High-value txns |
+| Something you are  | Face ID, Fingerprint                 | Mobile app             |
+| Something you do   | Behavioral biometrics                | Continuous auth        |
 
 ### JWT Token Architecture
+
 ```
 Access Token:
   - Type: JWT (RS256 signed)
@@ -40,6 +43,7 @@ Session Token (Agent POS):
 ## Authorization (RBAC + ABAC)
 
 ### Role Hierarchy
+
 ```
 super_admin: Full system access, no restrictions
 ops_manager: Financial operations, approvals, reports
@@ -52,6 +56,7 @@ user: Self-service, own data only
 ```
 
 ### Permission Matrix (Sample)
+
 ```
 Permission                 User  Merchant  Agent  Support  Loan  Compliance  Ops  Super
 wallet.view                ✓     ✓        ✓      ✓        ✓     ✓          ✓    ✓
@@ -67,6 +72,7 @@ admin.reports.export       ✗     ✗        ✗      ✗        ✗     ✓   
 ## Device Trust
 
 ### Device Fingerprint (40+ Signals)
+
 ```
 Hardware: Device model, manufacturer, screen size, RAM, storage
 OS: OS version, build number, security patch level, kernel version
@@ -77,6 +83,7 @@ Biometric: Face ID enrolled, fingerprint enrolled, last verification
 ```
 
 ### Device Trust Scoring
+
 ```
 Score 80-100: Trusted — Normal access
 Score 50-79: Known — Step-up authentication
@@ -85,6 +92,7 @@ Score < 0: Blocked — Security event, notify user
 ```
 
 ## Encryption Standards
+
 ```
 Data at Rest:
   PII: AES-256-GCM with per-field keys (KMS)
@@ -107,7 +115,9 @@ Key Rotation:
 ```
 
 ## Audit Logging
+
 Every security-relevant event must be logged:
+
 ```
 Who: user_id, user_type, ip, device_id, session_id
 What: action, resource_type, resource_id, changes (diff)
@@ -118,9 +128,10 @@ Why: permission_checked, rule_evaluated, policy_name
 ```
 
 ## Incident Response
-| Severity | Response Time | Example | Actions |
-|----------|--------------|---------|---------|
-| SEV1 (Critical) | 15 min | Data breach, service outage | Incident call, contain, notify CISO, legal |
-| SEV2 (High) | 1 hour | Suspicious login pattern | Investigate, block if confirmed |
-| SEV3 (Medium) | 4 hours | Single account compromise | Reset credentials, notify user |
-| SEV4 (Low) | 24 hours | Phishing attempt, policy violation | Log, monitor, user education |
+
+| Severity        | Response Time | Example                            | Actions                                    |
+| --------------- | ------------- | ---------------------------------- | ------------------------------------------ |
+| SEV1 (Critical) | 15 min        | Data breach, service outage        | Incident call, contain, notify CISO, legal |
+| SEV2 (High)     | 1 hour        | Suspicious login pattern           | Investigate, block if confirmed            |
+| SEV3 (Medium)   | 4 hours       | Single account compromise          | Reset credentials, notify user             |
+| SEV4 (Low)      | 24 hours      | Phishing attempt, policy violation | Log, monitor, user education               |

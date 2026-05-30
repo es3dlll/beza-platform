@@ -1042,10 +1042,10 @@ curl -X POST https://api.beza.sy/fraud/v1/cases/550e8400-e29b-41d4-a716-44665544
 
 ## Rate Limits
 
-| Endpoint Group | Limit | Window |
-|---------------|-------|--------|
-| /screen | 10,000 req/min | Per API key |
-| /cases (GET) | 100 req/min | Per user |
-| /cases/{id}/decision | 30 req/min | Per user |
-| /dashboard | 10 req/min | Per user |
-| /reports | 5 req/min | Per user |
+| Endpoint Group       | Limit          | Window      |
+| -------------------- | -------------- | ----------- |
+| /screen              | 10,000 req/min | Per API key |
+| /cases (GET)         | 100 req/min    | Per user    |
+| /cases/{id}/decision | 30 req/min     | Per user    |
+| /dashboard           | 10 req/min     | Per user    |
+| /reports             | 5 req/min      | Per user    |

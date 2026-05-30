@@ -1,17 +1,19 @@
 # Backend Engineering Spec — Laravel Modular Monolith
 
 ## Technology Stack
-| Component | Choice | Version |
-|-----------|--------|---------|
-| Framework | Laravel | 11.x |
-| PHP | PHP | 8.3+ |
-| Database | MySQL (Percona) | 8.0 |
-| Cache | Redis | 7.x |
-| Queue | RabbitMQ | 3.12+ |
-| Search | Elasticsearch | 8.x |
-| Monitoring | Prometheus + Grafana | Latest |
+
+| Component  | Choice               | Version |
+| ---------- | -------------------- | ------- |
+| Framework  | Laravel              | 11.x    |
+| PHP        | PHP                  | 8.3+    |
+| Database   | MySQL (Percona)      | 8.0     |
+| Cache      | Redis                | 7.x     |
+| Queue      | RabbitMQ             | 3.12+   |
+| Search     | Elasticsearch        | 8.x     |
+| Monitoring | Prometheus + Grafana | Latest  |
 
 ## Module Structure (25+ Modules)
+
 ```
 app/Modules/
 ├── Auth/           # Registration, login, OAuth, MFA, sessions
@@ -42,6 +44,7 @@ app/Modules/
 ```
 
 ## Module Architecture Pattern
+
 Each module follows a consistent internal structure:
 
 ```
@@ -87,6 +90,7 @@ app/Modules/{ModuleName}/
 ```
 
 ## Action Pattern (Domain Orchestration)
+
 Every "Action" class is a single-responsibility orchestrator that coordinates services, repositories, and external dependencies:
 
 ```php
@@ -135,6 +139,7 @@ class SendMoneyAction
 ## Service Layer Patterns
 
 ### Repository Pattern
+
 ```php
 interface WalletRepositoryInterface
 {
@@ -148,6 +153,7 @@ interface WalletRepositoryInterface
 ```
 
 ### Event Pattern
+
 ```php
 // All financial events use CloudEvents schema
 class TransferSent
@@ -178,6 +184,7 @@ class TransferSent
 ```
 
 ## Multi-Tenancy
+
 ```php
 // Every table has tenant_id
 // TenantResolver middleware sets current tenant from JWT
@@ -196,6 +203,7 @@ class TenantScope implements Scope
 ```
 
 ## Idempotency
+
 ```php
 // Every write endpoint accepts Idempotency-Key header
 // Stored in Redis for 24h, returns cached response on duplicate
@@ -226,6 +234,7 @@ class IdempotencyMiddleware
 ```
 
 ## Testing Strategy
+
 ```bash
 # Run module tests
 php artisan test app/Modules/Wallet/

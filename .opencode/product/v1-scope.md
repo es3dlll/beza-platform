@@ -7,6 +7,7 @@
 ## V1 CORE (Month 1–6)
 
 ### Wallet Module
+
 - [x] Multi-currency wallet (SYP, USD)
 - [x] P2P transfer by phone number (SYP and USD)
 - [x] Balance check (app + USSD `*123#`)
@@ -23,6 +24,7 @@
 - [x] Phone number change flow (SMS OTP verification)
 
 ### Agent Network Module
+
 - [x] Agent registration form (name, shop name, location, phone, national ID)
 - [x] Agent onboarding app (Android only, iOS TBD)
 - [x] Agent cash-in: customer gives cash → agent confirms → wallet credited
@@ -35,6 +37,7 @@
 - [x] Agent suspension/block capability (Compliance team)
 
 ### FX Module
+
 - [x] SYP ↔ USD conversion inside wallet
 - [x] Daily rate sync from CBS official feed (manual fallback if CBS API unavailable)
 - [x] Dual rate display: "Official CBS rate" and "Reference market rate"
@@ -45,6 +48,7 @@
 - [x] USD balance can be received from remittance only (no direct USD cash-in at agents in V1)
 
 ### Fraud Prevention Module (V1)
+
 - [x] Rule-based engine: 20+ rules (velocity, amount thresholds, device fingerprint, location anomaly)
 - [x] Device fingerprinting: collect device ID, IP, GPS, SIM card, app version on every session
 - [x] Velocity rules: >5 transactions/minute → block, >3 failed PIN attempts → 30min lock
@@ -57,6 +61,7 @@
 - [x] Fraud reporting: daily fraud summary, weekly trend analysis
 
 ### NOT in Fraud V1
+
 - [ ] ML models (LightGBM) → V2
 - [ ] Behavioral analysis → V2
 - [ ] Graph-based mule account detection → V2
@@ -64,6 +69,7 @@
 - [ ] Automatic model retraining → V2
 
 ### Remittance Module
+
 - [x] Inbound corridors: Lebanon, UAE, Jordan, Germany (via partner MTOs)
 - [x] Payout in SYP (to SYP wallet balance) or USD (to USD wallet balance if Tier 2+)
 - [x] Sender details: full name, phone, remittance purpose (from dropdown: family support, education, medical, other)
@@ -78,6 +84,7 @@
 - [x] Lebanon corridor priority: fastest route (Beirut-Damascus same-day settlement via partner bank)
 
 ### Bill Payment Module
+
 - [x] Syriatel prepaid mobile top-up (SYP 500–50,000)
 - [x] Syriatel postpaid bill payment (invoice number entry)
 - [x] MTN prepaid mobile top-up (SYP 500–50,000)
@@ -94,6 +101,7 @@
 - [x] Bill inquiry failure handling: "الخدمة غير متاحة حالياً. يرجى المحاولة لاحقاً" with retry option
 
 ### Merchant QR Module
+
 - [x] Merchant registration form (business name, CR number, tax ID, location, owner national ID)
 - [x] Static QR code generation per merchant (SYP only in V1)
 - [x] Customer scans merchant QR → enters amount → confirms → payment sent to merchant wallet
@@ -107,6 +115,7 @@
 - [x] Merchant dashboard: total sales, daily sales, average ticket size
 
 ### Authentication & Security (V1)
+
 - [x] Phone number + SMS OTP login
 - [x] PIN (6-digit) for transaction authorization
 - [x] Biometric login (fingerprint / face) on supported devices
@@ -119,6 +128,7 @@
 - [x] Suspicious transaction detection: >3x usual transaction amount triggers additional verification
 
 ### Compliance Module (V1)
+
 - [x] Tier 1 onboarding: name, phone, national ID number (self-declared)
 - [x] Tier 2 verification: national ID card photo (front + back), selfie with ID, proof of address (utility bill)
 - [x] Tier 3 verification: Tier 2 + income source declaration, bank statement or business registration
@@ -131,6 +141,7 @@
 - [x] KYC document storage (encrypted, separate from transactional database)
 
 ### USSD (`*123#`)
+
 - [x] Balance inquiry
 - [x] Mini-statement (last 5 transactions)
 - [x] Agent locator (returns nearest 3 agents by SMS)
@@ -142,6 +153,7 @@
 - [x] USSD menu depth: max 3 levels
 
 ### Notifications (V1)
+
 - [x] SMS: credit notification, debit notification, OTP, bill payment confirmation
 - [x] In-app push: same as SMS (when app is open)
 - [x] Daily SMS summary: end-of-day balance if any transaction occurred
@@ -154,6 +166,7 @@
 ## V1 ADMIN / OPERATIONS
 
 ### Operations Dashboard
+
 - [x] User management: view, suspend, unsuspend, delete (soft)
 - [x] Agent management: view, approve, suspend, commission override
 - [x] Transaction search (by user phone, transaction ID, date range, amount range)
@@ -166,6 +179,7 @@
 - [x] User wallet adjustment (Ops, requires compliance approval for >SYP 1,000,000)
 
 ### Support Module
+
 - [x] Ticket creation (user complaint, dispute, inquiry)
 - [x] Ticket categories: transaction dispute, account issue, agent issue, bill payment error, FX dispute, other
 - [x] Ticket assignment to support agent
@@ -226,6 +240,7 @@
 ## V1 EXCLUSIONS — EXPLICIT REJECTIONS
 
 These are not planned for any future version, due to regulatory or strategic reasons:
+
 - [ ] Bitcoin/cryptocurrency trading (CBS prohibition on crypto)
 - [ ] Gambling-related transactions (illegal in Syria)
 - [ ] Alcohol or tobacco sales via merchant QR (regulated goods, not fintech scope)

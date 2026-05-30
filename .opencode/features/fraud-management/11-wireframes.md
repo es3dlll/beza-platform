@@ -42,6 +42,7 @@
 ```
 
 **Annotations:**
+
 - Top bar: navigation + search + notifications
 - KPI cards: real-time values with trend arrows and target comparison
 - Alert feed: left panel showing P0/P1/P2 with clickable items
@@ -102,6 +103,7 @@
 ```
 
 **Annotations:**
+
 - Risk score prominently displayed with color coding
 - Transaction details in left card
 - Risk factor breakdown with individual scores and weights
@@ -161,6 +163,7 @@
 ```
 
 **Annotations:**
+
 - Case header with status, priority, SLA timer
 - Left panel: Evidence checklist, user profile
 - Right panel: Investigation notes (chronological), transaction graph

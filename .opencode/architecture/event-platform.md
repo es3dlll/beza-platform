@@ -1,6 +1,7 @@
 # Event Platform Engineering Spec
 
 ## Infrastructure
+
 ```
 RabbitMQ Cluster: 3 nodes (HA)
   - Management UI: https://rabbitmq.beza.com:15672
@@ -16,6 +17,7 @@ Kafka Cluster (Analytics): 3 brokers
 ```
 
 ## Exchange Topology
+
 ```
 ┌──────────────────────────────────────────────────────────┐
 │                     beza-events (topic)                    │
@@ -35,6 +37,7 @@ Kafka Cluster (Analytics): 3 brokers
 ## Queue Configuration
 
 ### Worker Queue Definition
+
 ```yaml
 notifications:
   durable: true
@@ -73,6 +76,7 @@ fraud:
 ```
 
 ## Producer Pattern
+
 ```php
 class RabbitMQProducer
 {
@@ -113,6 +117,7 @@ class RabbitMQProducer
 ```
 
 ## Consumer Pattern
+
 ```php
 class TransferNotificationConsumer
 {
@@ -143,6 +148,7 @@ class TransferNotificationConsumer
 ```
 
 ## Dead Letter Queue Management
+
 ```
 DLQ Message Format:
 {
@@ -162,6 +168,7 @@ DLQ Monitoring:
 ```
 
 ## Event Schema Registry
+
 ```
 Schema Storage: MySQL table or dedicated schema registry
 Schema Format: JSON Schema (draft-07)

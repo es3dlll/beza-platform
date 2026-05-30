@@ -22,7 +22,7 @@ FraudEngine emits and consumes events through the Laravel event system. Events a
   "data": {
     "transaction_id": "txn_8hJ2kL4mN6pQ9rS1tU3v",
     "feature_source": "wallet",
-    "amount": 150000.00,
+    "amount": 150000.0,
     "currency": "SYP",
     "sender_id": "usr_a1B2c3D4e5F6g7H8i9J0",
     "recipient_id": "usr_k1L2m3N4o5P6q7R8s9T0",
@@ -32,18 +32,30 @@ FraudEngine emits and consumes events through the Laravel event system. Events a
       "device_name": "Samsung Galaxy S23",
       "device_os": "Android 14",
       "ip_address": "10.0.0.1",
-      "location": { "lat": 33.5138, "lon": 36.2765, "city": "Damascus", "region": "Damascus Governorate" },
+      "location": {
+        "lat": 33.5138,
+        "lon": 36.2765,
+        "city": "Damascus",
+        "region": "Damascus Governorate"
+      },
       "network_operator": "Syriatel",
       "is_new_device": true,
       "user_agent": "BezaApp/2.4.1 (Android 14; Samsung S23)",
       "session_id": "sess_m9N0bV1cX2zL3k4J5h6G"
     },
     "sender_profile": {
-      "account_age_days": 180, "kyc_level": 2, "avg_transaction_amount": 45000.00,
-      "transaction_count_30d": 24, "total_volume_30d": 1080000.00, "risk_tier": "standard"
+      "account_age_days": 180,
+      "kyc_level": 2,
+      "avg_transaction_amount": 45000.0,
+      "transaction_count_30d": 24,
+      "total_volume_30d": 1080000.0,
+      "risk_tier": "standard"
     },
     "recipient_profile": {
-      "account_age_days": 90, "kyc_level": 1, "avg_transaction_amount": 35000.00, "trust_score": 65
+      "account_age_days": 90,
+      "kyc_level": 1,
+      "avg_transaction_amount": 35000.0,
+      "trust_score": 65
     }
   }
 }
@@ -70,9 +82,27 @@ FraudEngine emits and consumes events through the Laravel event system. Events a
     "decision": "review",
     "action_taken": "flagged_for_review",
     "rules_triggered": [
-      { "rule_id": "DEV-001", "rule_name": "New Device Threshold", "score": 25, "action": "flag", "details": "Device Samsung Galaxy S23 new to user" },
-      { "rule_id": "TAMT-001", "rule_name": "Transaction Amount Spike", "score": 20, "action": "slow", "details": "Amount 150K SYP is 3.3x user avg" },
-      { "rule_id": "LOC-002", "rule_name": "New Location", "score": 15, "action": "flag", "details": "Transaction from Aleppo, user in Damascus" }
+      {
+        "rule_id": "DEV-001",
+        "rule_name": "New Device Threshold",
+        "score": 25,
+        "action": "flag",
+        "details": "Device Samsung Galaxy S23 new to user"
+      },
+      {
+        "rule_id": "TAMT-001",
+        "rule_name": "Transaction Amount Spike",
+        "score": 20,
+        "action": "slow",
+        "details": "Amount 150K SYP is 3.3x user avg"
+      },
+      {
+        "rule_id": "LOC-002",
+        "rule_name": "New Location",
+        "score": 15,
+        "action": "flag",
+        "details": "Transaction from Aleppo, user in Damascus"
+      }
     ],
     "ml_score": 0.72,
     "ml_model_version": "v1.2.3",
@@ -95,7 +125,7 @@ FraudEngine emits and consumes events through the Laravel event system. Events a
     "fraud_type": "account_takeover",
     "priority": "P0",
     "status": "under_investigation",
-    "amount_at_risk": 500000.00,
+    "amount_at_risk": 500000.0,
     "currency": "SYP",
     "victim_user_id": "usr_a1B2c3D4e5F6g7H8i9J0",
     "suspect_user_id": "usr_k1L2m3N4o5P6q7R8s9T0",
@@ -119,8 +149,8 @@ FraudEngine emits and consumes events through the Laravel event system. Events a
     "case_id": "FR-2025-05678",
     "fraud_type": "account_takeover",
     "confirmed_fraud_type": "phishing_credential_theft",
-    "amount_lost": 0.00,
-    "amount_recovered": 500000.00,
+    "amount_lost": 0.0,
+    "amount_recovered": 500000.0,
     "currency": "SYP",
     "victim_user_id": "usr_a1B2c3D4e5F6g7H8i9J0",
     "suspect_user_id": "usr_k1L2m3N4o5P6q7R8s9T0",
@@ -174,8 +204,11 @@ FraudEngine emits and consumes events through the Laravel event system. Events a
     "training_samples": 2450000,
     "feature_count": 218,
     "metrics": {
-      "auc_roc": 0.942, "precision": 0.845, "recall": 0.782,
-      "f1_score": 0.812, "log_loss": 0.089
+      "auc_roc": 0.942,
+      "precision": 0.845,
+      "recall": 0.782,
+      "f1_score": 0.812,
+      "log_loss": 0.089
     },
     "improvement": { "auc_roc_delta": 0.004, "f1_delta": 0.008 },
     "new_features_added": 5,
@@ -198,7 +231,7 @@ FraudEngine emits and consumes events through the Laravel event system. Events a
     "case_id": "FR-2025-05678",
     "escalation_level": "cbs",
     "escalation_reason": "amount_exceeds_threshold",
-    "amount_involved": 500000.00,
+    "amount_involved": 500000.0,
     "currency": "SYP",
     "cbs_reference": "CBS-NOT-2025-0042",
     "sar_id": "SAR-2025-00123",
@@ -210,14 +243,14 @@ FraudEngine emits and consumes events through the Laravel event system. Events a
 
 ## Event Consumption
 
-| Other Modules | Consumes | Action |
-|---------------|----------|--------|
-| Wallet Module | FraudConfirmed, FraudFalsePositive | Release/hold funds, update wallet status |
-| Agent Module | FraudAlertRaised, FraudConfirmed | Freeze agent account, notify field ops |
-| Remittance Module | FraudAlertRaised (remittance) | Hold remittance, notify sender |
-| Compliance Module | FraudConfirmed, FraudCaseEscalated | Generate SAR, file with CBS |
-| Notification Module | FraudAlertRaised, FraudConfirmed, FraudFalsePositive | Send push/SMS/email |
-| Analytics Module | All fraud events | Update fraud metrics, dashboards |
+| Other Modules       | Consumes                                             | Action                                   |
+| ------------------- | ---------------------------------------------------- | ---------------------------------------- |
+| Wallet Module       | FraudConfirmed, FraudFalsePositive                   | Release/hold funds, update wallet status |
+| Agent Module        | FraudAlertRaised, FraudConfirmed                     | Freeze agent account, notify field ops   |
+| Remittance Module   | FraudAlertRaised (remittance)                        | Hold remittance, notify sender           |
+| Compliance Module   | FraudConfirmed, FraudCaseEscalated                   | Generate SAR, file with CBS              |
+| Notification Module | FraudAlertRaised, FraudConfirmed, FraudFalsePositive | Send push/SMS/email                      |
+| Analytics Module    | All fraud events                                     | Update fraud metrics, dashboards         |
 
 ## Event Store
 

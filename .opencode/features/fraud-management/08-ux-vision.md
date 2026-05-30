@@ -14,6 +14,7 @@ The fraud prevention system should be **invisible to 97% of users** (the false p
 ### The 97% — Unflagged Users
 
 These users should NEVER see fraud prevention. Their experience:
+
 - Transaction completes in < 2 seconds (fraud screening adds < 200ms backend)
 - No additional verification steps unless high-risk
 - No "fraud check" branding or messaging
@@ -41,6 +42,7 @@ These users see a minor friction point:
 ```
 
 **Key UX rules:**
+
 - NEVER use alarming language ("fraud", "suspicious", "blocked") for potential false positives
 - ALWAYS offer instant verification path
 - If user verifies successfully → no record of "suspicion" on user's history
@@ -105,44 +107,45 @@ These users receive clear, direct communication:
 
 ## Tone & Voice — Fraud Communication
 
-| Scenario | Tone | Example (Arabic) |
-|----------|------|------------------|
-| False positive candidate | Calm, reassuring, action-oriented | "لتأكيد هويتك، يرجى إدخال الرمز السري" |
-| High-risk transaction | Alert but helpful | "نحن نحمي حسابك من أي عملية غير مصرح بها" |
-| Confirmed fraud | Direct, supportive | "تم تجميد حسابك مؤقتاً لحمايتك. سنتواصل معك قريباً" |
-| Investigation update | Informative, transparent | "جاري التحقيق في حالتك. التحديث المتوقع خلال 4 ساعات" |
-| Case resolved (user safe) | Celebratory | "تم حل المشكلة. حسابك آمن الآن" |
-| Case resolved (fraud loss) | Supportive, next steps | "نأسف لهذه التجربة. إليك الخطوات التالية" |
+| Scenario                   | Tone                              | Example (Arabic)                                      |
+| -------------------------- | --------------------------------- | ----------------------------------------------------- |
+| False positive candidate   | Calm, reassuring, action-oriented | "لتأكيد هويتك، يرجى إدخال الرمز السري"                |
+| High-risk transaction      | Alert but helpful                 | "نحن نحمي حسابك من أي عملية غير مصرح بها"             |
+| Confirmed fraud            | Direct, supportive                | "تم تجميد حسابك مؤقتاً لحمايتك. سنتواصل معك قريباً"   |
+| Investigation update       | Informative, transparent          | "جاري التحقيق في حالتك. التحديث المتوقع خلال 4 ساعات" |
+| Case resolved (user safe)  | Celebratory                       | "تم حل المشكلة. حسابك آمن الآن"                       |
+| Case resolved (fraud loss) | Supportive, next steps            | "نأسف لهذه التجربة. إليك الخطوات التالية"             |
 
 ## Cultural Considerations (Syria-Specific)
 
 ### Arabic Language UX
 
-| English | Arabic (Syrian dialect preference) |
-|---------|-----------------------------------|
-| Transaction | عملية |
-| Freeze | تجميد |
-| Investigation | تحقيق |
-| Fraud | احتيال |
-| Appeal | استئناف / طلب مراجعة |
-| Security Check | التحقق الأمني |
-| Unusual Activity | نشاط غير معتاد |
+| English          | Arabic (Syrian dialect preference) |
+| ---------------- | ---------------------------------- |
+| Transaction      | عملية                              |
+| Freeze           | تجميد                              |
+| Investigation    | تحقيق                              |
+| Fraud            | احتيال                             |
+| Appeal           | استئناف / طلب مراجعة               |
+| Security Check   | التحقق الأمني                      |
+| Unusual Activity | نشاط غير معتاد                     |
 
 **Note:** Use Fus-ha (Modern Standard Arabic) for formal communications (cases, investigations) but Syrian dialect for notifications and in-app messaging to feel approachable.
 
 ### Color Psychology in Syria
 
-| Color | Meaning | Use |
-|-------|---------|-----|
-| Green | Safe, trusted | Normal transactions |
-| Yellow | Caution, delay | Flagged transactions (soft block) |
-| Red | Danger, stop | Blocked transactions, confirmed fraud |
-| Blue | Information, support | Investigation updates |
-| Gold | Premium, secure | Fraud insurance upsell |
+| Color  | Meaning              | Use                                   |
+| ------ | -------------------- | ------------------------------------- |
+| Green  | Safe, trusted        | Normal transactions                   |
+| Yellow | Caution, delay       | Flagged transactions (soft block)     |
+| Red    | Danger, stop         | Blocked transactions, confirmed fraud |
+| Blue   | Information, support | Investigation updates                 |
+| Gold   | Premium, secure      | Fraud insurance upsell                |
 
 ### Trust Signals
 
 Syrian users need to see trust signals prominently:
+
 - Beza logo/branding on every fraud screen
 - CBS license number visible
 - "مدعوم من المصرف المركزي السوري" (Supported by the Central Bank of Syria)
@@ -151,17 +154,18 @@ Syrian users need to see trust signals prominently:
 
 ## Mobile vs Agent vs Web
 
-| Channel | Fraud UX Approach |
-|---------|-------------------|
-| Mobile App (Android/iOS) | Full interactive experience, push notifications, in-app verification |
-| USSD (*123#) | SMS-based step verification, limited to PIN/OTP check |
-| Agent POS | Agent-facing: "Transaction flagged. Ask customer for ID." Customer-facing: receipt with SMS notification |
-| Web Portal | Full dashboard for operations; simplified flow for end users |
-| SMS | Notification-only: "Your transaction [amount] SYP is paused. Reply YES to confirm." |
+| Channel                  | Fraud UX Approach                                                                                        |
+| ------------------------ | -------------------------------------------------------------------------------------------------------- |
+| Mobile App (Android/iOS) | Full interactive experience, push notifications, in-app verification                                     |
+| USSD (\*123#)            | SMS-based step verification, limited to PIN/OTP check                                                    |
+| Agent POS                | Agent-facing: "Transaction flagged. Ask customer for ID." Customer-facing: receipt with SMS notification |
+| Web Portal               | Full dashboard for operations; simplified flow for end users                                             |
+| SMS                      | Notification-only: "Your transaction [amount] SYP is paused. Reply YES to confirm."                      |
 
 ## Accessibility
 
 (Detailed in 14-accessibility.md — summary here)
+
 - Risk indicators: color + icon + text (never color alone)
 - Screen reader support for all fraud screens
 - High contrast mode for case management dashboard
@@ -193,11 +197,11 @@ User sees freeze → Contact support → Verify identity → [pass → account r
 
 ## Success Metrics for UX
 
-| UX Metric | Target | Measurement |
-|-----------|--------|-------------|
-| User appeal resolution time | < 30 min | System tracked |
-| False positive user satisfaction | > 4.5/5 | Post-interaction survey |
-| Fraud victim satisfaction | > 3.5/5 | Post-resolution survey |
-| User understanding of freeze reason | > 80% | "Did you understand why?" survey |
-| Appeal abandonment rate | < 5% | Users who start appeal but don't complete |
-| Support calls per fraud case | < 1.5 | Reduce by making in-app flow clear |
+| UX Metric                           | Target   | Measurement                               |
+| ----------------------------------- | -------- | ----------------------------------------- |
+| User appeal resolution time         | < 30 min | System tracked                            |
+| False positive user satisfaction    | > 4.5/5  | Post-interaction survey                   |
+| Fraud victim satisfaction           | > 3.5/5  | Post-resolution survey                    |
+| User understanding of freeze reason | > 80%    | "Did you understand why?" survey          |
+| Appeal abandonment rate             | < 5%     | Users who start appeal but don't complete |
+| Support calls per fraud case        | < 1.5    | Reduce by making in-app flow clear        |

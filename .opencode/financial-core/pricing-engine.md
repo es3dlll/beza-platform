@@ -131,13 +131,13 @@ Every pricing rule is stored as a JSON document in the `pricing_rules` database 
 
 ### Formula Types
 
-| Type | Description | Parameters |
-|------|-------------|------------|
-| `FLAT` | Fixed amount per transaction | `amount` |
-| `PERCENTAGE` | Percentage of transaction amount | `percentage` |
-| `PERCENTAGE_WITH_FLOOR_AND_CAP` | Percentage with min/max bounds | `percentage, min_amount, max_amount` |
-| `TIERED` | Different rates by amount bracket | `tiers: [{from, to, percentage, flat}]` |
-| `ZERO` | Free transaction (no fee) | — |
+| Type                            | Description                       | Parameters                              |
+| ------------------------------- | --------------------------------- | --------------------------------------- |
+| `FLAT`                          | Fixed amount per transaction      | `amount`                                |
+| `PERCENTAGE`                    | Percentage of transaction amount  | `percentage`                            |
+| `PERCENTAGE_WITH_FLOOR_AND_CAP` | Percentage with min/max bounds    | `percentage, min_amount, max_amount`    |
+| `TIERED`                        | Different rates by amount bracket | `tiers: [{from, to, percentage, flat}]` |
+| `ZERO`                          | Free transaction (no fee)         | —                                       |
 
 ---
 
@@ -145,68 +145,69 @@ Every pricing rule is stored as a JSON document in the `pricing_rules` database 
 
 ### 4.1 Standard Fee Rules
 
-| Rule ID | Product | Condition | Formula | Min | Max | Commission Split | Priority |
-|---------|---------|-----------|---------|-----|-----|-----------------|----------|
-| FEE-TRF-001 | P2P Transfer (WLT-001) | All channels, SYP/USD | 0.5% | 50 SYP | 5,000 SYP | Beza 100% | 100 |
-| FEE-CIN-001 | Agent Cash-in (AGT-001) | Mobile App, Agent POS | 0.5% | 100 SYP | 3,000 SYP | Beza 40%, Agent 60% | 100 |
-| FEE-COUT-001 | Agent Cash-out (AGT-002) | Mobile App, Agent POS | 1.0% | 200 SYP | 5,000 SYP | Beza 30%, Agent 70% | 100 |
-| FEE-FX-001 | FX Conversion (FX-001) | All channels | 1.5% margin | — | — | Beza 100% | 100 |
-| FEE-REM-001 | Inbound Remittance (REM-001) | GCC corridor | 3.0% | 200 SYP | 10,000 SYP | Beza 50%, Partner 50% | 100 |
-| FEE-REM-002 | Inbound Remittance (REM-001) | EU corridor | 4.0% | 300 SYP | 12,000 SYP | Beza 50%, Partner 50% | 110 |
-| FEE-REM-003 | Inbound Remittance (REM-001) | TRY corridor | 3.5% | 250 SYP | 11,000 SYP | Beza 45%, Partner 55% | 105 |
-| FEE-BIL-001 | Bill Payment — Telecom (BIL-001) | Syriatel, MTN | 0.5% | 100 SYP | 2,000 SYP | Beza 50%, Biller 50% | 100 |
-| FEE-BIL-002 | Bill Payment — Electricity (BIL-002) | PEED, all governorates | 0.5% | 100 SYP | 2,000 SYP | Beza 70%, Biller 30% | 100 |
-| FEE-BIL-003 | Bill Payment — Water (BIL-003) | All water authorities | 0.5% | 100 SYP | 1,000 SYP | Beza 60%, Biller 40% | 100 |
-| FEE-MER-001 | Merchant QR Payment (MER-001) | All merchants, SYP | 1.0% MDR | 50 SYP | 5,000 SYP | Beza 30%, Agent 70% | 100 |
-| FEE-MER-002 | Merchant QR Payment (MER-001) | Micro-merchant (< 5M/month) | 0.75% MDR | 50 SYP | 3,000 SYP | Beza 25%, Agent 75% | 110 |
-| FEE-PAY-001 | Payroll Disbursement (PAY-001) | B2B, all tiers | 1.0% | 500 SYP | 20,000 SYP | Beza 100% | 100 |
-| FEE-PAY-002 | Payroll Disbursement (PAY-001) | Enterprise (> 500 employees) | 0.75% | 500 SYP | 15,000 SYP | Beza 100% | 110 |
-| FEE-SAV-001 | Savings Goal (SAV-001) | Mudaraba profit share | 30% of profit | — | — | Beza 100% (as Mudarib) | 100 |
-| FEE-CRD-001 | Card Issuance (CRD-001) | Virtual card | 0 SYP | — | — | Beza 100% | 100 |
-| FEE-CRD-002 | Card Issuance (CRD-001) | Physical card | 10,000 SYP | — | — | Beza 100% | 100 |
-| FEE-CRD-003 | Card Monthly (CRD-001) | Monthly maintenance | 1,500 SYP | — | — | Beza 100% | 100 |
-| FEE-CRD-004 | Card ATM Withdrawal (CRD-002) | Domestic ATM (SPN) | 2,000 SYP | — | — | Beza 60%, SPN 40% | 100 |
-| FEE-CRD-005 | Card POS (CRD-002) | Domestic POS transaction | 0.5% | 100 SYP | 3,000 SYP | Beza 50%, Acquirer 50% | 100 |
-| FEE-GOV-001 | Government Collection (GOV-001) | All govt entities | 0.5% | 100 SYP | 5,000 SYP | Beza 100% | 100 |
-| FEE-ESC-001 | Escrow Service (ESC-001) | Marketplace escrow | 1.0% | — | 50,000 SYP | Beza 100% | 100 |
-| FEE-ESC-002 | Escrow Service (ESC-001) | B2B/Real estate escrow | 0.5% | — | 200,000 SYP | Beza 100% | 110 |
-| FEE-AGT-003 | Agent Float Top-up (AGT-003) | Third-party agents only | 0.2% | 500 SYP | 2,000 SYP | Beza 100% | 100 |
+| Rule ID      | Product                              | Condition                    | Formula       | Min     | Max         | Commission Split       | Priority |
+| ------------ | ------------------------------------ | ---------------------------- | ------------- | ------- | ----------- | ---------------------- | -------- |
+| FEE-TRF-001  | P2P Transfer (WLT-001)               | All channels, SYP/USD        | 0.5%          | 50 SYP  | 5,000 SYP   | Beza 100%              | 100      |
+| FEE-CIN-001  | Agent Cash-in (AGT-001)              | Mobile App, Agent POS        | 0.5%          | 100 SYP | 3,000 SYP   | Beza 40%, Agent 60%    | 100      |
+| FEE-COUT-001 | Agent Cash-out (AGT-002)             | Mobile App, Agent POS        | 1.0%          | 200 SYP | 5,000 SYP   | Beza 30%, Agent 70%    | 100      |
+| FEE-FX-001   | FX Conversion (FX-001)               | All channels                 | 1.5% margin   | —       | —           | Beza 100%              | 100      |
+| FEE-REM-001  | Inbound Remittance (REM-001)         | GCC corridor                 | 3.0%          | 200 SYP | 10,000 SYP  | Beza 50%, Partner 50%  | 100      |
+| FEE-REM-002  | Inbound Remittance (REM-001)         | EU corridor                  | 4.0%          | 300 SYP | 12,000 SYP  | Beza 50%, Partner 50%  | 110      |
+| FEE-REM-003  | Inbound Remittance (REM-001)         | TRY corridor                 | 3.5%          | 250 SYP | 11,000 SYP  | Beza 45%, Partner 55%  | 105      |
+| FEE-BIL-001  | Bill Payment — Telecom (BIL-001)     | Syriatel, MTN                | 0.5%          | 100 SYP | 2,000 SYP   | Beza 50%, Biller 50%   | 100      |
+| FEE-BIL-002  | Bill Payment — Electricity (BIL-002) | PEED, all governorates       | 0.5%          | 100 SYP | 2,000 SYP   | Beza 70%, Biller 30%   | 100      |
+| FEE-BIL-003  | Bill Payment — Water (BIL-003)       | All water authorities        | 0.5%          | 100 SYP | 1,000 SYP   | Beza 60%, Biller 40%   | 100      |
+| FEE-MER-001  | Merchant QR Payment (MER-001)        | All merchants, SYP           | 1.0% MDR      | 50 SYP  | 5,000 SYP   | Beza 30%, Agent 70%    | 100      |
+| FEE-MER-002  | Merchant QR Payment (MER-001)        | Micro-merchant (< 5M/month)  | 0.75% MDR     | 50 SYP  | 3,000 SYP   | Beza 25%, Agent 75%    | 110      |
+| FEE-PAY-001  | Payroll Disbursement (PAY-001)       | B2B, all tiers               | 1.0%          | 500 SYP | 20,000 SYP  | Beza 100%              | 100      |
+| FEE-PAY-002  | Payroll Disbursement (PAY-001)       | Enterprise (> 500 employees) | 0.75%         | 500 SYP | 15,000 SYP  | Beza 100%              | 110      |
+| FEE-SAV-001  | Savings Goal (SAV-001)               | Mudaraba profit share        | 30% of profit | —       | —           | Beza 100% (as Mudarib) | 100      |
+| FEE-CRD-001  | Card Issuance (CRD-001)              | Virtual card                 | 0 SYP         | —       | —           | Beza 100%              | 100      |
+| FEE-CRD-002  | Card Issuance (CRD-001)              | Physical card                | 10,000 SYP    | —       | —           | Beza 100%              | 100      |
+| FEE-CRD-003  | Card Monthly (CRD-001)               | Monthly maintenance          | 1,500 SYP     | —       | —           | Beza 100%              | 100      |
+| FEE-CRD-004  | Card ATM Withdrawal (CRD-002)        | Domestic ATM (SPN)           | 2,000 SYP     | —       | —           | Beza 60%, SPN 40%      | 100      |
+| FEE-CRD-005  | Card POS (CRD-002)                   | Domestic POS transaction     | 0.5%          | 100 SYP | 3,000 SYP   | Beza 50%, Acquirer 50% | 100      |
+| FEE-GOV-001  | Government Collection (GOV-001)      | All govt entities            | 0.5%          | 100 SYP | 5,000 SYP   | Beza 100%              | 100      |
+| FEE-ESC-001  | Escrow Service (ESC-001)             | Marketplace escrow           | 1.0%          | —       | 50,000 SYP  | Beza 100%              | 100      |
+| FEE-ESC-002  | Escrow Service (ESC-001)             | B2B/Real estate escrow       | 0.5%          | —       | 200,000 SYP | Beza 100%              | 110      |
+| FEE-AGT-003  | Agent Float Top-up (AGT-003)         | Third-party agents only      | 0.2%          | 500 SYP | 2,000 SYP   | Beza 100%              | 100      |
 
 ### 4.2 Agent Cash Transaction Details
 
 These rules govern the split for the cash handling fee charged to the customer.
 
-| Rule ID | Transaction | Fee Charged | Beza Share | Agent Share | Rationale |
-|---------|-------------|-------------|------------|-------------|-----------|
-| FEE-CIN-001 | Cash-in (0.5%) | Customer pays 0.5% (min 100, max 3,000 SYP) | 40% of fee | 60% of fee | Agent handles cash risk, storage, and CBS cash reporting |
-| FEE-COUT-001 | Cash-out (1.0%) | Customer pays 1% (min 200, max 5,000 SYP) | 30% of fee | 70% of fee | Higher agent risk (cash availability, security, counterfeit detection) |
+| Rule ID      | Transaction     | Fee Charged                                 | Beza Share | Agent Share | Rationale                                                              |
+| ------------ | --------------- | ------------------------------------------- | ---------- | ----------- | ---------------------------------------------------------------------- |
+| FEE-CIN-001  | Cash-in (0.5%)  | Customer pays 0.5% (min 100, max 3,000 SYP) | 40% of fee | 60% of fee  | Agent handles cash risk, storage, and CBS cash reporting               |
+| FEE-COUT-001 | Cash-out (1.0%) | Customer pays 1% (min 200, max 5,000 SYP)   | 30% of fee | 70% of fee  | Higher agent risk (cash availability, security, counterfeit detection) |
 
 **Example:** Agent processes 100,000 SYP cash-out.
+
 - Customer charged: 1,000 SYP (1%).
 - Agent earns: 700 SYP (70%).
 - Beza earns: 300 SYP (30%).
 
 ### 4.3 Merchant Commission Details
 
-| Rule ID | Merchant Type | MDR | Beza Share | Agent Share | Notes |
-|---------|--------------|-----|------------|-------------|-------|
-| FEE-MER-001 | Standard merchant | 1.0% | 30% | 70% | Agent acquires and services the merchant |
-| FEE-MER-002 | Micro-merchant (< 5M/month) | 0.75% | 25% | 75% | Subsidized rate to encourage adoption |
+| Rule ID     | Merchant Type               | MDR   | Beza Share | Agent Share | Notes                                    |
+| ----------- | --------------------------- | ----- | ---------- | ----------- | ---------------------------------------- |
+| FEE-MER-001 | Standard merchant           | 1.0%  | 30%        | 70%         | Agent acquires and services the merchant |
+| FEE-MER-002 | Micro-merchant (< 5M/month) | 0.75% | 25%        | 75%         | Subsidized rate to encourage adoption    |
 
 ---
 
 ## 5. Discount Rules
 
-| Rule ID | Name | Condition | Discount | Stackable | Priority |
-|---------|------|-----------|----------|-----------|----------|
-| DSC-LOY-001 | Tier 3 Loyalty | User tier = 3 AND > 50 transactions in last 30 days | 50% off transfer fees (FEE-TRF-001 only) | No | 100 |
-| DSC-LOY-002 | Tier 2 Loyalty | User tier = 2 AND > 20 transactions in last 30 days | 25% off transfer fees (FEE-TRF-001 only) | No | 110 |
-| DSC-PROMO-001 | New User First Transfers | User registration date < 30 days AND transaction count < 4 | 100% fee waiver (all transaction fees) | No | 50 |
-| DSC-PROMO-002 | Agent Onboarding | Agent first 50 cash-in/cash-out transactions | 100% fee waiver for customers (Beza subsidizes agent commission) | No | 60 |
-| DSC-VOL-001 | Payroll Volume Discount | Employer batch > 100 employees | 0.5% instead of 1% (applies to FEE-PAY-001) | No | 100 |
-| DSC-VOL-002 | High-Volume Merchant | Merchant monthly QR volume > 50M SYP | 0.75% instead of 1% MDR | No | 100 |
-| DSC-SEASONAL-001 | Ramadan Promo | Calendar month = Ramadan (Islamic calendar) | 25% off all transfer and bill payment fees | Yes (with loyalty) | 200 |
-| DSC-REF-001 | Referral Bonus | Referred user completes first 3 transactions | 5,000 SYP credit to referrer (applied as discount on next fee) | No | 300 |
+| Rule ID          | Name                     | Condition                                                  | Discount                                                         | Stackable          | Priority |
+| ---------------- | ------------------------ | ---------------------------------------------------------- | ---------------------------------------------------------------- | ------------------ | -------- |
+| DSC-LOY-001      | Tier 3 Loyalty           | User tier = 3 AND > 50 transactions in last 30 days        | 50% off transfer fees (FEE-TRF-001 only)                         | No                 | 100      |
+| DSC-LOY-002      | Tier 2 Loyalty           | User tier = 2 AND > 20 transactions in last 30 days        | 25% off transfer fees (FEE-TRF-001 only)                         | No                 | 110      |
+| DSC-PROMO-001    | New User First Transfers | User registration date < 30 days AND transaction count < 4 | 100% fee waiver (all transaction fees)                           | No                 | 50       |
+| DSC-PROMO-002    | Agent Onboarding         | Agent first 50 cash-in/cash-out transactions               | 100% fee waiver for customers (Beza subsidizes agent commission) | No                 | 60       |
+| DSC-VOL-001      | Payroll Volume Discount  | Employer batch > 100 employees                             | 0.5% instead of 1% (applies to FEE-PAY-001)                      | No                 | 100      |
+| DSC-VOL-002      | High-Volume Merchant     | Merchant monthly QR volume > 50M SYP                       | 0.75% instead of 1% MDR                                          | No                 | 100      |
+| DSC-SEASONAL-001 | Ramadan Promo            | Calendar month = Ramadan (Islamic calendar)                | 25% off all transfer and bill payment fees                       | Yes (with loyalty) | 200      |
+| DSC-REF-001      | Referral Bonus           | Referred user completes first 3 transactions               | 5,000 SYP credit to referrer (applied as discount on next fee)   | No                 | 300      |
 
 ### Discount Evaluation Logic
 
@@ -223,14 +224,14 @@ These rules govern the split for the cash handling fee charged to the customer.
 
 ## 6. FX Margin Rules
 
-| Pair | Direction | Base Margin | Tier 1 | Tier 2 | Tier 3 | CBS Max Spread |
-|------|-----------|-------------|--------|--------|--------|----------------|
-| SYP→USD | Buy (Sell SYP) | 2.0% | 2.0% | 1.5% | 1.0% | 3.0% (CBS Directive 2023/03) |
-| USD→SYP | Sell (Buy SYP) | 1.5% | 1.5% | 1.0% | 0.75% | 2.5% (CBS Directive 2023/03) |
-| SYP→EUR | Buy (Sell SYP) | 2.5% | 2.5% | 2.0% | 1.5% | 3.5% |
-| EUR→SYP | Sell (Buy SYP) | 2.0% | 2.0% | 1.5% | 1.0% | 3.0% |
-| SYP→TRY | Buy (Sell SYP) | 3.0% | 3.0% | 2.5% | 2.0% | 4.0% |
-| TRY→SYP | Sell (Buy SYP) | 2.5% | 2.5% | 2.0% | 1.5% | 3.5% |
+| Pair    | Direction      | Base Margin | Tier 1 | Tier 2 | Tier 3 | CBS Max Spread               |
+| ------- | -------------- | ----------- | ------ | ------ | ------ | ---------------------------- |
+| SYP→USD | Buy (Sell SYP) | 2.0%        | 2.0%   | 1.5%   | 1.0%   | 3.0% (CBS Directive 2023/03) |
+| USD→SYP | Sell (Buy SYP) | 1.5%        | 1.5%   | 1.0%   | 0.75%  | 2.5% (CBS Directive 2023/03) |
+| SYP→EUR | Buy (Sell SYP) | 2.5%        | 2.5%   | 2.0%   | 1.5%   | 3.5%                         |
+| EUR→SYP | Sell (Buy SYP) | 2.0%        | 2.0%   | 1.5%   | 1.0%   | 3.0%                         |
+| SYP→TRY | Buy (Sell SYP) | 3.0%        | 3.0%   | 2.5%   | 2.0%   | 4.0%                         |
+| TRY→SYP | Sell (Buy SYP) | 2.5%        | 2.5%   | 2.0%   | 1.5%   | 3.5%                         |
 
 ### FX Formula
 
@@ -263,13 +264,13 @@ For 1,000 USD buy at Tier 2:
 
 ### 7.1 Configuration & Storage
 
-| Rule | Detail |
-|------|--------|
-| Storage | All pricing rules in `pricing_rules` table (PostgreSQL) |
-| Cache | Redis key `pricing:rules:{rule_id}` — TTL 3,600 seconds (1 hour) |
-| Cache warmup | On application startup, all active rules loaded into Redis |
-| Invalidation | Rule CRUD operations trigger cache invalidation (pub/sub channel: `pricing:invalidate`) |
-| Source of truth | Database (Redis is read-through cache) |
+| Rule            | Detail                                                                                  |
+| --------------- | --------------------------------------------------------------------------------------- |
+| Storage         | All pricing rules in `pricing_rules` table (PostgreSQL)                                 |
+| Cache           | Redis key `pricing:rules:{rule_id}` — TTL 3,600 seconds (1 hour)                        |
+| Cache warmup    | On application startup, all active rules loaded into Redis                              |
+| Invalidation    | Rule CRUD operations trigger cache invalidation (pub/sub channel: `pricing:invalidate`) |
+| Source of truth | Database (Redis is read-through cache)                                                  |
 
 ### 7.2 Rule Evaluation Algorithm
 
@@ -308,13 +309,13 @@ function evaluate_pricing(context):
 
 ### 7.3 Audit & Logging
 
-| Requirement | Implementation |
-|-------------|---------------|
-| Rule change audit | `pricing_rule_audit` table: stores before/after delta, changed_by, timestamp |
-| Pricing history | Every fee calculation logged to `pricing_calculation_log` (transaction_id, rule_id, fee, discount, breakdown) |
-| Immutable log | Pricing log entries are write-once (no UPDATE, only INSERT) |
-| Retention | 7 years (CBS regulatory requirement for financial records) |
-| Queryable | Logs indexed by transaction_id, user_id, date range for analytics |
+| Requirement       | Implementation                                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------------------------------- |
+| Rule change audit | `pricing_rule_audit` table: stores before/after delta, changed_by, timestamp                                  |
+| Pricing history   | Every fee calculation logged to `pricing_calculation_log` (transaction_id, rule_id, fee, discount, breakdown) |
+| Immutable log     | Pricing log entries are write-once (no UPDATE, only INSERT)                                                   |
+| Retention         | 7 years (CBS regulatory requirement for financial records)                                                    |
+| Queryable         | Logs indexed by transaction_id, user_id, date range for analytics                                             |
 
 ### 7.4 Business Rules
 
@@ -329,15 +330,15 @@ function evaluate_pricing(context):
 
 ### 7.5 CBS Regulatory Constraints
 
-| Constraint | Limit | Source |
-|------------|-------|--------|
-| Max cash-in fee | 0.5% | CBS Agent Banking Framework 2023/45 |
-| Max cash-out fee | 1.0% | CBS Agent Banking Framework 2023/45 |
-| Max FX spread | 3.0% (SYP↔USD) | CBS FX Directive 2023/03 |
-| Max remittance fee | 4.0% | CBS Cross-Border Remittance Directive 2022/28 |
-| Max government collection fee | 0.5% | CBS Government Collection Framework 2024/17 |
-| Max MDR (micro-merchant) | 1.0% | CBS Merchant Payment Framework 2024/01 |
-| Fee transparency | All fees must be displayed before transaction confirmation | CBS Consumer Protection Directive 2024/05 |
+| Constraint                    | Limit                                                      | Source                                        |
+| ----------------------------- | ---------------------------------------------------------- | --------------------------------------------- |
+| Max cash-in fee               | 0.5%                                                       | CBS Agent Banking Framework 2023/45           |
+| Max cash-out fee              | 1.0%                                                       | CBS Agent Banking Framework 2023/45           |
+| Max FX spread                 | 3.0% (SYP↔USD)                                             | CBS FX Directive 2023/03                      |
+| Max remittance fee            | 4.0%                                                       | CBS Cross-Border Remittance Directive 2022/28 |
+| Max government collection fee | 0.5%                                                       | CBS Government Collection Framework 2024/17   |
+| Max MDR (micro-merchant)      | 1.0%                                                       | CBS Merchant Payment Framework 2024/01        |
+| Fee transparency              | All fees must be displayed before transaction confirmation | CBS Consumer Protection Directive 2024/05     |
 
 ---
 
@@ -424,19 +425,19 @@ CREATE TABLE user_pricing_overrides (
 
 ## 9. API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/pricing/evaluate` | Evaluate pricing for a single transaction (real-time) |
-| POST | `/api/v1/pricing/batch-evaluate` | Evaluate pricing for a batch (e.g., payroll) |
-| GET | `/api/v1/pricing/rules` | List all active pricing rules |
-| GET | `/api/v1/pricing/rules/{rule_id}` | Get rule details |
-| POST | `/api/v1/pricing/rules` | Create new pricing rule (admin) |
-| PUT | `/api/v1/pricing/rules/{rule_id}` | Update pricing rule (audit trail auto-logged) |
-| DELETE | `/api/v1/pricing/rules/{rule_id}` | Soft-delete (set active=false) |
-| GET | `/api/v1/pricing/rules/{rule_id}/audit` | View audit trail for a rule |
-| GET | `/api/v1/pricing/calculate-history` | Query pricing calculation logs (with filters) |
-| POST | `/api/v1/pricing/simulate` | Simulate pricing without creating a transaction |
-| POST | `/api/v1/admin/pricing/cache/refresh` | Force refresh Redis cache from DB |
+| Method | Endpoint                                | Description                                           |
+| ------ | --------------------------------------- | ----------------------------------------------------- |
+| POST   | `/api/v1/pricing/evaluate`              | Evaluate pricing for a single transaction (real-time) |
+| POST   | `/api/v1/pricing/batch-evaluate`        | Evaluate pricing for a batch (e.g., payroll)          |
+| GET    | `/api/v1/pricing/rules`                 | List all active pricing rules                         |
+| GET    | `/api/v1/pricing/rules/{rule_id}`       | Get rule details                                      |
+| POST   | `/api/v1/pricing/rules`                 | Create new pricing rule (admin)                       |
+| PUT    | `/api/v1/pricing/rules/{rule_id}`       | Update pricing rule (audit trail auto-logged)         |
+| DELETE | `/api/v1/pricing/rules/{rule_id}`       | Soft-delete (set active=false)                        |
+| GET    | `/api/v1/pricing/rules/{rule_id}/audit` | View audit trail for a rule                           |
+| GET    | `/api/v1/pricing/calculate-history`     | Query pricing calculation logs (with filters)         |
+| POST   | `/api/v1/pricing/simulate`              | Simulate pricing without creating a transaction       |
+| POST   | `/api/v1/admin/pricing/cache/refresh`   | Force refresh Redis cache from DB                     |
 
 ---
 
@@ -445,6 +446,7 @@ CREATE TABLE user_pricing_overrides (
 ### Scenario: Agent Cash-out of 50,000 SYP by a Tier 2 User
 
 **Request context:**
+
 ```json
 {
   "transaction_type": "AGENT_CASH_OUT",
@@ -459,36 +461,37 @@ CREATE TABLE user_pricing_overrides (
 
 **Engine evaluation:**
 
-| Step | Rule | Calculation | Result |
-|------|------|------------|--------|
-| 1 | Match rule | FEE-COUT-001 (Agent Cash-out, 1%, min 200, max 5,000) | Matched (priority 100) |
-| 2 | Fee formula | 50,000 × 1% = 500 SYP | 500 SYP (within min/max bounds) |
-| 3 | Check discount | User Tier 2, > 20 transactions last 30 days? → Yes | DSC-LOY-002 applies: 25% off transfer fees |
-| 4 | Apply discount | 500 × 25% = 125 SYP | 500 − 125 = 375 SYP |
-| 5 | Check promo | Registration < 30 days? → No | No promo discount |
-| 6 | Commission split | Fee 375 SYP: Beza 30% (112.5), Agent 70% (262.5) | Beza: 113 SYP, Agent: 263 SYP (rounded) |
-| 7 | FX check | SYP only, no FX | margin = 0 |
+| Step | Rule             | Calculation                                           | Result                                     |
+| ---- | ---------------- | ----------------------------------------------------- | ------------------------------------------ |
+| 1    | Match rule       | FEE-COUT-001 (Agent Cash-out, 1%, min 200, max 5,000) | Matched (priority 100)                     |
+| 2    | Fee formula      | 50,000 × 1% = 500 SYP                                 | 500 SYP (within min/max bounds)            |
+| 3    | Check discount   | User Tier 2, > 20 transactions last 30 days? → Yes    | DSC-LOY-002 applies: 25% off transfer fees |
+| 4    | Apply discount   | 500 × 25% = 125 SYP                                   | 500 − 125 = 375 SYP                        |
+| 5    | Check promo      | Registration < 30 days? → No                          | No promo discount                          |
+| 6    | Commission split | Fee 375 SYP: Beza 30% (112.5), Agent 70% (262.5)      | Beza: 113 SYP, Agent: 263 SYP (rounded)    |
+| 7    | FX check         | SYP only, no FX                                       | margin = 0                                 |
 
 **Response:**
+
 ```json
 {
-  "fee_amount": 375.00,
+  "fee_amount": 375.0,
   "fee_currency": "SYP",
   "fx_margin": 0,
   "commission_breakdown": {
-    "beza": 112.50,
-    "agent": 262.50
+    "beza": 112.5,
+    "agent": 262.5
   },
   "discount_applied": "DSC-LOY-002",
-  "discount_amount": 125.00,
-  "total_charge": 375.00,
+  "discount_amount": 125.0,
+  "total_charge": 375.0,
   "breakdown": [
-    { "type": "FEE", "rule_id": "FEE-COUT-001", "amount": 500.00 },
-    { "type": "DISCOUNT", "rule_id": "DSC-LOY-002", "amount": -125.00 }
+    { "type": "FEE", "rule_id": "FEE-COUT-001", "amount": 500.0 },
+    { "type": "DISCOUNT", "rule_id": "DSC-LOY-002", "amount": -125.0 }
   ]
 }
 ```
 
 ---
 
-*This pricing engine design is proprietary to Beza Platform. All fee rates, margins, and commission splits are based on Syrian market benchmarks and CBS regulatory limits as of May 2026.*
+_This pricing engine design is proprietary to Beza Platform. All fee rates, margins, and commission splits are based on Syrian market benchmarks and CBS regulatory limits as of May 2026._

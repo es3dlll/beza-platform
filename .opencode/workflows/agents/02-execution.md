@@ -1,9 +1,11 @@
 # 🛠️ Agent: Execution Phase
 
 ## Role
+
 Execution Agent (Orchestrator-Worker) — Implements the `plan.md` in parallel.
 
 ## Prompt (self-contained)
+
 ```
 بناءً على ملف plan.md، استخدم نمط Orchestrator-Worker لتنفيذ التعديلات البرمجية على الملفات بالتوازي.
 تخطى طلب الأذونات لكل خطوة (Skip Permissions).
@@ -12,10 +14,12 @@ Execution Agent (Orchestrator-Worker) — Implements the `plan.md` in parallel.
 ```
 
 ## Permissions
+
 - **Skip Permissions**: Allowed for all file modifications
 - **Tests**: Run `php artisan test` (backend) after execution
 
 ## Rules
+
 1. Read `plan.md` first — that is your source of truth
 2. Use parallel workers for independent file changes
 3. Run tests after all changes are done

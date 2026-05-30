@@ -10,25 +10,25 @@ Beza V1 consists of 13 engineering modules plus 3 cross-cutting infrastructure s
 
 ## Dependency Matrix
 
-| Module | Depends On | Blocks | Shared Services | Syria-Specific Notes |
-|--------|-----------|--------|-----------------|---------------------|
-| **Identity** | — | IAM, ALL | Cache, Queue, SMS | Phone prefix +963, OTP via Syriatel SMPP, device binding for Syrian phones |
-| **IAM** | Identity | Ledger, Wallet, ALL | Cache | Spatie Laravel Permission, module-based authorization, role hierarchy (Super Admin, Compliance, Finance, Agent Manager, Support) |
-| **Ledger** | IAM | CFE, Wallet, Settlement | — | Chart of accounts must be CBS-compatible (Central Bank of Syria classification). Account types: asset, liability, income, expense, suspense |
-| **CFE** | Ledger | Wallet, FX, Settlement | Reconciliation | State machine (initiated → held → completed → reversed), hold engine (30-min expiry), fee engine, reversal engine, suspense handling |
-| **Wallet** | Identity, IAM, CFE | Agent, FX, Remittance, Bills, Merchant | Fraud, Rate Limiter | Dual-currency SYP/USD, tier limits based on CBS regulation. Balance = cached projection of Ledger journal entries |
-| **Agent** | Wallet | Settlement | Fraud, Compliance, Notification | Agent registration requires Syrian business registration (سجل تجاري). Float managed via Ledger account 1200 |
-| **FX** | Wallet, CFE | Remittance | Rate Cache, CFE Posting | CBS daily rate feed, spread caps regulated by CBS (max 3%). Uses CFE suspense account for multi-currency conversion |
-| **Remittance** | FX, Wallet, Agent | — | Compliance, Fraud, CBS Reporting | OFAC/EU/UN sanction screening required for diaspora senders. Payout via CFE posting to recipient wallet |
-| **Bills** | Wallet | — | CFE Posting | Syriatel and MTN prepaid top-up, Electricity Ministry SOAP API, Water Authority. Settlement via daily batch |
-| **Merchant** | Wallet | Settlement | Fraud, Notification | T+1 settlement, MDR (Merchant Discount Rate) capped by CBS. CFE posting on every transaction |
-| **Settlement** | Wallet, Agent, Merchant, CFE | — | Notification, Bank API | Batch settlement to Syrian bank accounts (IBAN format). Nett all payables before bank transfer |
-| **Fraud** | ALL (consumes events) | — | Compliance, Alerting | Syria-specific rules: phone recycling detection, agent-customer collusion. Non-blocking event consumer |
-| **Compliance** | Identity, Fraud, Remittance | — | CBS Reporting, AML | Sanction screening, STR reporting to Syrian AML Commission. KYC tier enforcement |
-| **Notification** | Identity (user prefs) | — | — | SMS via Syriatel SMPP + fallback, Arabic/English bilingual |
-| **Admin** | ALL | — | — | Multi-role admin: Super Admin, Compliance Officer, Agent Manager, Finance |
-| **USSD** | Identity | — | — | *123# shortcode, Arabic-first menus, Syriatel USSD gateway |
-| **Auth** | Identity (local dependency) | Wallet, ALL | — | JWT + PIN + device binding, middleware on every financial route |
+| Module           | Depends On                   | Blocks                                 | Shared Services                  | Syria-Specific Notes                                                                                                                        |
+| ---------------- | ---------------------------- | -------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Identity**     | —                            | IAM, ALL                               | Cache, Queue, SMS                | Phone prefix +963, OTP via Syriatel SMPP, device binding for Syrian phones                                                                  |
+| **IAM**          | Identity                     | Ledger, Wallet, ALL                    | Cache                            | Spatie Laravel Permission, module-based authorization, role hierarchy (Super Admin, Compliance, Finance, Agent Manager, Support)            |
+| **Ledger**       | IAM                          | CFE, Wallet, Settlement                | —                                | Chart of accounts must be CBS-compatible (Central Bank of Syria classification). Account types: asset, liability, income, expense, suspense |
+| **CFE**          | Ledger                       | Wallet, FX, Settlement                 | Reconciliation                   | State machine (initiated → held → completed → reversed), hold engine (30-min expiry), fee engine, reversal engine, suspense handling        |
+| **Wallet**       | Identity, IAM, CFE           | Agent, FX, Remittance, Bills, Merchant | Fraud, Rate Limiter              | Dual-currency SYP/USD, tier limits based on CBS regulation. Balance = cached projection of Ledger journal entries                           |
+| **Agent**        | Wallet                       | Settlement                             | Fraud, Compliance, Notification  | Agent registration requires Syrian business registration (سجل تجاري). Float managed via Ledger account 1200                                 |
+| **FX**           | Wallet, CFE                  | Remittance                             | Rate Cache, CFE Posting          | CBS daily rate feed, spread caps regulated by CBS (max 3%). Uses CFE suspense account for multi-currency conversion                         |
+| **Remittance**   | FX, Wallet, Agent            | —                                      | Compliance, Fraud, CBS Reporting | OFAC/EU/UN sanction screening required for diaspora senders. Payout via CFE posting to recipient wallet                                     |
+| **Bills**        | Wallet                       | —                                      | CFE Posting                      | Syriatel and MTN prepaid top-up, Electricity Ministry SOAP API, Water Authority. Settlement via daily batch                                 |
+| **Merchant**     | Wallet                       | Settlement                             | Fraud, Notification              | T+1 settlement, MDR (Merchant Discount Rate) capped by CBS. CFE posting on every transaction                                                |
+| **Settlement**   | Wallet, Agent, Merchant, CFE | —                                      | Notification, Bank API           | Batch settlement to Syrian bank accounts (IBAN format). Nett all payables before bank transfer                                              |
+| **Fraud**        | ALL (consumes events)        | —                                      | Compliance, Alerting             | Syria-specific rules: phone recycling detection, agent-customer collusion. Non-blocking event consumer                                      |
+| **Compliance**   | Identity, Fraud, Remittance  | —                                      | CBS Reporting, AML               | Sanction screening, STR reporting to Syrian AML Commission. KYC tier enforcement                                                            |
+| **Notification** | Identity (user prefs)        | —                                      | —                                | SMS via Syriatel SMPP + fallback, Arabic/English bilingual                                                                                  |
+| **Admin**        | ALL                          | —                                      | —                                | Multi-role admin: Super Admin, Compliance Officer, Agent Manager, Finance                                                                   |
+| **USSD**         | Identity                     | —                                      | —                                | \*123# shortcode, Arabic-first menus, Syriatel USSD gateway                                                                                 |
+| **Auth**         | Identity (local dependency)  | Wallet, ALL                            | —                                | JWT + PIN + device binding, middleware on every financial route                                                                             |
 
 ---
 
@@ -144,6 +144,7 @@ Step 10: OPERATIONS (W29–W32, parallel wrap)
 **Critical Path Duration: 32 weeks**
 
 ### What Is NOT on the Critical Path
+
 These can be shifted right without delaying V1 launch:
 | Module | Slack | Rationale |
 |--------|-------|-----------|
@@ -162,6 +163,7 @@ These can be shifted right without delaying V1 launch:
 Some services are consumed by multiple modules. These must be built with stable contracts (interfaces, events, DTOs) before the first consuming module ships.
 
 ### Ledger — Single Source of Truth for Balances
+
 ```
 Suppliers: CFE (posts entries), Wallet (reads balance), Settlement (posts batch entries)
 Consumers: Reconciliation, Compliance (audit trail), Admin (P&L)
@@ -171,6 +173,7 @@ Rule:      Wallet balance = SUM(ledger.journal_entries WHERE account_id = wallet
 ```
 
 ### CFE (Core Financial Engine) — Transaction Orchestrator
+
 ```
 Suppliers: Wallet, FX, Agent, Bills, Merchant (initiate transactions)
 Consumers: Ledger (posts journal entries), Fraud (consumes events), Notification (sends receipts)
@@ -182,6 +185,7 @@ Guarantee: All-or-nothing posting (transactional), immutable entries
 ```
 
 ### Fraud Engine — Shared Risk Scoring
+
 ```
 Suppliers: ALL modules (emit fraud events)
 Consumers: Wallet (block transfer), Agent (block cash-out), Admin (case management)
@@ -190,6 +194,7 @@ Guarantee: Fraud scoring completes in <200ms (Redis-based rules), non-blocking f
 ```
 
 ### Notification — Shared Messaging
+
 ```
 Suppliers: ALL modules (call NotificationService::send())
 Consumers: Users, Agents, Admins (SMS, push, email, in-app)
@@ -198,6 +203,7 @@ Priority: SMS = high (queue), Push = default, Email = low
 ```
 
 ### Rate Limiter — Shared Middleware
+
 ```
 Applied on: All financial routes (transfer, cash-in/out, bill pay, merchant pay)
 Strategy:  Redis sliding window, per-user + per-endpoint
@@ -209,6 +215,7 @@ Tiers:     Tier 1: 10 financial txns/min, Tier 2: 30/min
 ## Dependency Rules (Engineering Contract)
 
 ### Rule 1: No Circular Dependencies
+
 Modules may NOT depend on each other in a cycle. Exception: Fraud and Compliance consume events from all modules but do not block them — this is a unidirectional event stream, not a dependency.
 
 ```
@@ -217,6 +224,7 @@ GOOD: Wallet → FX → Remittance (acyclic)
 ```
 
 ### Rule 2: Interface Before Implementation
+
 When Module A depends on Module B, Module B must provide a stable interface (PHP interface + DTO) before Module A's development begins. Implementation can follow.
 
 ```
@@ -226,6 +234,7 @@ Week 14: Wallet team implements WalletInterface
 ```
 
 ### Rule 3: Events Not Coupling
+
 Cross-module communication should use Laravel events + listeners, not direct method calls, except for CFE/Ledger posting (must be synchronous for consistency).
 
 ```
@@ -236,6 +245,7 @@ Agent::create(new Agent(...));        // CONTAINS Wallet::adjustFloat() — BAD:
 ```
 
 ### Rule 4: Database Schema Isolation
+
 Each module uses its own MySQL schema (`beza_identity`, `beza_ledger`, `beza_cfe`, `beza_wallet`, etc.). Cross-schema queries are forbidden. Data joins across modules go through the application layer (service calls), not database.
 
 ```
@@ -248,6 +258,7 @@ $wallet = WalletService::getByUserId($user->id);
 ```
 
 ### Rule 5: Ledger Is the Single Source of Truth for Balances
+
 Wallet balance in Redis is a cache. Wallet balance in MySQL is a cached projection. The Ledger journal entries are the single source of truth. Reconciliation runs daily.
 
 ```
@@ -258,6 +269,7 @@ Balance query path:
 ```
 
 ### Rule 6: CFE Orchestrates, Ledger Records
+
 CFE manages transaction state (hold, confirm, reverse, suspense). Ledger records the immutable double-entry journal. CFE calls Ledger; Ledger never calls CFE.
 
 ---
@@ -335,39 +347,41 @@ NON-BLOCKING STREAMS (separate, no blocking edges):
 
 ## Build Sequence by Dependency Level
 
-| Level | Modules | Start Week | Deps Satisfied By |
-|-------|---------|------------|-------------------|
-| 0 | Identity | W1 | — |
-| 1 | IAM, USSD, Admin, Notification | W5 | Identity |
-| 2 | Ledger | W7 | IAM |
-| 3 | CFE | W9 | Ledger |
-| 4 | Wallet, Fraud (basic) | W13 | CFE, IAM, Identity |
-| 5 | Agent, FX, Bills, Merchant, Compliance | W17 | Wallet, CFE |
-| 6 | Remittance | W25 | FX, Wallet, Agent |
-| 7 | Settlement | W29 | Merchant, Agent, Wallet, CFE |
-| 8 | Operations (full) | W29 | ALL |
+| Level | Modules                                | Start Week | Deps Satisfied By            |
+| ----- | -------------------------------------- | ---------- | ---------------------------- |
+| 0     | Identity                               | W1         | —                            |
+| 1     | IAM, USSD, Admin, Notification         | W5         | Identity                     |
+| 2     | Ledger                                 | W7         | IAM                          |
+| 3     | CFE                                    | W9         | Ledger                       |
+| 4     | Wallet, Fraud (basic)                  | W13        | CFE, IAM, Identity           |
+| 5     | Agent, FX, Bills, Merchant, Compliance | W17        | Wallet, CFE                  |
+| 6     | Remittance                             | W25        | FX, Wallet, Agent            |
+| 7     | Settlement                             | W29        | Merchant, Agent, Wallet, CFE |
+| 8     | Operations (full)                      | W29        | ALL                          |
 
 ---
 
 ## Risk Dependencies
 
 ### High Risk (single point of failure)
-| Dependency | Risk | Mitigation |
-|-----------|------|------------|
-| Identity → IAM | Identity delay blocks authorization | Identity team is 2 engineers minimum, code review for quality |
-| IAM → Ledger | IAM delay blocks ledger posting | IAM contract frozen by W5, Ledger builds against mock |
-| Ledger → CFE | Ledger bugs corrupt entire financial system | Ledger has its own test suite + daily trial balance check |
-| CFE → Wallet | CFE delay blocks ALL financial features | CFE uses LedgerInterface; Wallet builds against CFE contract from W12 |
-| Agent → Wallet | Agent launch requires working wallet | Wallet API frozen by contract in W13, Agent builds against mock |
-| Remittance → FX | FX delay blocks remittance | FX team starts W21, one week before Remittance (buffer) |
-| SMS → Syriatel SMPP | SMPP downtime blocks OTP/notifications | GSM modem fallback, SMS queue with retry, exponential backoff |
+
+| Dependency          | Risk                                        | Mitigation                                                            |
+| ------------------- | ------------------------------------------- | --------------------------------------------------------------------- |
+| Identity → IAM      | Identity delay blocks authorization         | Identity team is 2 engineers minimum, code review for quality         |
+| IAM → Ledger        | IAM delay blocks ledger posting             | IAM contract frozen by W5, Ledger builds against mock                 |
+| Ledger → CFE        | Ledger bugs corrupt entire financial system | Ledger has its own test suite + daily trial balance check             |
+| CFE → Wallet        | CFE delay blocks ALL financial features     | CFE uses LedgerInterface; Wallet builds against CFE contract from W12 |
+| Agent → Wallet      | Agent launch requires working wallet        | Wallet API frozen by contract in W13, Agent builds against mock       |
+| Remittance → FX     | FX delay blocks remittance                  | FX team starts W21, one week before Remittance (buffer)               |
+| SMS → Syriatel SMPP | SMPP downtime blocks OTP/notifications      | GSM modem fallback, SMS queue with retry, exponential backoff         |
 
 ### Medium Risk
-| Dependency | Risk | Mitigation |
-|-----------|------|------------|
-| Fraud → ML model | ML not ready for launch | Rule engine ships W5 without ML; ML added as enhancement |
-| CBS reporting → Remittance | CBS XML format changes | Adapter pattern: parse CBS format into internal DTO, swap implementation |
-| Agent app → Android SDK | Android fragmentation | Min SDK 26 (Android 8), test on top 5 Syrian devices (Samsung A series, Xiaomi Redmi) |
+
+| Dependency                 | Risk                    | Mitigation                                                                            |
+| -------------------------- | ----------------------- | ------------------------------------------------------------------------------------- |
+| Fraud → ML model           | ML not ready for launch | Rule engine ships W5 without ML; ML added as enhancement                              |
+| CBS reporting → Remittance | CBS XML format changes  | Adapter pattern: parse CBS format into internal DTO, swap implementation              |
+| Agent app → Android SDK    | Android fragmentation   | Min SDK 26 (Android 8), test on top 5 Syrian devices (Samsung A series, Xiaomi Redmi) |
 
 ---
 
@@ -399,6 +413,7 @@ Modules/Wallet/
 ```
 
 Inter-module communication is via:
+
 - **Events + Listeners** (async, non-blocking): Fraud, Notification, Compliance
 - **Contracts + Service Container** (sync, blocking): Wallet → CFE, CFE → Ledger, Ledger → posting
 - **Queued Jobs**: SMS sending, report generation, biller API calls

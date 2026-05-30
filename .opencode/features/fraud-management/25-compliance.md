@@ -4,20 +4,21 @@
 
 ### Applicable Laws & Regulations
 
-| Law/Regulation | Scope | Key Requirements |
-|---------------|-------|-----------------|
-| Syrian AML Law No. 31/2010 | AML/CFT | SAR filing at 1M SYP, CDD, record keeping 10 years |
-| CBS Decision No. 17/2021 | PSP Licensing | Fraud prevention system mandatory for PSP license |
-| CBS Circular No. 5/2022 | Agent Network | Agent fraud monitoring and reporting |
-| CBS Decision No. 23/2023 | Cybersecurity | Fraud system security requirements |
-| IFRS 9 | Financial Reporting | Expected credit loss provisioning for fraud |
-| FATF Recommendations | International | Risk-based approach, SAR filing, beneficial ownership |
+| Law/Regulation             | Scope               | Key Requirements                                      |
+| -------------------------- | ------------------- | ----------------------------------------------------- |
+| Syrian AML Law No. 31/2010 | AML/CFT             | SAR filing at 1M SYP, CDD, record keeping 10 years    |
+| CBS Decision No. 17/2021   | PSP Licensing       | Fraud prevention system mandatory for PSP license     |
+| CBS Circular No. 5/2022    | Agent Network       | Agent fraud monitoring and reporting                  |
+| CBS Decision No. 23/2023   | Cybersecurity       | Fraud system security requirements                    |
+| IFRS 9                     | Financial Reporting | Expected credit loss provisioning for fraud           |
+| FATF Recommendations       | International       | Risk-based approach, SAR filing, beneficial ownership |
 
 ### CBS Reporting Obligations
 
 #### 1. Suspicious Activity Report (SAR)
 
 **Trigger Conditions:**
+
 - Fraud amount ≥ 1,000,000 SYP (or equivalent USD 2,000/EUR 1,700)
 - Fraud involving sanctioned persons/entities (UNSC, Syrian sanctions lists)
 - Fraud linked to organized crime or terrorism financing indicators
@@ -25,6 +26,7 @@
 - Repeated small-value fraud suggesting structuring (under 1M SYP but systematic)
 
 **SAR Content Requirements:**
+
 ```
 SAR Reference: SAR-2025-XXXXX
 Date: YYYY-MM-DD
@@ -87,6 +89,7 @@ SECTION F: ATTACHMENTS
 **Trigger:** Any single fraud incident ≥ 5,000,000 SYP OR fraud involving systemic failure
 
 **Notification Format:**
+
 ```
 URGENT — MATERIAL FRAUD NOTIFICATION
 To: CBS AML Division
@@ -125,6 +128,7 @@ Required CBS Action:
 (Full template in 06-regulatory.md — summary here)
 
 **Content:**
+
 - Transaction volume and value
 - Fraud cases and value
 - Fraud rate trend (compared to previous quarters)
@@ -136,6 +140,7 @@ Required CBS Action:
 - False positive analysis
 
 **Submission Timeline:**
+
 - Q1: By April 15
 - Q2: By July 15
 - Q3: By October 15
@@ -146,6 +151,7 @@ Required CBS Action:
 **CBS requires:** Annual independent review of fraud prevention system
 
 **Audit scope:**
+
 - Governance and oversight
 - Risk assessment methodology
 - Rule engine effectiveness
@@ -167,7 +173,7 @@ ECL = PD × LGD × EAD × (1 + discount_rate)^(-time)
 Where:
 PD (Probability of Default) = Fraud-adjusted PD
   = Base PD × (1 + fraud_rate_multiplier)
-LGD (Loss Given Default) = 1 - recovery_rate  
+LGD (Loss Given Default) = 1 - recovery_rate
 EAD (Exposure at Default) = Transaction amount × fraud_exposure_factor
 
 Fraud-specific contribution:
@@ -192,9 +198,9 @@ Fraud ECL calculation:
   fraud_PD = 1,842 / 10,000,000 = 0.0001842 (0.01842%)
   fraud_LGD = 1 - 0.21 = 0.79
   fraud_EAD = 2,183,000 / 1,842 = 1,185 SYP (avg fraud amount)
-  
+
   Monthly fraud provision = 0.0001842 × 0.79 × 1,185 × monthly_txn_count
-  
+
   For 1M transactions/month:
   monthly_provision = 0.0001842 × 0.79 × 1,185 × 1,000,000
                     = 172,500 SYP
@@ -219,14 +225,14 @@ Fraud ECL calculation:
 
 ### Compliance Integration Points
 
-| System | Integration | Data Shared |
-|--------|-------------|-------------|
-| CBS Portal | API or manual | SARs, fraud reports |
-| AML Screening | Automated match | Suspect names checked against sanctions lists |
-| Sanctions List | Real-time check | UNSC sanctions, Syrian sanctions, OFAC (remittance) |
-| Law Enforcement | Email/Paper | Fraud referral, evidence package |
-| External Audit | Read-only access | Case data, decision logs, model metrics |
-| Internal Audit | Read-only access | Compliance with procedures, SAR timeliness |
+| System          | Integration      | Data Shared                                         |
+| --------------- | ---------------- | --------------------------------------------------- |
+| CBS Portal      | API or manual    | SARs, fraud reports                                 |
+| AML Screening   | Automated match  | Suspect names checked against sanctions lists       |
+| Sanctions List  | Real-time check  | UNSC sanctions, Syrian sanctions, OFAC (remittance) |
+| Law Enforcement | Email/Paper      | Fraud referral, evidence package                    |
+| External Audit  | Read-only access | Case data, decision logs, model metrics             |
+| Internal Audit  | Read-only access | Compliance with procedures, SAR timeliness          |
 
 ## Role: Compliance Officer
 

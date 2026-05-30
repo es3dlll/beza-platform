@@ -1,6 +1,7 @@
 # Data Platform Engineering Spec
 
 ## Architecture
+
 ```
 ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
 │ Application  │───>│  PostgreSQL  │───>│  Debezium    │
@@ -28,6 +29,7 @@
 ## ClickHouse Schema
 
 ### Transaction Analytics
+
 ```sql
 CREATE TABLE analytics.wallet_transactions (
     event_date Date,
@@ -52,6 +54,7 @@ ORDER BY (event_date, tenant_id, type, user_id);
 ```
 
 ### User Behavior
+
 ```sql
 CREATE TABLE analytics.user_sessions (
     event_date Date,
@@ -77,6 +80,7 @@ ORDER BY (event_date, user_id);
 ## ETL Pipelines
 
 ### Real-time (Streaming)
+
 ```
 Source: RabbitMQ (events) → ClickHouse (Materialized View)
 Consumer: Golang or Laravel worker
@@ -85,6 +89,7 @@ Transformation: JSON payload → ClickHouse columns
 ```
 
 ### Batch (Daily)
+
 ```
 Source: PostgreSQL → S3 (Parquet) → ClickHouse
 Tool: Spark or dbt
@@ -93,6 +98,7 @@ Tables: Wallet balances (snapshot), User profiles, Agent performance
 ```
 
 ### Search Indexing
+
 ```
 Source: PostgreSQL CDC (Debezium) → Kafka → Elasticsearch
 Sync: Near real-time (< 5s delay)
@@ -103,6 +109,7 @@ Indexes:
 ```
 
 ## Reports (dbt)
+
 ```yaml
 # dbt_project.yml
 models:

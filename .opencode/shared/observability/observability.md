@@ -5,6 +5,7 @@
 ## Three Pillars
 
 ### 1. Logging (Elasticsearch + Filebeat + Kibana)
+
 ```
 Log Levels: DEBUG | INFO | WARN | ERROR | CRITICAL
 Log Format: JSON structured (all services standard)
@@ -19,6 +20,7 @@ Critical Alerts:
 ```
 
 ### 2. Metrics (Prometheus + Grafana)
+
 ```
 Instrumentation: Laravel (spatie/laravel-prometheus), Flutter, Infrastructure
 Collection: 15s scrape interval
@@ -39,8 +41,9 @@ Business Metrics:
 ```
 
 ### 3. Tracing (Jaeger / OpenTelemetry)
+
 ```
-Sampling: 
+Sampling:
   Head-based: 100% for financial transactions, 10% for API calls
   Tail-based: Error samples always captured
 
@@ -57,6 +60,7 @@ Context Propagation:
 ```
 
 ## Alerting Rules
+
 ```
 P0 (Critical, 5min response):
   [Fire] Transaction failure rate > 2%
@@ -83,6 +87,7 @@ P3 (Low, 24hr response):
 ```
 
 ## Dashboard Structure (Grafana)
+
 ```
 Folder: Beza Platform
   1. System Overview: All services health, request volume, error rate
@@ -96,6 +101,7 @@ Folder: Beza Platform
 ```
 
 ## SLA/SLO Targets
+
 ```
 Service         Availability    Latency P99     Error Budget
 API Gateway         99.99%          500ms         Monthly 4.3m

@@ -83,6 +83,7 @@ class FraudEvent {
 ```
 
 **Ingestion:**
+
 - All features publish `TransactionInitiated` event
 - FraudEngine subscribes via Laravel event system
 - Events processed synchronously (must complete within 200ms)
@@ -373,7 +374,7 @@ class WalletTransferService {
     public function transfer(TransferRequest $request): TransferResult
     {
         // ... validation, balance check ...
-        
+
         // Fraud screening (synchronous, must complete < 200ms)
         $fraudResult = FraudScreeningService::screen(
             featureSource: 'wallet',
@@ -388,16 +389,16 @@ class WalletTransferService {
                 'user_agent' => $request->userAgent(),
             ]
         );
-        
+
         if ($fraudResult->decision === 'block') {
             throw new FraudBlockedException($fraudResult);
         }
-        
+
         if ($fraudResult->decision === 'review') {
             $transaction->markAsPending();
             return TransferResult::pending($fraudResult);
         }
-        
+
         // Continue with transfer
     }
 }
@@ -426,11 +427,11 @@ class RuleResult {
 
 ### 8. Performance Targets
 
-| Component | Target | P99 Max |
-|-----------|--------|---------|
-| Feature extraction | 30ms | 80ms |
-| Rule evaluation (parallel) | 20ms | 50ms |
-| ML scoring (ONNX) | 30ms | 70ms |
-| Decision aggregation | 10ms | 30ms |
-| Action execution | 10ms | 30ms |
-| **Total** | **100ms** | **260ms** |
+| Component                  | Target    | P99 Max   |
+| -------------------------- | --------- | --------- |
+| Feature extraction         | 30ms      | 80ms      |
+| Rule evaluation (parallel) | 20ms      | 50ms      |
+| ML scoring (ONNX)          | 30ms      | 70ms      |
+| Decision aggregation       | 10ms      | 30ms      |
+| Action execution           | 10ms      | 30ms      |
+| **Total**                  | **100ms** | **260ms** |
