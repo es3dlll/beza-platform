@@ -16,28 +16,22 @@
 │  │  Proxy │  │  Limit │  │  Match │  │  Layer │  │  Audit │  │  Term    ││
 │  └────────┘  └────────┘  └────────┘  └────────┘  └────────┘  └──────────┘│
 ├─────────────────────────────────────────────────────────────────────────────┤
-│                           SERVICE MESH (Istio)                               │
-├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│     V1 ONLY: Moduler Monolith (no microservices, no service mesh)           │
 │                           APPLICATION LAYER                                 │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                     Laravel Modular Monolith                        │   │
+│  │                  Laravel Moduler Monolith (V1 Core)                  │   │
 │  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ │   │
 │  │  │  Auth    │ │  Wallet  │ │   CFE    │ │  Ledger  │ │   FX     │ │   │
 │  │  │  Module  │ │  Module  │ │  Module  │ │  Module  │ │  Module  │ │   │
 │  │  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘ │   │
 │  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ │   │
-│  │  │Settlement│ │Remittance│ │  Bills   │ │  Payroll │ │ Merchant │ │   │
-│  │  │  Module  │ │  Module  │ │  Module  │ │  Module  │ │  Module  │ │   │
-│  │  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘ │   │
-│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ │   │
-│  │  │  Agent   │ │  Savings │ │Financing │ │   Cards  │ │  Loyalty │ │   │
-│  │  │  Module  │ │  Module  │ │  Module  │ │  Module  │ │  Module  │ │   │
-│  │  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘ │   │
-│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ │   │
-│  │  │Compliance│ │  Fraud   │ │  Audit   │ │   AML    │ │ Marketpl.│ │   │
+│  │  │Settlement│ │Remittance│ │  Bills   │ │ Merchant │ │  Agent   │ │   │
 │  │  │  Module  │ │  Module  │ │  Module  │ │  Module  │ │  Module  │ │   │
 │  │  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘ │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│     V2+ (Future): Extracted Services for Notification, FX, Settlement       │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                           EVENT PLATFORM                                    │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
@@ -61,22 +55,38 @@
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## Core Architecture Decisions
+## V1 Architecture Rules (CRITICAL — DO NOT DEVIATE)
+```
+1. Moduler Monolith ONLY — No microservices, no separate service deployments
+2. Single Laravel codebase — app/Modules/*, all modules in one process
+3. Single database — MySQL with schemas per domain, no per-service databases
+4. CFE owns ALL financial state — No module writes balances directly
+5. Ledger = Single Source of Truth — Every financial event passes through CFE
+6. Kong for API Gateway — Rate limiting, auth proxy, routing
+7. RabbitMQ for events — Single cluster, no Kafka in V1
+8. Redis for cache + sessions + rate limits — No Redis Cluster in V1
+9. No service mesh — Not needed until microservice extraction in V2+
+
+## V2+ Extraction Candidates (Future — NOT for V1)
+- Notification Service (independent scaling)
+- FX Engine (high compute, low latency)
+- Settlement Service (batch processing isolation)
+- Compliance Service (regulatory isolation)
+```
+
+## Core Architecture Decisions (V1)
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Monolith vs Microservices | Modular Monolith | Speed of delivery initially, extraction path to microservices |
-| Backend Framework | Laravel 11+ | PHP ecosystem fit for Syria, rapid development |
-| Mobile | Flutter 3+ | Single codebase iOS + Android, USSD fallback |
-| Web | React 18+ | Universal, large ecosystem |
-| API Gateway | Kong | Industry standard, plugin ecosystem |
-| Service Mesh | Istio | mTLS, observability, traffic management |
-| Event Bus | RabbitMQ + Kafka | RabbitMQ for commands/events, Kafka for analytics streams |
-| Database | MySQL 8.0 | Percona, proven reliability |
-| Cache | Redis 7 | Session, rate limits, hot data |
-| Analytics | ClickHouse | Real-time OLAP for reporting |
-| Monitoring | Prometheus + Grafana + ELK | Industry standard |
-| ML Serving | ONNX Runtime | Cross-platform model inference |
-| Container | Docker + Kubernetes | Portability, orchestration |
+| Architecture | Moduler Monolith | Only approach for V1 — microservices kill speed |
+| Backend Framework | Laravel 13+ | Rapid delivery, PHP ecosystem, Syrian developer availability |
+| Mobile | Flutter 3+ | Single codebase, offline-first, USSD fallback |
+| Admin Web | React 18+ | Universal, rich data tables |
+| API Gateway | Kong | Rate limiting, auth proxy, logging |
+| Database | MySQL 8.0 (single) | ACID compliance, proven reliability |
+| Cache | Redis 7 (single) | Sessions, hot data, rate limits |
+| Event Bus | RabbitMQ | Simple, reliable, Dead Letter support |
+| Search | Elasticsearch | Transaction search, audit log |
+| Container | Docker + Docker Compose | Until K8s expertise is available |
 
 ## Financial Transaction Flow (Standard)
 ```
