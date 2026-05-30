@@ -7,7 +7,7 @@
 ## V1 CORE (Month 1–6)
 
 ### Wallet Module
-- [x] Multi-currency wallet (SYP, USD, EUR)
+- [x] Multi-currency wallet (SYP, USD)
 - [x] P2P transfer by phone number (SYP and USD)
 - [x] Balance check (app + USSD `*123#`)
 - [x] Transaction history (30 days in-app, 90 days via support)
@@ -36,7 +36,6 @@
 
 ### FX Module
 - [x] SYP ↔ USD conversion inside wallet
-- [x] SYP ↔ EUR conversion inside wallet
 - [x] Daily rate sync from CBS official feed (manual fallback if CBS API unavailable)
 - [x] Dual rate display: "Official CBS rate" and "Reference market rate"
 - [x] FX confirmation screen with rate lock (15-second hold)
@@ -44,7 +43,22 @@
 - [x] FX transaction fee: 1.5% of converted amount
 - [x] FX rate refresh every 30 minutes
 - [x] USD balance can be received from remittance only (no direct USD cash-in at agents in V1)
-- [x] EUR balance can be received from remittance only
+
+### Fraud Prevention Module (V1)
+- [x] Real-time transaction screening for ALL wallet transactions (transfer, cash-in, cash-out, bill pay, merchant QR)
+- [x] Rule-based engine: 50+ rules (velocity, amount thresholds, device fingerprint, location anomaly)
+- [x] ML model scoring: LightGBM trained on Syria-specific fraud patterns (SIM swap, mule accounts, agent fraud)
+- [x] Risk scoring: 0–1000 scale, threshold configurable per product (wallet=700, remittance=600, merchant=750)
+- [x] Automatic block: risk score > 900 → transaction declined + alert to compliance team
+- [x] Manual review queue: risk score 700–900 → flagged for ops team review within 15 min
+- [x] False positive feedback loop: confirmed FP → retrain model within 24h
+- [x] Device fingerprinting: collect device ID, IP, GPS, SIM card, app version on every session
+- [x] Velocity rules: >5 transactions/minute → block, >3 failed PIN attempts → 30min lock
+- [x] Agent fraud detection: float mismatch > 10% → alert, same-device multi-agent login → block
+- [x] Mule account detection: graph-based (same device + different users → investigation)
+- [x] Fraud operations dashboard: real-time alerts, case management, decision (block/allow/review)
+- [x] Fraud reporting: daily fraud summary, weekly trend analysis, monthly CBS fraud report
+- [x] Integration with Compliance module: fraud case → AML screening → SAR if > 1M SYP
 
 ### Remittance Module
 - [x] Inbound corridors: Lebanon, UAE, Jordan, Germany (via partner MTOs)

@@ -4,7 +4,7 @@
 
 | Tier | Timeframe | Products | Rationale |
 |------|-----------|----------|-----------|
-| **A (Launch, V1)** | Months 1–6 | Wallet, Agent Network, FX, Remittance, Bill Payment, Merchant QR | Core financial infrastructure; enables cash-in/cash-out loops; generates transaction volume immediately; lowest regulatory friction |
+| **A (Launch, V1)** | Months 1–6 | Wallet, Agent Network, FX, Fraud Management, Remittance, Bill Payment, Merchant QR | Core financial infrastructure; enables cash-in/cash-out loops; generates transaction volume immediately; lowest regulatory friction; fraud prevention is mandatory from day 1 |
 | **B (V1.5)** | Months 7–10 | Payroll, Savings, Settlement | Requires active transaction base (V1); CBS approval for savings needs 2–3 months; payroll needs employer onboarding pipeline |
 | **C (V2)** | Months 11–16 | Financing, Cards, Loyalty, Government Collections | Cards need CBS physical card scheme approval (6–12 months); financing requires credit history from V1 wallet data; government collections need MoF MoU |
 | **D (V3)** | Months 17–24 | Education, Humanitarian, Marketplace, Open Finance | Partner-heavy; humanitarian requires UN/NGO framework agreements; marketplace needs merchant density from V2; open finance requires CBS sandbox approval |
@@ -17,7 +17,8 @@
 |---------|-----------|-------------|-------------|----------------|-------------------|
 | **Wallet** | Foundation for everything; SYP + USD multi-currency wallets solve real dual-currency cash problem | CBS e-money license (obtain pre-launch); Syriatel/MTN SMS gateway | 70%+ unbanked but 85% mobile penetration; cash-heavy economy | Float income on wallet balances; interchange on transfers | CBS Law No. 23/2005 for non-banking financial; must register as payment service provider |
 | **Agent Network** | Physical cash-in/cash-out is mandatory in Syria where card infrastructure <5% | Wallet module; agent onboarding app; POS/QR hardware supply chain | Banking deserts in rural areas (Idlib countryside, Deir Ezzor, Hasakeh); 90%+ cash transactions | Commission spread (cash-in fee 0.5–1%, cash-out fee 1–2%) | CBS agent banking circular; agent must be registered merchant; agent due diligence required |
-| **FX** | Multi-currency (SYP, USD, EUR) essential; parallel market dominates | Wallet with multi-currency ledger; CBS daily rate feed | USD is de facto second currency; businesses need rate transparency | Spread on FX conversion (~2–3% spread vs parallel market) | CBS foreign exchange circulars; must reference official CBS rate; dual display of official vs market rate required |
+| **FX** | Foundation for multi-currency (SYP/USD); parallel market dominates | Wallet with multi-currency ledger; CBS daily rate feed | USD is de facto second currency; businesses need rate transparency | Spread on FX conversion (~2–3% spread vs parallel market) | CBS foreign exchange circulars; must reference official CBS rate; dual display of official vs market rate required |
+| **Fraud Management** | Cross-cutting; protects ALL transactions from day 1 | Wallet, FX, Agent modules; ML pipeline; device fingerprinting | Syria has high digital fraud risk: SIM swap, mule accounts, agent fraud, social engineering | Loss avoidance (2-5% of txn volume); trust = retention | CBS fraud reporting expectations; AML Law 31/2010 |
 | **Remittance** | Largest FX inflow into Syria (~$2B/year via informal channels) | FX module; Agent network for cash payout; international corridor partnerships | Syrian diaspora in Lebanon, Jordan, UAE, Germany, Sweden; informal hawala dominates currently | ~3–5% fee on inbound remittances; high volume | AML Law No. 31/2010; FATF compliance; must report >$10k equivalent; sanctions screening of corridors (USD clearing restricted) |
 | **Bill Payment** | Quick win; state telecom (Syriatel, MTN) and electricity bills are pain points | Wallet; biller API integration (Syriatel/MTN/PEED) | Long queues at bill payment offices; 30%+ of urban monthly spend is utilities | ~1% biller commission; drives wallet reloads | Must integrate with state billing systems; no special license needed beyond payment services |
 | **Merchant QR** | Digital payment at point of sale; reduces cash handling | Wallet; agent network for onboarding; QR standard (Syria-specific or EMV) | Merchants want to reduce cash theft/forgery risk; younger demographics in Damascus/Aleppo prefer digital | MDR 0.5–1.5% per transaction; drives wallet transaction velocity | CBS QR standard pending adoption; may use proprietary QR until national standard; merchant registration required |
@@ -58,7 +59,8 @@ Month       1    2    3    4    5    6    7    8    9   10   11   12   13   14  
 TIER A ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 Wallet      ████ ████ ████ ████ ████ ████
 Agent Net                    ████ ████ ████ ████
-FX                               ████ ████ ████
+FX                               ████ ████ ████ ████
+Fraud Mgmt                         ████ ████ ████ ████ ████ ████
 Remittance                                        ████ ████ ████ ████
 Bill Pay                                              ████ ████ ████ ████
 Merchant QR                                                         ████ ████ ████ ████
@@ -84,8 +86,8 @@ Open Finance                                                                    
 |-------|-----------|
 | M0 | CBS e-money license obtained; wallet development starts |
 | M1 | MVP wallet (SYP only) internal alpha |
-| M2 | Multi-currency wallet (SYP/USD) beta; agent app alpha |
-| M3 | Wallet + Agent Network soft launch (Damascus) |
+| M2 | Multi-currency wallet (SYP/USD) beta; agent app alpha; fraud engine rules v1 |
+| M3 | Wallet + Agent Network soft launch (Damascus); fraud screening live |
 | M4 | FX module live; Remittance corridors: Lebanon, UAE |
 | M5 | V1 full launch (Damascus, Aleppo, Latakia); Bill Payment + Merchant QR |
 | M6 | V1 stabilization; Tier B development begins |
