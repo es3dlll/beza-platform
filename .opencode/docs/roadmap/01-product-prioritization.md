@@ -6,8 +6,9 @@
 |------|-----------|----------|-----------|
 | **A (Launch, V1)** | Months 1–6 | Wallet, Agent Network, FX, Fraud Management, Remittance, Bill Payment, Merchant QR | Core financial infrastructure; enables cash-in/cash-out loops; generates transaction volume immediately; lowest regulatory friction; fraud prevention is mandatory from day 1 |
 | **B (V1.5)** | Months 7–10 | Payroll, Savings, Settlement | Requires active transaction base (V1); CBS approval for savings needs 2–3 months; payroll needs employer onboarding pipeline |
-| **C (V2)** | Months 11–16 | Financing, Cards, Loyalty, Government Collections | Cards need CBS physical card scheme approval (6–12 months); financing requires credit history from V1 wallet data; government collections need MoF MoU |
-| **D (V3)** | Months 17–24 | Education, Humanitarian, Marketplace, Open Finance | Partner-heavy; humanitarian requires UN/NGO framework agreements; marketplace needs merchant density from V2; open finance requires CBS sandbox approval |
+| **C (V2)** | Months 11–16 | Cards, Loyalty, Government Collections | Cards need CBS physical card scheme approval (6–12 months); loyalty needs merchant density; government collections need MoF MoU |
+| **D (V3)** | Months 17–24 | Financing, Education, Humanitarian, Open Finance | Financing needs 12+ months transaction history for credit scoring; humanitarian requires UN/NGO framework agreements; open finance requires CBS sandbox approval |
+| **E (V4+)** | 24+ months | Marketplace, Insurance, Investments | Marketplace needs network effect from V2/V3 merchant density; insurance requires CBS insurance license; investments need capital market license |
 
 ## Detailed Rationale
 
@@ -35,7 +36,6 @@
 
 | Product | Rationale | Dependencies | Market Need | Revenue Impact | Regulatory (Syria) |
 |---------|-----------|-------------|-------------|----------------|-------------------|
-| **Financing** | Highest margin product; uses V1 transaction history as credit scoring | 6 months+ wallet transaction history; credit scoring model; collections team | SMEs and individuals have no access to formal credit (<10% credit penetration) | Interest/markup income 15–25% (Sharia-compliant murabaha) | CBS lending license or partnership with licensed bank; anti-usury law; Sharia board approval needed for murabaha |
 | **Cards** | Physical/digital card for ATM and POS; brand credibility | CBS card scheme approval (6–12 month timeline); card manufacturer partnership (possibly limited due to sanctions) | Only ~2M cards in circulation in Syria (2024); mostly state bank prepaid | Card issuance fee (~$5–10); annual fee; interchange income | CBS physical card issuance approval; must comply with international sanctions (no Visa/MC direct; may use local scheme or national switch) |
 | **Loyalty** | Wallet retention; reduces churn | Merchant QR; bill payment; wallet transaction data | Users need incentive to choose Beza over cash | Increased transaction volume; merchant-funded points | No regulatory issues; simple program |
 | **Government Collections** | High-volume, low-margin; B2G credibility | Bill payment; MoF MoU; state system integration | Ministries collect fees/taxes inefficiently; cash-based | ~0.5% collection fee on high volume | MoF approval required; government procurement process (slow); CBS circular 2021 on digital payments |
@@ -44,10 +44,18 @@
 
 | Product | Rationale | Dependencies | Market Need | Revenue Impact | Regulatory (Syria) |
 |---------|-----------|-------------|-------------|----------------|-------------------|
+| **Financing** | Highest margin product; needs 12+ months transaction history for accurate credit scoring | 12 months+ wallet transaction history; credit scoring model; collections team | SMEs and individuals have no access to formal credit (<10% credit penetration) | Interest/markup income 15–25% (Sharia-compliant murabaha) | CBS lending license or partnership with licensed bank; anti-usury law; Sharia board approval needed for murabaha |
 | **Education** | Social impact + brand; tuition payment platform | School/university API integration; disbursement engine | Parents struggle with school fee payments; cash-heavy process | Low margin; CSR play | Ministry of Education coordination; no specific license |
 | **Humanitarian** | UN/NGO cash transfer programs; largest humanitarian operation globally in Syria | Wallet; agent network; UN/WFP/UNHCR partnership agreements | 15.3M people need humanitarian assistance (OCHA 2024); cash-based assistance growing | ~2% disbursement fee from humanitarian organizations | UN sanctions exception; Must comply with UN sanctions screening; OFAC licenses needed for USD programs |
-| **Marketplace** | Ecosystem lock-in; wallet transaction volume | Merchant QR; agent network; logistics partners | No dominant local marketplace; Souq.com shut; Syria-specific e-commerce gap | Commission ~5–10% per transaction | E-commerce regulation under Ministry of Economy; no specific license needed |
 | **Open Finance** | API platform for third-party innovation | All V1/V2 modules; API gateway; developer portal | Fintech ecosystem in Syria is nascent; regulatory sandbox opportunity | API call fees; revenue share from third-party apps | CBS regulatory sandbox application; CMT data privacy law; needs comprehensive API agreement |
+
+### Tier E — V4+ (24+ Months)
+
+| Product | Rationale | Dependencies | Market Need | Revenue Impact | Regulatory (Syria) |
+|---------|-----------|-------------|-------------|----------------|-------------------|
+| **Marketplace** | Ecosystem lock-in; wallet transaction volume; requires merchant density from V2/V3 | Merchant QR; agent network; logistics partners | No dominant local marketplace; Souq.com shut; Syria-specific e-commerce gap | Commission ~5–10% per transaction | E-commerce regulation under Ministry of Economy; no specific license needed |
+| **Insurance (Takaful)** | High-margin; cross-sell to wallet users | Actuarial data; CBS insurance license; Sharia board | Less than 5% insurance penetration in Syria | Premium commission 10–20% | CBS insurance license (separate from payments) |
+| **Investments** | Wealth management for high-tier users | Capital market license; fund management partnerships | No accessible investment products for retail users | Management fee ~1–2% AUM | Capital Market Authority license needed |
 
 ---
 
@@ -69,15 +77,16 @@ Payroll                                                                        �
 Savings                                                                                 ████ ████ ████
 Settlement                                                                                         ████ ████ ████
 TIER C ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-Financing                                                                                                   ████ ████ ████ ████ ████
 Cards                                                                                                            ████ ████ ████ ████ ████ ████
 Loyalty                                                                                                                         ████ ████ ████ ████
 Gov Collections                                                                                                                   ████ ████ ████ ████
 TIER D ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Financing                                                                                                                               ████ ████ ████ ████
 Education                                                                                                                                       ████ ████ ████
 Humanitarian                                                                                                                                       ████ ████ ████
-Marketplace                                                                                                                                               ████ ████ ████
 Open Finance                                                                                                                                                      ████ ████ ████
+
+Tier E (V4+, Months 24+): Marketplace, Insurance, Investments — not shown (requires network effect from V2/V3)
 ```
 
 ### Milestone Markers
