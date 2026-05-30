@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Identity\Models\User;
+use Modules\Wallet\Services\WalletStateMachine;
 
 final class Wallet extends Model
 {
@@ -63,6 +64,46 @@ final class Wallet extends Model
             $this->daily_used = 0;
             $this->daily_reset_at = now()->endOfDay();
             $this->save();
+        }
+    }
+
+    public function activate(?string $reason = null): Wallet
+    {
+        return app(WalletStateMachine::class)->transition($this, 'activate', $reason);
+    }
+
+    public function suspend(?string $reason = null): Wallet
+    {
+        return app(WalletStateMachine::class)->transition($this, 'suspend', $reason);
+    }
+
+    public function limit(?string $reason = null): Wallet
+    {
+        return app(WalletStateMachine::class)->transition($this, 'limit', $reason);
+    }
+
+    public function freeze(?string $reason = null): Wallet
+    {
+        return app(WalletStateMachine::class)->transition($this, 'freeze', $reason);
+    }
+
+    public function close(?string $reason = null): Wallet
+    {
+        return app(WalletStateMachine::class)->transition($this, 'close', $reason);
+    }
+
+    public function allowedActions(): array
+    {
+        return WalletStateMachine::allowedActions($this->status);
+    }
+
+    public function assertOperational(): void
+    {
+        if ($this->status === 'frozen') {
+            throw new \Modules\Wallet\Exceptions\WalletFrozenException($this->id);
+        }
+        if ($this->status === 'closed') {
+            throw new \RuntimeException("Wallet {$this->id} is closed");
         }
     }
 }

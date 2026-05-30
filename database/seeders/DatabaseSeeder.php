@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             LedgerSeeder::class,
             FeeRuleSeeder::class,
+            WalletLimitSeeder::class,
         ]);
     }
 }

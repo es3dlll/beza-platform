@@ -72,6 +72,7 @@ final class WalletService implements WalletServiceInterface
     public function deposit(DepositDto $dto): Wallet
     {
         $wallet = $this->findOrFail($dto->walletId);
+        $this->assertNotDuplicate($dto->referenceType, $dto->referenceId);
 
         $instruction = new PostingInstructionDto(
             referenceType: $dto->referenceType,
@@ -126,6 +127,7 @@ final class WalletService implements WalletServiceInterface
     public function withdraw(WithdrawDto $dto): Wallet
     {
         $wallet = $this->findOrFail($dto->walletId);
+        $this->assertNotDuplicate('withdrawal', $dto->referenceId ?: 'no-ref');
         $this->validateOperation($wallet, $dto->amount);
 
         $holdDto = new HoldInstructionDto(
@@ -225,6 +227,7 @@ final class WalletService implements WalletServiceInterface
         $this->validateOperation($from, $dto->amount);
 
         $referenceId = $dto->referenceId ?: Str::ulid()->toBase32();
+        $this->assertNotDuplicate('transfer', $referenceId);
 
         $holdDto = new HoldInstructionDto(
             accountId: $from->ledger_account_id ?? $from->id,
@@ -382,6 +385,17 @@ final class WalletService implements WalletServiceInterface
         }
         if (!$wallet->withinDailyLimit($amount)) {
             throw new DailyLimitExceededException($wallet->daily_limit, $wallet->daily_used, $amount);
+        }
+    }
+
+    private function assertNotDuplicate(string $referenceType, string $referenceId): void
+    {
+        $existing = WalletTransaction::where('reference_type', $referenceType)
+            ->where('reference_id', $referenceId)
+            ->exists();
+
+        if ($existing) {
+            throw new \RuntimeException("Duplicate transaction: $referenceType/$referenceId");
         }
     }
 
