@@ -7,7 +7,7 @@ namespace Modules\Loyalty\Services;
 use Modules\Loyalty\Events\CashbackApplied;
 use Modules\Loyalty\Repositories\CashbackRuleRepository;
 
-class CashbackService
+final class CashbackService
 {
     public function __construct(
         private readonly CashbackRuleRepository $ruleRepository,

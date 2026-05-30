@@ -6,7 +6,7 @@ namespace Modules\Savings\Repositories;
 
 use Modules\Savings\Models\SavingsProfitRule;
 
-class SavingsProfitRuleRepository
+final class SavingsProfitRuleRepository
 {
     public function findActive(): ?SavingsProfitRule
     {

@@ -12,7 +12,7 @@ use Modules\IAM\Repositories\PermissionRepository;
 use Modules\IAM\Repositories\RoleRepository;
 use Modules\Identity\Models\User;
 
-class AuthorizationService
+final class AuthorizationService
 {
     public function __construct(
         private RoleRepository $roles,

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'agent_registered' => 'Agent registration submitted. Awaiting approval.',
     'agent_approved' => 'Agent has been approved',

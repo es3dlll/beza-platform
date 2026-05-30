@@ -13,22 +13,24 @@ use Modules\Financing\Exceptions\LoanNotApprovedException;
 use Modules\Financing\Exceptions\LoanAlreadyCompletedException;
 use Modules\Financing\Exceptions\RepaymentAmountExceedsBalanceException;
 use Modules\Financing\Exceptions\CreditScoreTooLowException;
+use App\Support\ApiResponse;
 
-class FinancingController extends Controller
+final class FinancingController extends Controller
 {
+    use ApiResponse;
     public function __construct(private readonly FinancingService $service) {}
 
     public function products(Request $request): JsonResponse
     {
-        return response()->json(['data' => $this->service->listProducts($request->query('type'))]);
+        return $this->respond($this->service->listProducts($request->query('type')));
     }
 
     public function showProduct(string $id): JsonResponse
     {
         try {
-            return response()->json(['data' => $this->service->findProduct($id)]);
+            return $this->respond($this->service->findProduct($id));
         } catch (LoanProductNotFoundException $e) {
-            return response()->json(['error' => 'PRODUCT_NOT_FOUND'], 404);
+            return $this->respondError('PRODUCT_NOT_FOUND', 'Product not found', 'المنتج غير موجود', 404);
         }
     }
 
@@ -49,25 +51,25 @@ class FinancingController extends Controller
                 $request->integer('term_days'),
                 $request->input('purpose'),
             );
-            return response()->json(['data' => $loan], 201);
+            return $this->respondCreated($loan);
         } catch (CreditScoreTooLowException $e) {
-            return response()->json(['error' => 'CREDIT_SCORE_TOO_LOW', 'reason' => $e->getMessage()], 422);
+            return $this->respondError('CREDIT_SCORE_TOO_LOW', $e->getMessage(), null, 422);
         } catch (\InvalidArgumentException $e) {
-            return response()->json(['error' => 'INVALID_AMOUNT', 'reason' => $e->getMessage()], 422);
+            return $this->respondError('INVALID_AMOUNT', $e->getMessage(), null, 422);
         }
     }
 
     public function approve(string $id): JsonResponse
     {
-        return response()->json(['data' => $this->service->approve($id)]);
+        return $this->respond($this->service->approve($id));
     }
 
     public function disburse(string $id): JsonResponse
     {
         try {
-            return response()->json(['data' => $this->service->disburse($id)]);
+            return $this->respond($this->service->disburse($id));
         } catch (LoanNotApprovedException $e) {
-            return response()->json(['error' => 'LOAN_NOT_APPROVED'], 422);
+            return $this->respondError('LOAN_NOT_APPROVED', 'Loan not approved', 'القرض غير معتمد', 422);
         }
     }
 
@@ -76,22 +78,22 @@ class FinancingController extends Controller
         $request->validate(['amount' => 'required|integer|min:1']);
 
         try {
-            return response()->json(['data' => $this->service->repay($id, $request->integer('amount'))]);
+            return $this->respond($this->service->repay($id, $request->integer('amount')));
         } catch (RepaymentAmountExceedsBalanceException $e) {
-            return response()->json(['error' => 'REPAYMENT_EXCEEDS_BALANCE'], 422);
+            return $this->respondError('REPAYMENT_EXCEEDS_BALANCE', 'Repayment exceeds balance', 'السداد يتجاوز الرصيد', 422);
         } catch (LoanAlreadyCompletedException $e) {
-            return response()->json(['error' => 'LOAN_ALREADY_COMPLETED'], 422);
+            return $this->respondError('LOAN_ALREADY_COMPLETED', 'Loan already completed', 'القرض مكتمل بالفعل', 422);
         }
     }
 
     public function myLoans(Request $request): JsonResponse
     {
-        return response()->json(['data' => $this->service->userLoans($request->user()->id)]);
+        return $this->respond($this->service->userLoans($request->user()->id));
     }
 
     public function schedule(string $id): JsonResponse
     {
-        return response()->json(['data' => $this->service->schedule($id)]);
+        return $this->respond($this->service->schedule($id));
     }
 
     public function bnplCheckout(Request $request): JsonResponse
@@ -109,23 +111,23 @@ class FinancingController extends Controller
                 $request->integer('amount'),
                 $request->input('merchant_tx_id'),
             );
-            return response()->json(['data' => $loan], 201);
+            return $this->respondCreated($loan);
         } catch (\RuntimeException $e) {
-            return response()->json(['error' => 'BNPL_NOT_CONFIGURED'], 422);
+            return $this->respondError('BNPL_NOT_CONFIGURED', 'BNPL not configured', 'غير مهيأ', 422);
         } catch (CreditScoreTooLowException $e) {
-            return response()->json(['error' => 'CREDIT_SCORE_TOO_LOW'], 422);
+            return $this->respondError('CREDIT_SCORE_TOO_LOW', 'Credit score too low', 'درجة الائتمان منخفضة جداً', 422);
         }
     }
 
     public function adminDashboard(): JsonResponse
     {
-        return response()->json(['data' => $this->service->adminDashboard()]);
+        return $this->respond($this->service->adminDashboard());
     }
 
     public function loansByStatus(Request $request): JsonResponse
     {
         $status = $request->query('status', 'pending');
         $perPage = (int) $request->query('per_page', 15);
-        return response()->json(['data' => $this->service->loansByStatus($status, $perPage)]);
+        return $this->respond($this->service->loansByStatus($status, $perPage));
     }
 }

@@ -7,7 +7,7 @@ namespace Modules\USSD\Services;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
-class UssdMenuEngine
+final class UssdMenuEngine
 {
     private const SESSION_TTL = 30; // seconds
     private const MAX_DEPTH = 3;

@@ -6,7 +6,7 @@ namespace Modules\Remittance\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateRemittanceRequest extends FormRequest
+final class CreateRemittanceRequest extends FormRequest
 {
     public function authorize(): bool
     {

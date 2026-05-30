@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Payroll\DTOs;
 
-class RegisterEmployerDto
+final class RegisterEmployerDto
 {
     public function __construct(
         public readonly string $userId = '',

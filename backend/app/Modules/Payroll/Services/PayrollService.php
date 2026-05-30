@@ -25,7 +25,7 @@ use Modules\Payroll\Repositories\EmployeeRecordRepository;
 use Modules\Payroll\Repositories\PayrollBatchRepository;
 use Modules\Payroll\Repositories\PayrollDisbursementRepository;
 
-class PayrollService
+final class PayrollService
 {
     public function __construct(
         private readonly EmployerRepository $employerRepository,

@@ -6,7 +6,7 @@ namespace Modules\Savings\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
 
-class SavingsWithdrawn
+final class SavingsWithdrawn
 {
     use Dispatchable;
 

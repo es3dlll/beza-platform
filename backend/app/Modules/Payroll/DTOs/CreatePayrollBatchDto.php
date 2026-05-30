@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Payroll\DTOs;
 
-class CreatePayrollBatchDto
+final class CreatePayrollBatchDto
 {
     public function __construct(
         public readonly string $employerId = '',

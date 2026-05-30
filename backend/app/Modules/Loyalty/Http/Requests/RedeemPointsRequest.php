@@ -6,7 +6,7 @@ namespace Modules\Loyalty\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class RedeemPointsRequest extends FormRequest
+final class RedeemPointsRequest extends FormRequest
 {
     public function authorize(): bool
     {

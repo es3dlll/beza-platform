@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\FX\Controllers;
 
+use App\Support\ApiResponse;
 use Modules\FX\DTOs\CreateFxRateDto;
 use Modules\FX\DTOs\GetQuoteDto;
 use Modules\FX\DTOs\ExecuteConversionDto;
@@ -17,6 +18,8 @@ use Illuminate\Http\JsonResponse;
 
 final class FxController
 {
+    use ApiResponse;
+
     public function __construct(
         private readonly FxRateService $rates,
         private readonly FxQuoteService $quotes,
@@ -25,17 +28,15 @@ final class FxController
 
     public function rates(): JsonResponse
     {
-        return response()->json(['data' => $this->rates->getAllActive()]);
+        return $this->respond($this->rates->getAllActive());
     }
 
     public function rateHistory(string $base, string $quote): JsonResponse
     {
         try {
-            return response()->json(['data' => $this->rates->getRateHistory($base, $quote)]);
+            return $this->respond($this->rates->getRateHistory($base, $quote));
         } catch (\Modules\FX\Exceptions\FxInvalidPairException $e) {
-            return response()->json([
-                'error' => ['code' => 'FX_INVALID_PAIR', 'message' => $e->getMessage()],
-            ], 400);
+            return $this->respondError('FX_INVALID_PAIR', $e->getMessage(), null, 400);
         }
     }
 
@@ -55,11 +56,9 @@ final class FxController
 
         try {
             $rate = $this->rates->create($dto);
-            return response()->json(['data' => $rate, 'message' => __('fx::messages.rate_created')], 201);
+            return $this->respondCreated($rate, __('fx::messages.rate_created'));
         } catch (\Modules\FX\Exceptions\FxInvalidPairException $e) {
-            return response()->json([
-                'error' => ['code' => 'FX_INVALID_PAIR', 'message' => $e->getMessage()],
-            ], 400);
+            return $this->respondError('FX_INVALID_PAIR', $e->getMessage(), null, 400);
         }
     }
 
@@ -77,15 +76,15 @@ final class FxController
 
         try {
             $quote = $this->quotes->generate($dto);
-            return response()->json(['data' => $quote, 'message' => __('fx::messages.quote_generated')]);
+            return $this->respond($quote, __('fx::messages.quote_generated'));
         } catch (\Modules\FX\Exceptions\FxInvalidPairException $e) {
-            return response()->json(['error' => ['code' => 'FX_INVALID_PAIR', 'message' => $e->getMessage()]], 400);
+            return $this->respondError('FX_INVALID_PAIR', $e->getMessage(), null, 400);
         } catch (\Modules\FX\Exceptions\FxAmountBelowMinimumException $e) {
-            return response()->json(['error' => ['code' => 'FX_AMOUNT_BELOW_MINIMUM', 'message' => $e->getMessage()]], 422);
+            return $this->respondError('FX_AMOUNT_BELOW_MINIMUM', $e->getMessage(), null, 422);
         } catch (\Modules\FX\Exceptions\FxRateUnavailableException $e) {
-            return response()->json(['error' => ['code' => 'FX_RATE_UNAVAILABLE', 'message' => $e->getMessage()]], 503);
+            return $this->respondError('FX_RATE_UNAVAILABLE', $e->getMessage(), null, 503);
         } catch (\Modules\FX\Exceptions\FxRateStaleException $e) {
-            return response()->json(['error' => ['code' => 'FX_RATE_STALE', 'message' => $e->getMessage()]], 503);
+            return $this->respondError('FX_RATE_STALE', $e->getMessage(), null, 503);
         }
     }
 
@@ -99,33 +98,33 @@ final class FxController
 
         try {
             $conversion = $this->conversions->execute($dto);
-            return response()->json(['data' => $conversion, 'message' => __('fx::messages.conversion_completed')]);
+            return $this->respond($conversion, __('fx::messages.conversion_completed'));
         } catch (\Modules\FX\Exceptions\FxRateExpiredException $e) {
-            return response()->json(['error' => ['code' => 'FX_RATE_EXPIRED', 'message' => $e->getMessage()]], 422);
+            return $this->respondError('FX_RATE_EXPIRED', $e->getMessage(), null, 422);
         } catch (\Modules\FX\Exceptions\FxRateLockContentionException $e) {
-            return response()->json(['error' => ['code' => 'FX_RATE_LOCK_CONTENTION', 'message' => $e->getMessage()]], 409);
+            return $this->respondError('FX_RATE_LOCK_CONTENTION', $e->getMessage(), null, 409);
         } catch (\Modules\FX\Exceptions\FxAmountExceedsLimitException $e) {
-            return response()->json(['error' => ['code' => 'FX_AMOUNT_EXCEEDS_LIMIT', 'message' => $e->getMessage()]], 422);
+            return $this->respondError('FX_AMOUNT_EXCEEDS_LIMIT', $e->getMessage(), null, 422);
         }
     }
 
     public function quoteHistory(): JsonResponse
     {
         $history = $this->quotes->getHistory(request()->user()->id, 'wallet');
-        return response()->json(['data' => $history]);
+        return $this->respond($history);
     }
 
     public function conversionHistory(string $walletId): JsonResponse
     {
-        return response()->json(['data' => $this->conversions->getWalletConversions($walletId)]);
+        return $this->respond($this->conversions->getWalletConversions($walletId));
     }
 
     public function showConversion(string $id): JsonResponse
     {
         $conversion = $this->conversions->getConversion($id);
         if (!$conversion) {
-            return response()->json(['error' => ['code' => 'FX_NOT_FOUND', 'message' => 'Conversion not found']], 404);
+            return $this->respondError('FX_NOT_FOUND', 'Conversion not found', null, 404);
         }
-        return response()->json(['data' => $conversion]);
+        return $this->respond($conversion);
     }
 }

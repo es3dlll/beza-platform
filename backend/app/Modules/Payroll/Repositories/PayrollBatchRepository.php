@@ -6,7 +6,7 @@ namespace Modules\Payroll\Repositories;
 
 use Modules\Payroll\Models\PayrollBatch;
 
-class PayrollBatchRepository
+final class PayrollBatchRepository
 {
     public function create(array $data): PayrollBatch
     {

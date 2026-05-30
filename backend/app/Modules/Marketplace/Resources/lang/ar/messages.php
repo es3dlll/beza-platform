@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'order.placed' => 'تم تقديم الطلب',
     'order.fulfilled' => 'تم تنفيذ الطلب',

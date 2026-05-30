@@ -6,7 +6,7 @@ namespace Modules\Cards\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
 
-class CardSuspended
+final class CardSuspended
 {
     use Dispatchable;
 

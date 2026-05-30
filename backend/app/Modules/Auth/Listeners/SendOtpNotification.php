@@ -7,7 +7,7 @@ namespace Modules\Auth\Listeners;
 use Modules\Notification\Services\NotificationService;
 use Modules\Auth\Events\OtpGenerated;
 
-class SendOtpNotification
+final class SendOtpNotification
 {
     public function __construct(private readonly NotificationService $notifications) {}
 

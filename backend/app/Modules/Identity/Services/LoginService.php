@@ -7,7 +7,7 @@ namespace Modules\Identity\Services;
 use Modules\Identity\DTOs\LoginDto;
 use Modules\Identity\Models\User;
 
-class LoginService
+final class LoginService
 {
     public function __construct(
         private TokenService $tokenService,

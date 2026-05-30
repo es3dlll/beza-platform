@@ -12,9 +12,11 @@ use Modules\Auth\Http\Requests\SendOtpRequest;
 use Modules\Auth\Http\Requests\VerifyOtpRequest;
 use Modules\Auth\Services\AuthService;
 use Modules\Identity\Services\OtpService;
+use App\Support\ApiResponse;
 
-class OtpController extends Controller
+final class OtpController extends Controller
 {
+    use ApiResponse;
     public function __construct(
         private OtpService $otpService,
         private AuthService $authService,
@@ -29,12 +31,7 @@ class OtpController extends Controller
 
         $this->otpService->generateAndSend($dto->phone, $dto->purpose);
 
-        return response()->json([
-            'success' => true,
-            'meta' => [
-                'message' => __('identity::messages.otp_sent'),
-            ],
-        ]);
+        return $this->respond(null, __('identity::messages.otp_sent'));
     }
 
     public function verify(VerifyOtpRequest $request): JsonResponse
@@ -48,27 +45,18 @@ class OtpController extends Controller
         try {
             $user = $this->authService->verifyOtp($dto->phone, $dto->code, $dto->purpose);
         } catch (\Modules\Identity\Exceptions\OtpExpiredException $e) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'AUTH_INVALID_OTP',
-                    'message' => $e->getMessage(),
-                ],
-            ], 422);
+            return $this->respondError('AUTH_INVALID_OTP', $e->getMessage());
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => [
+        return $this->respondWithMeta(
+            data: [
                 'user' => [
                     'id' => $user->id,
                     'phone' => $user->phone,
                     'phone_verified' => $user->isPhoneVerified(),
                 ],
             ],
-            'meta' => [
-                'message' => __('identity::messages.otp_verified'),
-            ],
-        ]);
+            meta: ['message' => __('identity::messages.otp_verified')],
+        );
     }
 }

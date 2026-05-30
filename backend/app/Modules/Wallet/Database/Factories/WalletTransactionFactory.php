@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Wallet\Models\WalletTransaction;
 
-class WalletTransactionFactory extends Factory
+final class WalletTransactionFactory extends Factory
 {
     protected $model = WalletTransaction::class;
 

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Agent\Models\AgentTransaction;
 
-class AgentTransactionFactory extends Factory
+final class AgentTransactionFactory extends Factory
 {
     protected $model = AgentTransaction::class;
 

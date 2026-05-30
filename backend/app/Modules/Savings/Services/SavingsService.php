@@ -24,7 +24,7 @@ use Modules\Savings\Repositories\SavingsAccountRepository;
 use Modules\Savings\Repositories\SavingsTransactionRepository;
 use Modules\Savings\Repositories\SavingsProfitRuleRepository;
 
-class SavingsService
+final class SavingsService
 {
     private const MIN_CONTRIBUTION = 1000;
 

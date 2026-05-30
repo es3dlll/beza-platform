@@ -6,7 +6,7 @@ namespace Modules\Fraud\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateFraudRuleRequest extends FormRequest
+final class CreateFraudRuleRequest extends FormRequest
 {
     public function authorize(): bool
     {

@@ -6,7 +6,7 @@ namespace Modules\Payroll\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class EmployeeRecord extends Model
+final class EmployeeRecord extends Model
 {
     protected $table = 'employee_records';
     protected $keyType = 'string';

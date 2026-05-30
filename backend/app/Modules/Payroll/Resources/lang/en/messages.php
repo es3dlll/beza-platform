@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'name' => 'Payroll Disbursement',
     'description' => 'Employer registration, batch payroll, CSV upload, salary disbursement',

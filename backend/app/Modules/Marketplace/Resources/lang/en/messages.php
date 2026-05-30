@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'order.placed' => 'Order placed',
     'order.fulfilled' => 'Order fulfilled',

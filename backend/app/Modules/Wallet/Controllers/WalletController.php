@@ -13,11 +13,13 @@ use Modules\Wallet\Http\Requests\DepositRequest;
 use Modules\Wallet\Http\Requests\WithdrawRequest;
 use Modules\Wallet\Http\Requests\TransferRequest;
 use Modules\Wallet\Services\WalletService;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 final class WalletController
 {
+    use ApiResponse;
     public function __construct(
         private readonly WalletService $wallets,
     ) {}
@@ -26,7 +28,7 @@ final class WalletController
     {
         $userId = $request->user()->id;
         $userWallets = \Modules\Wallet\Models\Wallet::where('user_id', $userId)->get();
-        return response()->json(['data' => $userWallets]);
+        return $this->respond($userWallets);
     }
 
     public function create(CreateWalletRequest $request): JsonResponse
@@ -39,19 +41,16 @@ final class WalletController
         );
 
         $wallet = $this->wallets->create($dto);
-        return response()->json(['data' => $wallet], 201);
+        return $this->respondCreated($wallet);
     }
 
     public function show(string $id): JsonResponse
     {
         try {
             $balance = $this->wallets->getBalance($id);
-            return response()->json(['data' => $balance]);
+            return $this->respond($balance);
         } catch (\Modules\Wallet\Exceptions\WalletNotFoundException $e) {
-            return response()->json([
-                'success' => false,
-                'error' => ['code' => 'WALLET_NOT_FOUND', 'message' => $e->getMessage()],
-            ], 404);
+            return $this->respondNotFound('Wallet');
         }
     }
 
@@ -69,12 +68,9 @@ final class WalletController
 
         try {
             $wallet = $this->wallets->deposit($dto);
-            return response()->json(['data' => $wallet], 200);
+            return $this->respond($wallet);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => ['code' => 'WALLET_DEPOSIT_FAILED', 'message' => $e->getMessage()],
-            ], 422);
+            return $this->respondError('WALLET_DEPOSIT_FAILED', $e->getMessage(), 'فشل الإيداع');
         }
     }
 
@@ -93,31 +89,13 @@ final class WalletController
 
         try {
             $wallet = $this->wallets->withdraw($dto);
-            return response()->json(['data' => $wallet], 200);
+            return $this->respond($wallet);
         } catch (\Modules\Wallet\Exceptions\InsufficientBalanceException $e) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'WALLET_INSUFFICIENT_FUNDS',
-                    'message' => $e->getMessage(),
-                    'message_ar' => 'الرصيد غير كافٍ',
-                    'details' => ['required' => $e->required, 'available' => $e->available],
-                ],
-            ], 422);
+            return $this->respondError('WALLET_INSUFFICIENT_FUNDS', $e->getMessage(), 'الرصيد غير كافٍ', 422, ['required' => $e->required, 'available' => $e->available]);
         } catch (\Modules\Wallet\Exceptions\DailyLimitExceededException $e) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'WALLET_LIMIT_EXCEEDED',
-                    'message' => $e->getMessage(),
-                    'message_ar' => 'تم تجاوز الحد اليومي',
-                ],
-            ], 422);
+            return $this->respondError('WALLET_LIMIT_EXCEEDED', $e->getMessage(), 'تم تجاوز الحد اليومي');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => ['code' => 'WALLET_WITHDRAWAL_FAILED', 'message' => $e->getMessage()],
-            ], 422);
+            return $this->respondError('WALLET_WITHDRAWAL_FAILED', $e->getMessage());
         }
     }
 
@@ -136,21 +114,11 @@ final class WalletController
 
         try {
             $result = $this->wallets->transfer($dto);
-            return response()->json(['data' => $result], 200);
+            return $this->respond($result);
         } catch (\Modules\Wallet\Exceptions\InsufficientBalanceException $e) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'WALLET_INSUFFICIENT_FUNDS',
-                    'message' => $e->getMessage(),
-                    'message_ar' => 'الرصيد غير كافٍ للتحويل',
-                ],
-            ], 422);
+            return $this->respondError('WALLET_INSUFFICIENT_FUNDS', $e->getMessage(), 'الرصيد غير كافٍ للتحويل');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => ['code' => 'WALLET_TRANSFER_FAILED', 'message' => $e->getMessage()],
-            ], 422);
+            return $this->respondError('WALLET_TRANSFER_FAILED', $e->getMessage());
         }
     }
 
@@ -158,12 +126,9 @@ final class WalletController
     {
         try {
             $txns = $this->wallets->getTransactions($id);
-            return response()->json(['data' => $txns]);
+            return $this->respond($txns);
         } catch (\Modules\Wallet\Exceptions\WalletNotFoundException $e) {
-            return response()->json([
-                'success' => false,
-                'error' => ['code' => 'WALLET_NOT_FOUND', 'message' => $e->getMessage()],
-            ], 404);
+            return $this->respondNotFound('Wallet');
         }
     }
 }

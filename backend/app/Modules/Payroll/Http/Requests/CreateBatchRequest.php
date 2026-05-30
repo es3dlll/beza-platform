@@ -6,7 +6,7 @@ namespace Modules\Payroll\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateBatchRequest extends FormRequest
+final class CreateBatchRequest extends FormRequest
 {
     public function authorize(): bool
     {

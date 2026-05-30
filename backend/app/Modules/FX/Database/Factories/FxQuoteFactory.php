@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\FX\Models\FxQuote;
 
-class FxQuoteFactory extends Factory
+final class FxQuoteFactory extends Factory
 {
     protected $model = FxQuote::class;
 

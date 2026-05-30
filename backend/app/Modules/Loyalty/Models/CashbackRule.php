@@ -6,7 +6,7 @@ namespace Modules\Loyalty\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class CashbackRule extends Model
+final class CashbackRule extends Model
 {
     protected $table = 'cashback_rules';
     protected $keyType = 'string';

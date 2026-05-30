@@ -6,7 +6,7 @@ namespace Modules\GovCollections\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class GovPaymentInquiry extends Model
+final class GovPaymentInquiry extends Model
 {
     protected $table = 'gov_payment_inquiries';
     protected $keyType = 'string';

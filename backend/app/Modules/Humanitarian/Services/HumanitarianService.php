@@ -13,7 +13,7 @@ use Modules\Humanitarian\Exceptions\OrganizationNotFoundException;
 use Modules\Humanitarian\Exceptions\ProgramNotFoundException;
 use Modules\Humanitarian\Exceptions\InsufficientBudgetException;
 
-class HumanitarianService
+final class HumanitarianService
 {
     public function listOrganizations(): iterable { return HumanitarianOrganization::where('is_active', true)->get(); }
 

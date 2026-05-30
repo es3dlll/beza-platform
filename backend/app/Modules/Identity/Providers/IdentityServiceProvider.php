@@ -11,7 +11,7 @@ use Modules\Identity\Repositories\UserRepository;
 use Modules\Identity\Services\IdentityService;
 use Modules\Identity\Services\OtpService;
 
-class IdentityServiceProvider extends ServiceProvider
+final class IdentityServiceProvider extends ServiceProvider
 {
     public function register(): void
     {

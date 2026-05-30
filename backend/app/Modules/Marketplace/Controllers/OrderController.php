@@ -8,9 +8,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Marketplace\Services\OrderService;
+use App\Support\ApiResponse;
 
-class OrderController extends Controller
+final class OrderController extends Controller
 {
+    use ApiResponse;
     public function __construct(
         private OrderService $orders,
     ) {}
@@ -31,40 +33,28 @@ class OrderController extends Controller
             $data['items'],
         );
 
-        return response()->json([
-            'success' => true,
-            'data' => $order,
-        ], 201);
+        return $this->respondCreated($order);
     }
 
     public function place(string $id): JsonResponse
     {
         $order = $this->orders->placeOrder($id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $order,
-        ]);
+        return $this->respond($order);
     }
 
     public function fulfill(string $id): JsonResponse
     {
         $order = $this->orders->fulfillOrder($id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $order,
-        ]);
+        return $this->respond($order);
     }
 
     public function refund(string $id): JsonResponse
     {
         $order = $this->orders->refundOrder($id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $order,
-        ]);
+        return $this->respond($order);
     }
 
     public function index(Request $request): JsonResponse
@@ -74,19 +64,13 @@ class OrderController extends Controller
             $request->query('status'),
         );
 
-        return response()->json([
-            'success' => true,
-            'data' => $orders,
-        ]);
+        return $this->respond($orders);
     }
 
     public function show(string $id): JsonResponse
     {
         $order = $this->orders->findOrFail($id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $order,
-        ]);
+        return $this->respond($order);
     }
 }

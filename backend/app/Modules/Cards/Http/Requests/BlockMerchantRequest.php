@@ -6,7 +6,7 @@ namespace Modules\Cards\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class BlockMerchantRequest extends FormRequest
+final class BlockMerchantRequest extends FormRequest
 {
     public function authorize(): bool
     {

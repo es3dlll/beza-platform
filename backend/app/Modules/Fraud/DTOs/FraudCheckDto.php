@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Fraud\DTOs;
 
-class FraudCheckDto
+final class FraudCheckDto
 {
     public function __construct(
         public readonly string $eventType = '',

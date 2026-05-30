@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Remittance\Models\Corridor;
 
-class CorridorFactory extends Factory
+final class CorridorFactory extends Factory
 {
     protected $model = Corridor::class;
 

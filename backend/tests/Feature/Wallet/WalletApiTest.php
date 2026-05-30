@@ -100,10 +100,17 @@ final class WalletApiTest extends TestCase
             'id' => '01ARwalletTestWithdraw001',
             'user_id' => $this->user->id,
             'currency' => 'SYP',
-            'balance' => 200000,
-            'available_balance' => 200000,
+            'balance' => 0,
+            'available_balance' => 0,
             'daily_reset_at' => now()->endOfDay(),
         ]);
+
+        $this->withToken($this->token)
+            ->postJson("/api/v1/wallets/{$wallet->id}/deposit", [
+                'amount' => 200000,
+                'currency' => 'SYP',
+                'reference_id' => 'api-dep-wth',
+            ]);
 
         $response = $this->withToken($this->token)
             ->postJson("/api/v1/wallets/{$wallet->id}/withdraw", [
@@ -162,8 +169,8 @@ final class WalletApiTest extends TestCase
             'id' => '01ARwalletTestTransferFrm1',
             'user_id' => $this->user->id,
             'currency' => 'SYP',
-            'balance' => 100000,
-            'available_balance' => 100000,
+            'balance' => 0,
+            'available_balance' => 0,
             'daily_reset_at' => now()->endOfDay(),
         ]);
 
@@ -176,6 +183,13 @@ final class WalletApiTest extends TestCase
             'available_balance' => 0,
             'daily_reset_at' => now()->endOfDay(),
         ]);
+
+        $this->withToken($this->token)
+            ->postJson("/api/v1/wallets/{$fromWallet->id}/deposit", [
+                'amount' => 100000,
+                'currency' => 'SYP',
+                'reference_id' => 'api-dep-trf',
+            ]);
 
         $response = $this->withToken($this->token)
             ->postJson("/api/v1/wallets/{$fromWallet->id}/transfer", [

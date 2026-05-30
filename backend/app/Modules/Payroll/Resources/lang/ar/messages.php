@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'name' => 'صرف الرواتب',
     'description' => 'تسجيل أصحاب العمل، دفعات الرواتب، رفع CSV، صرف الرواتب',

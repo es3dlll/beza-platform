@@ -6,7 +6,7 @@ namespace Modules\OpenFinance\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class OpenFinanceAccessToken extends Model
+final class OpenFinanceAccessToken extends Model
 {
     protected $table = 'open_finance_access_tokens';
     protected $keyType = 'string';

@@ -6,7 +6,7 @@ namespace Modules\Payroll\Services;
 
 use Modules\Payroll\Exceptions\PayrollValidationException;
 
-class CsvParserService
+final class CsvParserService
 {
     private const REQUIRED_HEADERS = ['employee_name', 'phone', 'amount'];
 

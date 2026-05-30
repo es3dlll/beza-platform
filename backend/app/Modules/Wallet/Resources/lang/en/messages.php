@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'wallet_created' => 'Wallet created successfully',
     'wallet_credited' => 'Amount credited to wallet',

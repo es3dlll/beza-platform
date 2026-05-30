@@ -6,7 +6,7 @@ namespace Modules\Savings\Exceptions;
 
 use Exception;
 
-class InsufficientSavingsBalanceException extends Exception
+final class InsufficientSavingsBalanceException extends Exception
 {
     public function __construct(int $required, int $available)
     {

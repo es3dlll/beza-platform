@@ -6,7 +6,7 @@ namespace Modules\Loyalty\Repositories;
 
 use Modules\Loyalty\Models\CashbackRule;
 
-class CashbackRuleRepository
+final class CashbackRuleRepository
 {
     public function findActiveByTrigger(string $triggerType): iterable
     {

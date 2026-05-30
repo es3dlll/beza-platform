@@ -6,7 +6,7 @@ namespace Modules\Fraud\Exceptions;
 
 use Exception;
 
-class FraudReviewRequiredException extends Exception
+final class FraudReviewRequiredException extends Exception
 {
     public function __construct(string $reason = 'Transaction flagged for manual fraud review')
     {

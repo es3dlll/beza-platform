@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace Modules\USSD\Controllers;
 
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\USSD\Services\UssdMenuEngine;
 
-class UssdController extends Controller
+final class UssdController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(
         private readonly UssdMenuEngine $menuEngine,
     ) {}
@@ -41,7 +44,7 @@ class UssdController extends Controller
             text: $validated['text'],
         );
 
-        return response()->json($result);
+        return $this->respond($result);
     }
 
     /**
@@ -54,6 +57,6 @@ class UssdController extends Controller
             'status' => 'required|string|in:success,failed,timeout',
         ]);
 
-        return response()->json(['status' => 'received']);
+        return $this->respond(['status' => 'received']);
     }
 }

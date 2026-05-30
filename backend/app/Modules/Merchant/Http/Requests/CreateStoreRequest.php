@@ -6,7 +6,7 @@ namespace Modules\Merchant\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateStoreRequest extends FormRequest
+final class CreateStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {

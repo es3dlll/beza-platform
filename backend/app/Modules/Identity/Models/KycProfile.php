@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
-class KycProfile extends Model
+final class KycProfile extends Model
 {
     use HasUlids;
 

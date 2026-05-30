@@ -6,7 +6,7 @@ namespace Modules\Cards\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateCardLimitsRequest extends FormRequest
+final class UpdateCardLimitsRequest extends FormRequest
 {
     public function authorize(): bool
     {

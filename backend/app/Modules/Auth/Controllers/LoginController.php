@@ -14,9 +14,11 @@ use Modules\Auth\Http\Requests\LogoutRequest;
 use Modules\Auth\Http\Requests\RefreshTokenRequest;
 use Modules\Auth\Services\AuthService;
 use Modules\Auth\Services\TokenService;
+use App\Support\ApiResponse;
 
-class LoginController extends Controller
+final class LoginController extends Controller
 {
+    use ApiResponse;
     public function __construct(
         private AuthService $authService,
         private TokenService $tokenService,
@@ -35,19 +37,16 @@ class LoginController extends Controller
 
         $result = $this->authService->login($dto);
 
-        return response()->json([
-            'success' => true,
-            'data' => [
+        return $this->respondWithMeta(
+            data: [
                 'user' => $result['user']->toArray(),
                 'token' => $result['token'],
                 'refresh_token' => $result['refresh_token'],
                 'token_type' => 'Bearer',
                 'expires_in' => $result['expires_in'],
             ],
-            'meta' => [
-                'message' => __('identity::messages.login_success'),
-            ],
-        ]);
+            meta: ['message' => __('identity::messages.login_success')],
+        );
     }
 
     public function loginWithPassword(LoginWithPasswordRequest $request): JsonResponse
@@ -63,19 +62,16 @@ class LoginController extends Controller
 
         $result = $this->authService->loginWithPassword($dto);
 
-        return response()->json([
-            'success' => true,
-            'data' => [
+        return $this->respondWithMeta(
+            data: [
                 'user' => $result['user']->toArray(),
                 'token' => $result['token'],
                 'refresh_token' => $result['refresh_token'],
                 'token_type' => 'Bearer',
                 'expires_in' => $result['expires_in'],
             ],
-            'meta' => [
-                'message' => __('identity::messages.login_success'),
-            ],
-        ]);
+            meta: ['message' => __('identity::messages.login_success')],
+        );
     }
 
     public function logout(LogoutRequest $request): JsonResponse
@@ -100,29 +96,21 @@ class LoginController extends Controller
             }
         }
 
-        return response()->json([
-            'success' => true,
-            'meta' => [
-                'message' => __('identity::messages.logout_success'),
-            ],
-        ]);
+        return $this->respond(null, __('identity::messages.logout_success'));
     }
 
     public function refresh(RefreshTokenRequest $request): JsonResponse
     {
         $result = $this->authService->refreshToken($request->input('refresh_token'));
 
-        return response()->json([
-            'success' => true,
-            'data' => [
+        return $this->respondWithMeta(
+            data: [
                 'token' => $result['token'],
                 'refresh_token' => $result['refresh_token'],
                 'token_type' => 'Bearer',
                 'expires_in' => $result['expires_in'],
             ],
-            'meta' => [
-                'message' => __('identity::messages.token_refreshed'),
-            ],
-        ]);
+            meta: ['message' => __('identity::messages.token_refreshed')],
+        );
     }
 }

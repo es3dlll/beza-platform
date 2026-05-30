@@ -7,7 +7,7 @@ namespace Modules\Fraud\Repositories;
 use Modules\Fraud\Models\FraudEvent;
 use Modules\Fraud\Enums\FraudDecision;
 
-class FraudEventRepository
+final class FraudEventRepository
 {
     public function create(array $data): FraudEvent
     {

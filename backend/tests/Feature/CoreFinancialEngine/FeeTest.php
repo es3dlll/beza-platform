@@ -20,6 +20,7 @@ final class FeeTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->authenticateUser();
 
         $this->customerAccountId = LedgerAccount::create([
             'id' => '01AR123456789012345678f1',

@@ -8,7 +8,7 @@ use Modules\Loyalty\Events\TierUpgraded;
 use Modules\Loyalty\Repositories\LoyaltyTierRepository;
 use Modules\Loyalty\Repositories\LoyaltyPointsRepository;
 
-class TierService
+final class TierService
 {
     public function __construct(
         private readonly LoyaltyTierRepository $tierRepository,

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Fraud\DTOs;
 
-class FraudRuleDto
+final class FraudRuleDto
 {
     public function __construct(
         public readonly string $name = '',

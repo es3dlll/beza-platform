@@ -6,7 +6,7 @@ namespace Modules\Marketplace\Exceptions;
 
 use Exception;
 
-class ProductNotFoundException extends Exception
+final class ProductNotFoundException extends Exception
 {
     public function render(): \Illuminate\Http\JsonResponse
     {
@@ -21,7 +21,7 @@ class ProductNotFoundException extends Exception
     }
 }
 
-class OrderNotFoundException extends Exception
+final class OrderNotFoundException extends Exception
 {
     public function render(): \Illuminate\Http\JsonResponse
     {
@@ -36,7 +36,7 @@ class OrderNotFoundException extends Exception
     }
 }
 
-class VendorNotFoundException extends Exception
+final class VendorNotFoundException extends Exception
 {
     public function render(): \Illuminate\Http\JsonResponse
     {
@@ -51,7 +51,7 @@ class VendorNotFoundException extends Exception
     }
 }
 
-class OrderNotInCartException extends Exception
+final class OrderNotInCartException extends Exception
 {
     public function render(): \Illuminate\Http\JsonResponse
     {
@@ -66,7 +66,7 @@ class OrderNotInCartException extends Exception
     }
 }
 
-class InsufficientStockException extends Exception
+final class InsufficientStockException extends Exception
 {
     public function render(): \Illuminate\Http\JsonResponse
     {

@@ -6,7 +6,7 @@ namespace Modules\Fraud\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class FraudRule extends Model
+final class FraudRule extends Model
 {
     protected $table = 'fraud_rules';
     protected $keyType = 'string';

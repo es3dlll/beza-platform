@@ -6,7 +6,7 @@ namespace Modules\Identity\Exceptions;
 
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class PhoneAlreadyRegisteredException extends HttpException
+final class PhoneAlreadyRegisteredException extends HttpException
 {
     public function __construct(
         string $message = 'This phone number is already registered.',

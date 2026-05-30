@@ -6,7 +6,7 @@ namespace Modules\Financing\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class FinancingCreditScore extends Model
+final class FinancingCreditScore extends Model
 {
     protected $table = 'financing_credit_scores';
     protected $keyType = 'string';

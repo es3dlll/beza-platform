@@ -9,9 +9,11 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\IAM\Models\Permission;
 use Modules\IAM\Requests\StorePermissionRequest;
+use App\Support\ApiResponse;
 
-class PermissionController extends Controller
+final class PermissionController extends Controller
 {
+    use ApiResponse;
     public function index(Request $request): JsonResponse
     {
         $query = Permission::query();
@@ -22,31 +24,21 @@ class PermissionController extends Controller
 
         $permissions = $query->withCount('roles')->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $permissions,
-        ]);
+        return $this->respond($permissions);
     }
 
     public function store(StorePermissionRequest $request): JsonResponse
     {
         $permission = Permission::create($request->validated());
 
-        return response()->json([
-            'success' => true,
-            'data' => $permission,
-            'message' => 'Permission created successfully',
-        ], 201);
+        return $this->respondCreated($permission, 'Permission created successfully');
     }
 
     public function show(string $id): JsonResponse
     {
         $permission = Permission::with('roles')->findOrFail($id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $permission,
-        ]);
+        return $this->respond($permission);
     }
 
     public function destroy(string $id): JsonResponse
@@ -54,21 +46,11 @@ class PermissionController extends Controller
         $permission = Permission::withCount('roles')->findOrFail($id);
 
         if ($permission->roles_count > 0) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'PERMISSION_IN_USE',
-                    'message' => 'Cannot delete permission that is assigned to roles',
-                    'message_ar' => 'لا يمكن حذف صلاحية مرتبطة بأدوار',
-                ],
-            ], 422);
+            return $this->respondError('PERMISSION_IN_USE', 'Cannot delete permission that is assigned to roles', 'لا يمكن حذف صلاحية مرتبطة بأدوار');
         }
 
         $permission->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Permission deleted successfully',
-        ]);
+        return $this->respondDeleted('Permission deleted successfully');
     }
 }

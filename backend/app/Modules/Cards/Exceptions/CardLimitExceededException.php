@@ -6,7 +6,7 @@ namespace Modules\Cards\Exceptions;
 
 use Exception;
 
-class CardLimitExceededException extends Exception
+final class CardLimitExceededException extends Exception
 {
     public function __construct(string $limitType, int $limit, int $attempted)
     {

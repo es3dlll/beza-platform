@@ -15,7 +15,7 @@ use Modules\Loyalty\Repositories\LoyaltyPointsTransactionRepository;
 use Modules\Loyalty\Repositories\CashbackRuleRepository;
 use Modules\Loyalty\Repositories\LoyaltyRewardRepository;
 
-class LoyaltyServiceProvider extends ServiceProvider
+final class LoyaltyServiceProvider extends ServiceProvider
 {
     public function register(): void
     {

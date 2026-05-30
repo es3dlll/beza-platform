@@ -7,7 +7,7 @@ namespace Modules\Bills\Repositories;
 use Modules\Bills\Models\BillProvider;
 use Modules\Bills\DTOs\CreateBillProviderDto;
 
-class BillProviderRepository
+final class BillProviderRepository
 {
     public function create(CreateBillProviderDto $dto): BillProvider
     {

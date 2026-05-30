@@ -7,7 +7,7 @@ use Modules\CoreFinancialEngine\Controllers\TransactionController;
 use Modules\CoreFinancialEngine\Controllers\FeeController;
 use Modules\CoreFinancialEngine\Controllers\SettlementController;
 
-Route::prefix('v1/cfe')->group(function () {
+Route::middleware('auth:api')->prefix('v1/cfe')->group(function () {
     Route::post('transactions', [TransactionController::class, 'post']);
     Route::post('transactions/{id}/reverse', [TransactionController::class, 'reverse']);
     Route::get('transactions/{id}/reversible', [TransactionController::class, 'canReverse']);

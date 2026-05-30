@@ -13,7 +13,7 @@ use Modules\Ledger\Repositories\LedgerHoldRepository;
 use Modules\Ledger\Repositories\LedgerAccountRepository;
 use Illuminate\Support\Str;
 
-final class HoldService
+final class HoldService implements \Modules\Ledger\Contracts\HoldServiceInterface
 {
     public function __construct(
         private readonly LedgerHoldRepository $holds,

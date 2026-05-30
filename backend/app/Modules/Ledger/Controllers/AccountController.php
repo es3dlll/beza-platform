@@ -6,18 +6,20 @@ namespace Modules\Ledger\Controllers;
 use Modules\Ledger\DTOs\CreateAccountDto;
 use Modules\Ledger\Models\LedgerAccount;
 use Modules\Ledger\Services\AccountService;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 final class AccountController
 {
+    use ApiResponse;
     public function __construct(
         private readonly AccountService $accounts,
     ) {}
 
     public function index(): JsonResponse
     {
-        return response()->json(['data' => LedgerAccount::all()]);
+        return $this->respond(LedgerAccount::all());
     }
 
     public function store(Request $request): JsonResponse
@@ -32,39 +34,35 @@ final class AccountController
         );
 
         $account = $this->accounts->create($dto);
-        return response()->json(['data' => $account], 201);
+        return $this->respondCreated($account);
     }
 
     public function show(string $id): JsonResponse
     {
         $account = LedgerAccount::find($id);
         if (!$account) {
-            return response()->json(['error' => 'Account not found'], 404);
+            return $this->respondNotFound('Account');
         }
-        return response()->json(['data' => $account]);
+        return $this->respond($account);
     }
 
     public function balance(string $id): JsonResponse
     {
         $money = $this->accounts->getBalance($id);
-        return response()->json([
-            'data' => [
-                'amount' => $money->toInt(),
-                'amount_formatted' => $money->toFloat(),
-                'currency' => $money->getCurrency()->getCode(),
-            ],
+        return $this->respond([
+            'amount' => $money->toInt(),
+            'amount_formatted' => $money->toFloat(),
+            'currency' => $money->getCurrency()->getCode(),
         ]);
     }
 
     public function available(string $id): JsonResponse
     {
         $money = $this->accounts->getAvailableBalance($id);
-        return response()->json([
-            'data' => [
-                'amount' => $money->toInt(),
-                'amount_formatted' => $money->toFloat(),
-                'currency' => $money->getCurrency()->getCode(),
-            ],
+        return $this->respond([
+            'amount' => $money->toInt(),
+            'amount_formatted' => $money->toFloat(),
+            'currency' => $money->getCurrency()->getCode(),
         ]);
     }
 }

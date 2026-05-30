@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Auth\DTOs;
 
-class CreatePinDto
+final class CreatePinDto
 {
     public function __construct(
         public readonly string $userId,

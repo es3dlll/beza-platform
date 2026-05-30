@@ -19,6 +19,7 @@ final class SettlementTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->authenticateUser();
 
         $this->aliceId = LedgerAccount::create([
             'id' => '01AR123456789012345678s1',

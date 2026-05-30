@@ -6,7 +6,7 @@ namespace Modules\Identity\Exceptions;
 
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class EmailAlreadyRegisteredException extends HttpException
+final class EmailAlreadyRegisteredException extends HttpException
 {
     public function __construct(
         string $message = 'This email is already registered.',

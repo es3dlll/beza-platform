@@ -6,7 +6,7 @@ namespace Modules\Identity\Exceptions;
 
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class DeviceLimitExceededException extends HttpException
+final class DeviceLimitExceededException extends HttpException
 {
     public function __construct(
         string $message = 'Maximum number of devices reached.',

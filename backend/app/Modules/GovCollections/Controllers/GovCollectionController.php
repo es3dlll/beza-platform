@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\GovCollections\Controllers;
 
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -11,13 +12,15 @@ use Modules\GovCollections\Services\GovCollectionService;
 use Modules\GovCollections\Exceptions\GovServiceProviderNotFoundException;
 use Modules\GovCollections\Exceptions\GovInquiryExpiredException;
 
-class GovCollectionController extends Controller
+final class GovCollectionController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(private readonly GovCollectionService $service) {}
 
     public function providers(): JsonResponse
     {
-        return response()->json(['data' => $this->service->listProviders()]);
+        return $this->respond($this->service->listProviders());
     }
 
     public function inquire(Request $request): JsonResponse
@@ -26,9 +29,9 @@ class GovCollectionController extends Controller
         try {
             $inquiry = $this->service->inquire($request->user()->id, $request->input('provider_id'), $request->input('service_code'), $request->input('account_number'));
         } catch (GovServiceProviderNotFoundException $e) {
-            return response()->json(['error' => 'PROVIDER_NOT_FOUND'], 404);
+            return $this->respondError('PROVIDER_NOT_FOUND', null, null, 404);
         }
-        return response()->json(['data' => $inquiry], 201);
+        return $this->respondCreated($inquiry);
     }
 
     public function pay(Request $request, string $id): JsonResponse
@@ -36,14 +39,14 @@ class GovCollectionController extends Controller
         try {
             $collection = $this->service->pay($request->user()->id, $id, $request->input('channel', 'mobile'));
         } catch (GovInquiryExpiredException $e) {
-            return response()->json(['error' => 'INQUIRY_EXPIRED'], 422);
+            return $this->respondError('INQUIRY_EXPIRED', null, null, 422);
         }
-        return response()->json(['data' => $collection], 201);
+        return $this->respondCreated($collection);
     }
 
     public function history(Request $request): JsonResponse
     {
-        return response()->json(['data' => $this->service->history($request->user()->id)]);
+        return $this->respond($this->service->history($request->user()->id));
     }
 
     public function adminSummary(): JsonResponse
@@ -56,11 +59,11 @@ class GovCollectionController extends Controller
             ->groupBy('provider_id')
             ->get();
 
-        return response()->json(['data' => [
+        return $this->respond([
             'total_inquiries' => $totalInquiries,
             'total_payments' => $totalPayments,
             'total_volume' => $totalVolume,
             'by_provider' => $byProvider,
-        ]]);
+        ]);
     }
 }

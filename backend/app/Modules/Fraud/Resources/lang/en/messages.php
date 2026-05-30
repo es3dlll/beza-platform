@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'name' => 'Fraud Engine',
     'description' => 'Fraud detection, blacklist management, and case review',

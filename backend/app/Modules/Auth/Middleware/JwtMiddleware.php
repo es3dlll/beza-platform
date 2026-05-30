@@ -9,7 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Auth\Services\TokenService;
 
-class JwtMiddleware
+final class JwtMiddleware
 {
     public function __construct(
         private TokenService $tokenService,

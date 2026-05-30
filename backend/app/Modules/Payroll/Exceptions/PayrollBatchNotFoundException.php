@@ -6,7 +6,7 @@ namespace Modules\Payroll\Exceptions;
 
 use Exception;
 
-class PayrollBatchNotFoundException extends Exception
+final class PayrollBatchNotFoundException extends Exception
 {
     public function __construct(string $id)
     {

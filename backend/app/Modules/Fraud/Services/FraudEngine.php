@@ -20,7 +20,7 @@ use Modules\Fraud\Repositories\FraudRuleRepository;
 use Illuminate\Support\Str;
 use Modules\Fraud\Models\FraudEvent;
 
-class FraudEngine
+final class FraudEngine
 {
     private const SCORE_BLOCK = 900;
     private const SCORE_REVIEW = 500;

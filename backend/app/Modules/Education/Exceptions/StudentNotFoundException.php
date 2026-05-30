@@ -6,7 +6,7 @@ namespace Modules\Education\Exceptions;
 
 use Exception;
 
-class StudentNotFoundException extends Exception
+final class StudentNotFoundException extends Exception
 {
     public function __construct(string $id) { parent::__construct("Student not found: {$id}"); }
 }

@@ -6,7 +6,7 @@ namespace Modules\Loyalty\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
 
-class PointsRedeemed
+final class PointsRedeemed
 {
     use Dispatchable;
 

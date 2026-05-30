@@ -8,9 +8,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Marketplace\Services\LoyaltyService;
+use App\Support\ApiResponse;
 
-class LoyaltyController extends Controller
+final class LoyaltyController extends Controller
 {
+    use ApiResponse;
     public function __construct(
         private LoyaltyService $loyalty,
     ) {}
@@ -19,10 +21,7 @@ class LoyaltyController extends Controller
     {
         $balance = $this->loyalty->getBalance($request->user()->id);
 
-        return response()->json([
-            'success' => true,
-            'data' => ['points' => $balance],
-        ]);
+        return $this->respond(['points' => $balance]);
     }
 
     public function redeemPoints(Request $request): JsonResponse
@@ -36,19 +35,13 @@ class LoyaltyController extends Controller
             (int) $data['points'],
         );
 
-        return response()->json([
-            'success' => true,
-            'data' => ['syp_value' => $sypValue, 'points_redeemed' => (int) $data['points']],
-        ]);
+        return $this->respond(['syp_value' => $sypValue, 'points_redeemed' => (int) $data['points']]);
     }
 
     public function getHistory(Request $request): JsonResponse
     {
         $history = $this->loyalty->getHistory($request->user()->id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $history,
-        ]);
+        return $this->respond($history);
     }
 }

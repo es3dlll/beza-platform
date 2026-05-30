@@ -6,7 +6,7 @@ namespace Modules\Savings\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class WithdrawRequest extends FormRequest
+final class WithdrawRequest extends FormRequest
 {
     public function authorize(): bool
     {

@@ -6,7 +6,7 @@ namespace Modules\Savings\Exceptions;
 
 use Exception;
 
-class EarlyWithdrawalPenaltyException extends Exception
+final class EarlyWithdrawalPenaltyException extends Exception
 {
     public function __construct(int $penaltyAmount)
     {

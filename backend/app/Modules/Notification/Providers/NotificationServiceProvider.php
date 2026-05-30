@@ -11,7 +11,7 @@ use Modules\Notification\Services\DatabaseChannel;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
-class NotificationServiceProvider extends ServiceProvider
+final class NotificationServiceProvider extends ServiceProvider
 {
     public function register(): void
     {

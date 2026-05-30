@@ -7,7 +7,7 @@ namespace Modules\Remittance\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 
-class Corridor extends Model
+final class Corridor extends Model
 {
     use HasUlids;
 

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Marketplace\Enums\OrderStatus;
 
-class Order extends Model
+final class Order extends Model
 {
     use HasUlids;
 

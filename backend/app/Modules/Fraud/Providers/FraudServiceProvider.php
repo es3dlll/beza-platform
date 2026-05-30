@@ -15,7 +15,7 @@ use Modules\Fraud\Repositories\FraudEventRepository;
 use Modules\Fraud\Repositories\FraudCaseRepository;
 use Modules\Fraud\Repositories\FraudBlacklistRepository;
 
-class FraudServiceProvider extends ServiceProvider
+final class FraudServiceProvider extends ServiceProvider
 {
     public function register(): void
     {

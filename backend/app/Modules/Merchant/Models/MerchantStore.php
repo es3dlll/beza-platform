@@ -7,7 +7,7 @@ namespace Modules\Merchant\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 
-class MerchantStore extends Model
+final class MerchantStore extends Model
 {
     use HasUlids;
 

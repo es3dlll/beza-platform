@@ -6,7 +6,7 @@ namespace Modules\Identity\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CheckPhoneRequest extends FormRequest
+final class CheckPhoneRequest extends FormRequest
 {
     public function authorize(): bool
     {

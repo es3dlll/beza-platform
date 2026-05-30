@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\CoreFinancialEngine\Services;
 
 use Modules\CoreFinancialEngine\DTOs\PostingInstructionDto;

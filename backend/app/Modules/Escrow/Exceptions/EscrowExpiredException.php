@@ -6,7 +6,7 @@ namespace Modules\Escrow\Exceptions;
 
 use Exception;
 
-class EscrowExpiredException extends Exception
+final class EscrowExpiredException extends Exception
 {
     public function __construct() { parent::__construct('Escrow agreement has expired'); }
 }

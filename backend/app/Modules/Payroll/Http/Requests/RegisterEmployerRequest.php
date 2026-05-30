@@ -6,7 +6,7 @@ namespace Modules\Payroll\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class RegisterEmployerRequest extends FormRequest
+final class RegisterEmployerRequest extends FormRequest
 {
     public function authorize(): bool
     {

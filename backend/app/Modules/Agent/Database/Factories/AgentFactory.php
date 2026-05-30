@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Agent\Models\Agent;
 
-class AgentFactory extends Factory
+final class AgentFactory extends Factory
 {
     protected $model = Agent::class;
 

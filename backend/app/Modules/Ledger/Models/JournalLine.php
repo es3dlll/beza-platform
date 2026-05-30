@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
-class JournalLine extends Model
+final class JournalLine extends Model
 {
     protected $table = 'journal_lines';
 

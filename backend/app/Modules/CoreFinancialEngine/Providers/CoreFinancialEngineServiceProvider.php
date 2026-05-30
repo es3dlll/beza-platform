@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\CoreFinancialEngine\Providers;
 
 use Modules\CoreFinancialEngine\Contracts\PostingEngineInterface;

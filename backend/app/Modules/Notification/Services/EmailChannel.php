@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Modules\Notification\Contracts\NotificationChannelInterface;
 
-class EmailChannel implements NotificationChannelInterface
+final class EmailChannel implements NotificationChannelInterface
 {
     public function send(string $recipient, string $message, array $options = []): bool
     {

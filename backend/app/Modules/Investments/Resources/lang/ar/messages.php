@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'subscribed' => 'تم الاشتراك بنجاح',
     'redeemed' => 'تم الاسترداد بنجاح',

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Settlement\Controllers;
 
+use App\Support\ApiResponse;
 use Modules\Settlement\Services\SettlementService;
 use Modules\Settlement\Services\AgentSettlementService;
 use Illuminate\Http\JsonResponse;
@@ -11,6 +12,8 @@ use Illuminate\Http\Request;
 
 final class SettlementController
 {
+    use ApiResponse;
+
     public function __construct(
         private readonly SettlementService $settlements,
         private readonly AgentSettlementService $agent,
@@ -19,9 +22,9 @@ final class SettlementController
     public function show(string $id): JsonResponse
     {
         try {
-            return response()->json(['data' => $this->settlements->getSummary($id)]);
+            return $this->respond($this->settlements->getSummary($id));
         } catch (\Modules\Settlement\Exceptions\SettlementNotFoundException $e) {
-            return response()->json(['error' => ['code' => 'SETTLEMENT_NOT_FOUND', 'message' => $e->getMessage()]], 404);
+            return $this->respondError('SETTLEMENT_NOT_FOUND', $e->getMessage(), null, 404);
         }
     }
 
@@ -30,11 +33,11 @@ final class SettlementController
         try {
             $result = $this->settlements->execute($id);
             if (!$result->success) {
-                return response()->json(['error' => ['code' => 'SETTLEMENT_EXECUTION_FAILED', 'message' => $result->error]], 422);
+                return $this->respondError('SETTLEMENT_EXECUTION_FAILED', $result->error, null, 422);
             }
-            return response()->json(['data' => $result]);
+            return $this->respond($result);
         } catch (\Exception $e) {
-            return response()->json(['error' => ['code' => 'SETTLEMENT_FAILED', 'message' => $e->getMessage()]], 422);
+            return $this->respondError('SETTLEMENT_FAILED', $e->getMessage(), null, 422);
         }
     }
 
@@ -43,11 +46,11 @@ final class SettlementController
         try {
             $result = $this->settlements->retry($id);
             if (!$result->success) {
-                return response()->json(['error' => ['code' => 'SETTLEMENT_RETRY_FAILED', 'message' => $result->error]], 422);
+                return $this->respondError('SETTLEMENT_RETRY_FAILED', $result->error, null, 422);
             }
-            return response()->json(['data' => $result]);
+            return $this->respond($result);
         } catch (\Exception $e) {
-            return response()->json(['error' => ['code' => 'SETTLEMENT_RETRY_ERROR', 'message' => $e->getMessage()]], 422);
+            return $this->respondError('SETTLEMENT_RETRY_ERROR', $e->getMessage(), null, 422);
         }
     }
 
@@ -58,9 +61,9 @@ final class SettlementController
                 'amount' => 'required|integer',
                 'reference' => 'nullable|string',
             ]));
-            return response()->json(['data' => $result]);
+            return $this->respond($result);
         } catch (\Modules\Settlement\Exceptions\SettlementNotFoundException $e) {
-            return response()->json(['error' => ['code' => 'SETTLEMENT_NOT_FOUND', 'message' => $e->getMessage()]], 404);
+            return $this->respondError('SETTLEMENT_NOT_FOUND', $e->getMessage(), null, 404);
         }
     }
 
@@ -73,9 +76,9 @@ final class SettlementController
                 (int) $request->input('cash_out_total', 0),
                 (int) $request->input('commission_total', 0),
             );
-            return response()->json(['data' => $settlement], 201);
+            return $this->respondCreated($settlement);
         } catch (\Exception $e) {
-            return response()->json(['error' => ['code' => 'AGENT_SETTLEMENT_FAILED', 'message' => $e->getMessage()]], 422);
+            return $this->respondError('AGENT_SETTLEMENT_FAILED', $e->getMessage(), null, 422);
         }
     }
 
@@ -92,16 +95,16 @@ final class SettlementController
                 ->paginate($perPage);
         }
 
-        return response()->json(['data' => $data]);
+        return $this->respond($data);
     }
 
     public function processCutoff(): JsonResponse
     {
         try {
             $result = $this->settlements->processDailyCutoff();
-            return response()->json(['data' => $result]);
+            return $this->respond($result);
         } catch (\Exception $e) {
-            return response()->json(['error' => ['code' => 'CUTOFF_FAILED', 'message' => $e->getMessage()]], 422);
+            return $this->respondError('CUTOFF_FAILED', $e->getMessage(), null, 422);
         }
     }
 }

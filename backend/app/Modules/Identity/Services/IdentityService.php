@@ -18,7 +18,7 @@ use Modules\Identity\Repositories\DeviceRepository;
 use Modules\Identity\Repositories\OtpRepository;
 use Modules\Identity\Repositories\UserRepository;
 
-class IdentityService
+final class IdentityService
 {
     public function __construct(
         private UserRepository $users,

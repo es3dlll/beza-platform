@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'phone_required' => 'رقم الهاتف مطلوب',
     'phone_invalid_format' => 'صيغة رقم الهاتف غير صحيحة، يجب أن تبدأ بـ 963',

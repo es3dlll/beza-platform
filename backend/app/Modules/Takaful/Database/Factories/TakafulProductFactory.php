@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Takaful\Models\TakafulProduct;
 
-class TakafulProductFactory extends Factory
+final class TakafulProductFactory extends Factory
 {
     protected $model = TakafulProduct::class;
 

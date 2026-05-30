@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Merchant\DTOs;
 
-class RegisterMerchantDto
+final class RegisterMerchantDto
 {
     public function __construct(
         public readonly string $userId = '',

@@ -6,7 +6,7 @@ namespace Modules\Cards\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class CardMerchantBlock extends Model
+final class CardMerchantBlock extends Model
 {
     protected $table = 'card_merchant_blocks';
     protected $keyType = 'string';

@@ -6,7 +6,7 @@ namespace Modules\Savings\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class SavingsProfitRule extends Model
+final class SavingsProfitRule extends Model
 {
     protected $table = 'savings_profit_rules';
     protected $keyType = 'string';

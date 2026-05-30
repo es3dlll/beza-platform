@@ -12,7 +12,7 @@ use Modules\Admin\Controllers\MarketplaceAdminController;
 use Modules\Admin\Controllers\OpenFinanceAdminController;
 use Modules\Admin\Controllers\TakafulAdminController;
 
-Route::middleware(['auth:api'])->prefix('v1/admin')->group(function () {
+Route::middleware(['auth:api', 'permission:admin.access'])->prefix('v1/admin')->group(function () {
 
     Route::prefix('financing')->group(function () {
         Route::get('dashboard', [FinancingAdminController::class, 'dashboard']);

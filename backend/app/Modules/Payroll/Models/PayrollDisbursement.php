@@ -6,7 +6,7 @@ namespace Modules\Payroll\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class PayrollDisbursement extends Model
+final class PayrollDisbursement extends Model
 {
     protected $table = 'payroll_disbursements';
     protected $keyType = 'string';

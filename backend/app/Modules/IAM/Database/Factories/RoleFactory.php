@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\IAM\Models\Role;
 
-class RoleFactory extends Factory
+final class RoleFactory extends Factory
 {
     protected $model = Role::class;
 

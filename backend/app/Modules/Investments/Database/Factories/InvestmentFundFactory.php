@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Investments\Models\InvestmentFund;
 use Illuminate\Support\Str;
 
-class InvestmentFundFactory extends Factory
+final class InvestmentFundFactory extends Factory
 {
     protected $model = InvestmentFund::class;
 

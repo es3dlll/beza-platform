@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'product_created' => 'تم إنشاء منتج التكافل',
     'product_not_found' => 'منتج التكافل غير موجود',

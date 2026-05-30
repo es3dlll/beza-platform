@@ -16,7 +16,7 @@ use Modules\Merchant\Events\MerchantApproved;
 use Modules\Merchant\Exceptions\MerchantNotFoundException;
 use Modules\Merchant\Exceptions\MerchantSuspendedException;
 
-class MerchantService
+final class MerchantService
 {
     public function __construct(
         private readonly MerchantRepository $merchantRepository,

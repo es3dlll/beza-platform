@@ -6,7 +6,7 @@ namespace Modules\Loyalty\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
 
-class CashbackApplied
+final class CashbackApplied
 {
     use Dispatchable;
 

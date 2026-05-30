@@ -6,7 +6,7 @@ namespace Modules\Merchant\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
 
-class MerchantRegistered
+final class MerchantRegistered
 {
     use Dispatchable;
 

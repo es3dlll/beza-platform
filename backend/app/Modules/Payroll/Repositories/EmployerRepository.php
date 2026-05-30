@@ -6,7 +6,7 @@ namespace Modules\Payroll\Repositories;
 
 use Modules\Payroll\Models\Employer;
 
-class EmployerRepository
+final class EmployerRepository
 {
     public function create(array $data): Employer
     {

@@ -9,7 +9,7 @@ use Modules\Savings\Models\SavingsAccount;
 use Modules\Savings\Repositories\SavingsProfitRuleRepository;
 use Modules\Savings\Repositories\SavingsTransactionRepository;
 
-class ProfitDistributionService
+final class ProfitDistributionService
 {
     public function __construct(
         private readonly SavingsProfitRuleRepository $ruleRepository,

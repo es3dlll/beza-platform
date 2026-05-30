@@ -6,7 +6,7 @@ namespace Modules\IAM\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreRoleRequest extends FormRequest
+final class StoreRoleRequest extends FormRequest
 {
     public function authorize(): bool
     {

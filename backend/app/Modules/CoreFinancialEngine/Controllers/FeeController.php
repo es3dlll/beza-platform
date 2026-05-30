@@ -1,14 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\CoreFinancialEngine\Controllers;
 
 use Modules\CoreFinancialEngine\DTOs\FeeAssessmentDto;
 use Modules\CoreFinancialEngine\Services\FeeEngine;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 final class FeeController
 {
+    use ApiResponse;
     public function __construct(
         private readonly FeeEngine $fees,
     ) {}
@@ -27,9 +31,9 @@ final class FeeController
 
         try {
             $result = $this->fees->calculate($dto);
-            return response()->json(['data' => $result]);
+            return $this->respond($result);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 422);
+            return $this->respondError('FEE_CALCULATION_FAILED', $e->getMessage());
         }
     }
 
@@ -48,9 +52,9 @@ final class FeeController
         $result = $this->fees->apply($dto);
 
         if (!$result->applied && $result->error) {
-            return response()->json(['error' => $result->error], 422);
+            return $this->respondError('FEE_APPLY_FAILED', $result->error);
         }
 
-        return response()->json(['data' => $result]);
+        return $this->respond($result);
     }
 }

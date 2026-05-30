@@ -1,13 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\CoreFinancialEngine\Controllers;
 
 use Modules\CoreFinancialEngine\Services\SettlementEngine;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 final class SettlementController
 {
+    use ApiResponse;
     public function __construct(
         private readonly SettlementEngine $settlement,
     ) {}
@@ -20,14 +24,14 @@ final class SettlementController
         );
 
         if (!$result->success) {
-            return response()->json(['error' => $result->errorMessage, 'code' => $result->errorCode], 422);
+            return $this->respondError($result->errorCode ?? 'SETTLEMENT_FAILED', $result->errorMessage);
         }
 
-        return response()->json(['data' => $result]);
+        return $this->respond($result);
     }
 
     public function dailyCutoff(string $date): JsonResponse
     {
-        return response()->json(['data' => $this->settlement->dailyCutoff($date)]);
+        return $this->respond($this->settlement->dailyCutoff($date));
     }
 }

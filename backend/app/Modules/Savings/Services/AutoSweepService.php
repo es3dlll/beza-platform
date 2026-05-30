@@ -9,7 +9,7 @@ use Modules\Savings\Repositories\SavingsAccountRepository;
 use Modules\Savings\Repositories\SavingsTransactionRepository;
 use Modules\Savings\Enums\SavingsTransactionType;
 
-class AutoSweepService
+final class AutoSweepService
 {
     public function __construct(
         private readonly SavingsGoalRepository $goalRepository,

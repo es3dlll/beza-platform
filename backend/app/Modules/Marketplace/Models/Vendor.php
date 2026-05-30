@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Marketplace\Enums\VendorStatus;
 
-class Vendor extends Model
+final class Vendor extends Model
 {
     use HasUlids;
 

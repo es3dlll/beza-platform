@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Identity\Models\User;
 
-class Notification extends Model
+final class Notification extends Model
 {
     use HasUlids;
 

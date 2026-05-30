@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\CoreFinancialEngine\Models\FeeRule;
 
-class FeeRuleFactory extends Factory
+final class FeeRuleFactory extends Factory
 {
     protected $model = FeeRule::class;
 

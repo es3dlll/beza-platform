@@ -6,7 +6,7 @@ namespace Modules\Loyalty\Exceptions;
 
 use Exception;
 
-class PointsExpiredException extends Exception
+final class PointsExpiredException extends Exception
 {
     public function __construct()
     {

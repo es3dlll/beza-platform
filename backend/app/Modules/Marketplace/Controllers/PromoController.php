@@ -8,9 +8,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Marketplace\Services\PromoService;
+use App\Support\ApiResponse;
 
-class PromoController extends Controller
+final class PromoController extends Controller
 {
+    use ApiResponse;
     public function __construct(
         private PromoService $promos,
     ) {}
@@ -30,20 +32,14 @@ class PromoController extends Controller
 
         $promo = $this->promos->create($data);
 
-        return response()->json([
-            'success' => true,
-            'data' => $promo,
-        ], 201);
+        return $this->respondCreated($promo);
     }
 
     public function listActive(): JsonResponse
     {
         $promos = $this->promos->listActive();
 
-        return response()->json([
-            'success' => true,
-            'data' => $promos,
-        ]);
+        return $this->respond($promos);
     }
 
     public function validateCode(Request $request): JsonResponse
@@ -55,10 +51,7 @@ class PromoController extends Controller
 
         $promo = $this->promos->validate($data['code'], (int) $data['order_amount']);
 
-        return response()->json([
-            'success' => true,
-            'data' => $promo,
-        ]);
+        return $this->respond($promo);
     }
 
     public function applyCode(Request $request): JsonResponse
@@ -70,9 +63,6 @@ class PromoController extends Controller
 
         $discounted = $this->promos->apply($data['code'], (int) $data['order_amount']);
 
-        return response()->json([
-            'success' => true,
-            'data' => ['discounted_amount' => $discounted],
-        ]);
+        return $this->respond(['discounted_amount' => $discounted]);
     }
 }

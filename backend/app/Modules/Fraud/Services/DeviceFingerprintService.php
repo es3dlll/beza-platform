@@ -6,7 +6,7 @@ namespace Modules\Fraud\Services;
 
 use Modules\Fraud\Repositories\FraudBlacklistRepository;
 
-class DeviceFingerprintService
+final class DeviceFingerprintService
 {
     public function __construct(
         private readonly FraudBlacklistRepository $blacklistRepository,

@@ -6,7 +6,7 @@ namespace Modules\Fraud\Exceptions;
 
 use Exception;
 
-class FraudRapidSuccessiveTxnsException extends Exception
+final class FraudRapidSuccessiveTxnsException extends Exception
 {
     public function __construct(int $txnCount = 0, int $windowSeconds = 60)
     {

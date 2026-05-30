@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Modules\Identity\Models\User;
 
-class RemittanceOrder extends Model
+final class RemittanceOrder extends Model
 {
     use HasUlids;
 

@@ -6,7 +6,7 @@ namespace Modules\Escrow\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class EscrowMilestone extends Model
+final class EscrowMilestone extends Model
 {
     protected $table = 'escrow_milestones';
     protected $keyType = 'string';

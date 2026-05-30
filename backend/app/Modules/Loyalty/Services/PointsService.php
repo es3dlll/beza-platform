@@ -15,7 +15,7 @@ use Modules\Loyalty\Models\LoyaltyPoints;
 use Modules\Loyalty\Repositories\LoyaltyPointsRepository;
 use Modules\Loyalty\Repositories\LoyaltyPointsTransactionRepository;
 
-class PointsService
+final class PointsService
 {
     public function __construct(
         private readonly LoyaltyPointsRepository $pointsRepository,

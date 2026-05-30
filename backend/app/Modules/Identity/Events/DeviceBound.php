@@ -10,7 +10,7 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 
-class DeviceBound implements ShouldBroadcast
+final class DeviceBound implements ShouldBroadcast
 {
     use Dispatchable;
     use InteractsWithSockets;

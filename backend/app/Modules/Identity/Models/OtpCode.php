@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
-class OtpCode extends Model
+final class OtpCode extends Model
 {
     use HasUlids;
 

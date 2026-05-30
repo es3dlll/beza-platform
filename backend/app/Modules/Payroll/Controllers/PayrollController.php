@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Payroll\Controllers;
 
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -23,8 +24,10 @@ use Modules\Payroll\Repositories\PayrollDisbursementRepository;
 use Modules\Payroll\Repositories\EmployeeRecordRepository;
 use Modules\Payroll\Services\SalaryCertificateService;
 
-class PayrollController extends Controller
+final class PayrollController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(
         private readonly PayrollService $payrollService,
         private readonly PayrollBatchRepository $batchRepository,
@@ -49,28 +52,28 @@ class PayrollController extends Controller
         );
 
         $employer = $this->payrollService->registerEmployer($dto);
-        return response()->json(['data' => $employer], 201);
+        return $this->respondCreated($employer);
     }
 
     public function myEmployer(Request $request): JsonResponse
     {
         $employer = $this->payrollService->findEmployerByUser($request->user()->id);
         if (!$employer) {
-            return response()->json(['error' => 'EMPLOYER_NOT_FOUND'], 404);
+            return $this->respondError('EMPLOYER_NOT_FOUND', null, null, 404);
         }
-        return response()->json(['data' => $employer]);
+        return $this->respond($employer);
     }
 
     public function approve(Request $request, string $id): JsonResponse
     {
         $employer = $this->payrollService->approveEmployer($id, $request->user()->id);
-        return response()->json(['data' => $employer]);
+        return $this->respond($employer);
     }
 
     public function suspend(string $id): JsonResponse
     {
         $employer = $this->payrollService->suspendEmployer($id);
-        return response()->json(['data' => $employer]);
+        return $this->respond($employer);
     }
 
     public function createBatch(CreateBatchRequest $request): JsonResponse
@@ -85,10 +88,10 @@ class PayrollController extends Controller
         try {
             $batch = $this->payrollService->createBatch($dto);
         } catch (PayrollValidationException $e) {
-            return response()->json(['error' => 'PAYROLL_VALIDATION_ERROR', 'reason' => $e->getMessage()], 422);
+            return $this->respondError('PAYROLL_VALIDATION_ERROR', $e->getMessage(), null, 422);
         }
 
-        return response()->json(['data' => $batch], 201);
+        return $this->respondCreated($batch);
     }
 
     public function uploadCsv(UploadCsvRequest $request): JsonResponse
@@ -101,10 +104,10 @@ class PayrollController extends Controller
                 notes: $request->input('notes'),
             );
         } catch (PayrollValidationException $e) {
-            return response()->json(['error' => 'PAYROLL_CSV_ERROR', 'reason' => $e->getMessage()], 422);
+            return $this->respondError('PAYROLL_CSV_ERROR', $e->getMessage(), null, 422);
         }
 
-        return response()->json(['data' => $batch], 201);
+        return $this->respondCreated($batch);
     }
 
     public function approveBatch(ApproveBatchRequest $request, string $id): JsonResponse
@@ -112,10 +115,10 @@ class PayrollController extends Controller
         try {
             $batch = $this->payrollService->approveBatch($id, $request->user()->id);
         } catch (InsufficientBalanceException $e) {
-            return response()->json(['error' => 'INSUFFICIENT_BALANCE', 'reason' => $e->getMessage()], 422);
+            return $this->respondError('INSUFFICIENT_BALANCE', $e->getMessage(), null, 422);
         }
 
-        return response()->json(['data' => $batch]);
+        return $this->respond($batch);
     }
 
     public function processBatch(string $id): JsonResponse
@@ -123,10 +126,10 @@ class PayrollController extends Controller
         try {
             $batch = $this->payrollService->processBatch($id);
         } catch (PayrollValidationException $e) {
-            return response()->json(['error' => 'PAYROLL_PROCESS_ERROR', 'reason' => $e->getMessage()], 422);
+            return $this->respondError('PAYROLL_PROCESS_ERROR', $e->getMessage(), null, 422);
         }
 
-        return response()->json(['data' => $batch]);
+        return $this->respond($batch);
     }
 
     public function listBatches(Request $request): JsonResponse
@@ -136,27 +139,27 @@ class PayrollController extends Controller
             (int) $request->input('per_page', 15),
         );
 
-        return response()->json(['data' => $batches]);
+        return $this->respond($batches);
     }
 
     public function showBatch(string $id): JsonResponse
     {
         $batch = $this->payrollService->findBatchOrFail($id);
         $disbursements = $this->disbursementRepository->findByBatch($id);
-        return response()->json(['data' => $batch, 'disbursements' => $disbursements]);
+        return $this->respond(['batch' => $batch, 'disbursements' => $disbursements]);
     }
 
     public function listEmployees(Request $request, string $employerId): JsonResponse
     {
         $employees = $this->employeeRepository->findByEmployer($employerId);
-        return response()->json(['data' => $employees]);
+        return $this->respond($employees);
     }
 
     public function dashboard(Request $request): JsonResponse
     {
         $employer = $this->payrollService->findEmployerByUser($request->user()->id);
         if (!$employer) {
-            return response()->json(['error' => 'EMPLOYER_NOT_FOUND'], 404);
+            return $this->respondError('EMPLOYER_NOT_FOUND', null, null, 404);
         }
 
         $batches = $this->batchRepository->findByEmployer($employer->id, 5);
@@ -172,7 +175,7 @@ class PayrollController extends Controller
             'monthly_remaining' => $employer->monthly_payroll_limit - $employer->used_monthly_payroll,
         ];
 
-        return response()->json(['data' => ['employer' => $employer, 'stats' => $stats, 'recent_batches' => $batches]]);
+        return $this->respond(['employer' => $employer, 'stats' => $stats, 'recent_batches' => $batches]);
     }
 
     public function mySalary(Request $request): JsonResponse
@@ -184,7 +187,7 @@ class PayrollController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        return response()->json(['data' => $disbursements]);
+        return $this->respond($disbursements);
     }
 
     public function downloadCertificate(string $batchId, string $employeePhone): \Illuminate\Http\Response

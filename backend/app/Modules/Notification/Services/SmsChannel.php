@@ -7,7 +7,7 @@ namespace Modules\Notification\Services;
 use Modules\Notification\Contracts\NotificationChannelInterface;
 use Illuminate\Support\Facades\Log;
 
-class SmsChannel implements NotificationChannelInterface
+final class SmsChannel implements NotificationChannelInterface
 {
     private readonly string $driver;
     private readonly ?string $apiKey;

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
 use Modules\Identity\Models\User;
 
-class Role extends Model
+final class Role extends Model
 {
     protected $keyType = 'string';
 

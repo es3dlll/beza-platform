@@ -6,7 +6,7 @@ namespace Modules\Payroll\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
 
-class PayrollBatchApproved
+final class PayrollBatchApproved
 {
     use Dispatchable;
 

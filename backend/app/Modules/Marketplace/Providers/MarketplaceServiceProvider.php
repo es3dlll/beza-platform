@@ -12,7 +12,7 @@ use Modules\Marketplace\Services\OrderService;
 use Modules\Marketplace\Services\PromoService;
 use Modules\Marketplace\Services\VendorService;
 
-class MarketplaceServiceProvider extends ServiceProvider
+final class MarketplaceServiceProvider extends ServiceProvider
 {
     public function register(): void
     {

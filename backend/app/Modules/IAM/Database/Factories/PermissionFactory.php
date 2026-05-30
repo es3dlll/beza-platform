@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\IAM\Models\Permission;
 
-class PermissionFactory extends Factory
+final class PermissionFactory extends Factory
 {
     protected $model = Permission::class;
 

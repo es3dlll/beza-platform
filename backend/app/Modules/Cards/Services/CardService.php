@@ -15,7 +15,7 @@ use Modules\Cards\Exceptions\CardNotFoundException;
 use Modules\Cards\Models\Card;
 use Modules\Cards\Repositories\CardRepository;
 
-class CardService
+final class CardService
 {
     private const EXPIRY_YEARS = 4;
 

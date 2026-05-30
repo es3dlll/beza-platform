@@ -8,9 +8,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Marketplace\Services\ShippingService;
+use App\Support\ApiResponse;
 
-class ShippingController extends Controller
+final class ShippingController extends Controller
 {
+    use ApiResponse;
     public function __construct(
         private ShippingService $shipping,
     ) {}
@@ -29,10 +31,7 @@ class ShippingController extends Controller
             $data['zone_id'] ?? null,
         );
 
-        return response()->json([
-            'success' => true,
-            'data' => ['fee' => $fee],
-        ]);
+        return $this->respond(['fee' => $fee]);
     }
 
     public function create(Request $request): JsonResponse
@@ -53,10 +52,7 @@ class ShippingController extends Controller
             $data,
         );
 
-        return response()->json([
-            'success' => true,
-            'data' => $shipment,
-        ], 201);
+        return $this->respondCreated($shipment);
     }
 
     public function track(Request $request): JsonResponse
@@ -67,10 +63,7 @@ class ShippingController extends Controller
 
         $shipment = $this->shipping->trackShipment($data['tracking_number']);
 
-        return response()->json([
-            'success' => true,
-            'data' => $shipment,
-        ]);
+        return $this->respond($shipment);
     }
 
     public function zones(Request $request): JsonResponse
@@ -89,27 +82,18 @@ class ShippingController extends Controller
 
             $zone = $this->shipping->createZone($data);
 
-            return response()->json([
-                'success' => true,
-                'data' => $zone,
-            ], 201);
+            return $this->respondCreated($zone);
         }
 
         $zones = $this->shipping->listZones();
 
-        return response()->json([
-            'success' => true,
-            'data' => $zones,
-        ]);
+        return $this->respond($zones);
     }
 
     public function listByOrder(string $orderId): JsonResponse
     {
         $shipments = $this->shipping->listByOrder($orderId);
 
-        return response()->json([
-            'success' => true,
-            'data' => $shipments,
-        ]);
+        return $this->respond($shipments);
     }
 }

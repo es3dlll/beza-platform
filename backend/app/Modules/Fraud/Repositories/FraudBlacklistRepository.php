@@ -6,7 +6,7 @@ namespace Modules\Fraud\Repositories;
 
 use Modules\Fraud\Models\FraudBlacklistEntry;
 
-class FraudBlacklistRepository
+final class FraudBlacklistRepository
 {
     public function isBlocked(string $type, string $value): bool
     {

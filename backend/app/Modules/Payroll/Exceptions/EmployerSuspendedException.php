@@ -6,7 +6,7 @@ namespace Modules\Payroll\Exceptions;
 
 use Exception;
 
-class EmployerSuspendedException extends Exception
+final class EmployerSuspendedException extends Exception
 {
     public function __construct(string $id)
     {

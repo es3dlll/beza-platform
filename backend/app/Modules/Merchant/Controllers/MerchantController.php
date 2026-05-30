@@ -16,9 +16,11 @@ use Modules\Merchant\Http\Requests\MerchantPayRequest;
 use Modules\Merchant\Http\Requests\MerchantRefundRequest;
 use Modules\Merchant\Services\MerchantService;
 use Modules\Merchant\Services\MerchantPaymentService;
+use App\Support\ApiResponse;
 
-class MerchantController extends Controller
+final class MerchantController extends Controller
 {
+    use ApiResponse;
     public function __construct(
         private readonly MerchantService $merchantService,
         private readonly MerchantPaymentService $paymentService,
@@ -41,28 +43,28 @@ class MerchantController extends Controller
         );
 
         $merchant = $this->merchantService->register($dto);
-        return response()->json(['data' => $merchant], 201);
+        return $this->respondCreated($merchant);
     }
 
     public function myMerchant(Request $request): JsonResponse
     {
         $merchant = $this->merchantService->findByUser($request->user()->id);
         if (!$merchant) {
-            return response()->json(['error' => 'MERCHANT_NOT_FOUND'], 404);
+            return $this->respondError('MERCHANT_NOT_FOUND', 'Merchant not found', 'التاجر غير موجود', 404);
         }
-        return response()->json(['data' => $merchant]);
+        return $this->respond($merchant);
     }
 
     public function approve(Request $request, string $id): JsonResponse
     {
         $merchant = $this->merchantService->approve($id, $request->user()->id);
-        return response()->json(['data' => $merchant]);
+        return $this->respond($merchant);
     }
 
     public function suspend(string $id): JsonResponse
     {
         $merchant = $this->merchantService->suspend($id);
-        return response()->json(['data' => $merchant]);
+        return $this->respond($merchant);
     }
 
     public function createStore(CreateStoreRequest $request): JsonResponse
@@ -80,13 +82,13 @@ class MerchantController extends Controller
         );
 
         $store = $this->merchantService->createStore($dto);
-        return response()->json(['data' => $store], 201);
+        return $this->respondCreated($store);
     }
 
     public function listStores(string $merchantId): JsonResponse
     {
         $stores = $this->merchantService->getStores($merchantId);
-        return response()->json(['data' => $stores]);
+        return $this->respond($stores);
     }
 
     public function generateQr(Request $request): JsonResponse
@@ -94,12 +96,10 @@ class MerchantController extends Controller
         $qrCode = $this->merchantService->generateQrCode();
         $merchant = $this->merchantService->findByUser($request->user()->id);
 
-        return response()->json([
-            'data' => [
-                'qr_code' => $qrCode,
-                'merchant_id' => $merchant?->id,
-                'type' => 'static',
-            ],
+        return $this->respond([
+            'qr_code' => $qrCode,
+            'merchant_id' => $merchant?->id,
+            'type' => 'static',
         ]);
     }
 
@@ -114,13 +114,13 @@ class MerchantController extends Controller
         );
 
         $payment = $this->paymentService->pay($dto);
-        return response()->json(['data' => $payment], 201);
+        return $this->respondCreated($payment);
     }
 
     public function refund(MerchantRefundRequest $request, string $id): JsonResponse
     {
         $payment = $this->paymentService->refund($id, $request->input('reason'));
-        return response()->json(['data' => $payment]);
+        return $this->respond($payment);
     }
 
     public function myPayments(Request $request): JsonResponse
@@ -129,21 +129,21 @@ class MerchantController extends Controller
             $request->user()->id,
             (int) $request->input('per_page', 15),
         );
-        return response()->json(['data' => $payments]);
+        return $this->respond($payments);
     }
 
     public function merchantPayments(Request $request, string $merchantId): JsonResponse
     {
         $payments = $this->paymentService->findByMerchant($merchantId, (int) $request->input('per_page', 15));
-        return response()->json(['data' => $payments]);
+        return $this->respond($payments);
     }
 
     public function showPayment(string $id): JsonResponse
     {
         $payment = $this->paymentService->findById($id);
         if (!$payment) {
-            return response()->json(['error' => 'MERCHANT_NOT_FOUND'], 404);
+            return $this->respondError('MERCHANT_NOT_FOUND', 'Merchant payment not found', 'الدفعة غير موجودة', 404);
         }
-        return response()->json(['data' => $payment]);
+        return $this->respond($payment);
     }
 }

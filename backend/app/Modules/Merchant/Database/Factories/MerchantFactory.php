@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Merchant\Models\Merchant;
 
-class MerchantFactory extends Factory
+final class MerchantFactory extends Factory
 {
     protected $model = Merchant::class;
 

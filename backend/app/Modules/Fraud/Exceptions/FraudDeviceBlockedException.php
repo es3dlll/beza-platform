@@ -6,7 +6,7 @@ namespace Modules\Fraud\Exceptions;
 
 use Exception;
 
-class FraudDeviceBlockedException extends Exception
+final class FraudDeviceBlockedException extends Exception
 {
     public function __construct(string $deviceId = '')
     {

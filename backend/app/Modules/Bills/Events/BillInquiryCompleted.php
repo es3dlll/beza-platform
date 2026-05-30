@@ -6,7 +6,7 @@ namespace Modules\Bills\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
 
-class BillInquiryCompleted
+final class BillInquiryCompleted
 {
     use Dispatchable;
 

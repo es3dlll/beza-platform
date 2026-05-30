@@ -6,7 +6,7 @@ namespace Modules\Marketplace\Exceptions;
 
 use Exception;
 
-class GiftCardNotFoundException extends Exception
+final class GiftCardNotFoundException extends Exception
 {
     public function render(): \Illuminate\Http\JsonResponse
     {
@@ -21,7 +21,7 @@ class GiftCardNotFoundException extends Exception
     }
 }
 
-class GiftCardExpiredException extends Exception
+final class GiftCardExpiredException extends Exception
 {
     public function render(): \Illuminate\Http\JsonResponse
     {
@@ -36,7 +36,7 @@ class GiftCardExpiredException extends Exception
     }
 }
 
-class GiftCardAlreadyRedeemedException extends Exception
+final class GiftCardAlreadyRedeemedException extends Exception
 {
     public function render(): \Illuminate\Http\JsonResponse
     {
@@ -51,7 +51,7 @@ class GiftCardAlreadyRedeemedException extends Exception
     }
 }
 
-class PromoCodeInvalidException extends Exception
+final class PromoCodeInvalidException extends Exception
 {
     public function __construct(string $reason = '')
     {
@@ -71,7 +71,7 @@ class PromoCodeInvalidException extends Exception
     }
 }
 
-class InsufficientPointsException extends Exception
+final class InsufficientPointsException extends Exception
 {
     public function render(): \Illuminate\Http\JsonResponse
     {

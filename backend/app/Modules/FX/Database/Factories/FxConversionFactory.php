@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\FX\Models\FxConversion;
 
-class FxConversionFactory extends Factory
+final class FxConversionFactory extends Factory
 {
     protected $model = FxConversion::class;
 

@@ -6,7 +6,7 @@ namespace Modules\Financing\Exceptions;
 
 use Exception;
 
-class RepaymentAmountExceedsBalanceException extends Exception
+final class RepaymentAmountExceedsBalanceException extends Exception
 {
     public function __construct() { parent::__construct('Repayment exceeds outstanding balance'); }
 }

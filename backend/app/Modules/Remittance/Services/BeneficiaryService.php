@@ -10,7 +10,7 @@ use Modules\Remittance\Repositories\BeneficiaryRepository;
 use Modules\Remittance\Exceptions\RemittanceBeneficiaryNotFoundException;
 use Modules\Remittance\Exceptions\RemittanceBeneficiaryKycIncompleteException;
 
-class BeneficiaryService
+final class BeneficiaryService
 {
     public function __construct(
         private readonly BeneficiaryRepository $beneficiaryRepository,

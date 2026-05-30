@@ -16,7 +16,7 @@ use Modules\IAM\Models\Role;
 use Modules\Identity\Database\Factories\UserFactory;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable implements JWTSubject
+final class User extends Authenticatable implements JWTSubject
 {
     use HasFactory;
     use HasUlids;

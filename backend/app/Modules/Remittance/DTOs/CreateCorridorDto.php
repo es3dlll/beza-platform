@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Remittance\DTOs;
 
-class CreateCorridorDto
+final class CreateCorridorDto
 {
     public function __construct(
         public readonly string $name,

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Fraud\Services;
 
-class SanctionsScreeningService
+final class SanctionsScreeningService
 {
     private const SANCTIONED_COUNTRIES = ['IR', 'KP', 'CU', 'SY', 'MM'];
     private const HIGH_RISK_TERMS = ['terrorist', 'sanctions', 'watchlist'];

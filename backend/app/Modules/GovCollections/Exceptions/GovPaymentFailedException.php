@@ -6,7 +6,7 @@ namespace Modules\GovCollections\Exceptions;
 
 use Exception;
 
-class GovPaymentFailedException extends Exception
+final class GovPaymentFailedException extends Exception
 {
     public function __construct(string $reason) { parent::__construct("Payment failed: {$reason}"); }
 }

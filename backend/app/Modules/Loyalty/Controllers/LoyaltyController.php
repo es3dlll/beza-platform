@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Loyalty\Controllers;
 
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -20,8 +21,10 @@ use Modules\Loyalty\Repositories\LoyaltyPointsTransactionRepository;
 use Modules\Loyalty\Repositories\LoyaltyRewardRepository;
 use Modules\Loyalty\Repositories\LoyaltyTierRepository;
 
-class LoyaltyController extends Controller
+final class LoyaltyController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(
         private readonly PointsService $pointsService,
         private readonly CashbackService $cashbackService,
@@ -34,7 +37,7 @@ class LoyaltyController extends Controller
     public function myPoints(Request $request): JsonResponse
     {
         $points = $this->pointsService->getBalance($request->user()->id);
-        return response()->json(['data' => $points]);
+        return $this->respond($points);
     }
 
     public function awardPoints(AwardPointsRequest $request): JsonResponse
@@ -48,7 +51,7 @@ class LoyaltyController extends Controller
         );
 
         $points = $this->pointsService->award($dto);
-        return response()->json(['data' => $points], 201);
+        return $this->respondCreated($points);
     }
 
     public function redeemPoints(RedeemPointsRequest $request): JsonResponse
@@ -59,12 +62,12 @@ class LoyaltyController extends Controller
                 $request->input('reward_id'),
             );
         } catch (RewardNotFoundException $e) {
-            return response()->json(['error' => 'REWARD_NOT_FOUND'], 404);
+            return $this->respondError('REWARD_NOT_FOUND', null, null, 404);
         } catch (InsufficientPointsException $e) {
-            return response()->json(['error' => 'INSUFFICIENT_POINTS', 'reason' => $e->getMessage()], 422);
+            return $this->respondError('INSUFFICIENT_POINTS', $e->getMessage(), null, 422);
         }
 
-        return response()->json(['data' => $result]);
+        return $this->respond($result);
     }
 
     public function pointsHistory(Request $request): JsonResponse
@@ -73,7 +76,7 @@ class LoyaltyController extends Controller
             $request->user()->id,
             (int) $request->input('per_page', 15),
         );
-        return response()->json(['data' => $txns]);
+        return $this->respond($txns);
     }
 
     public function calculateCashback(Request $request): JsonResponse
@@ -89,19 +92,19 @@ class LoyaltyController extends Controller
             $request->input('merchant_category'),
         );
 
-        return response()->json(['data' => ['cashback_amount' => $cashback]]);
+        return $this->respond(['cashback_amount' => $cashback]);
     }
 
     public function rewards(Request $request): JsonResponse
     {
         $points = $this->pointsService->getBalance($request->user()->id);
         $rewards = $this->rewardRepository->findAvailable($points->tier_level);
-        return response()->json(['data' => $rewards]);
+        return $this->respond($rewards);
     }
 
     public function tiers(): JsonResponse
     {
         $tiers = $this->tierRepository->all();
-        return response()->json(['data' => $tiers]);
+        return $this->respond($tiers);
     }
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Auth\DTOs;
 
-class VerifyOtpDto
+final class VerifyOtpDto
 {
     public function __construct(
         public readonly string $phone,

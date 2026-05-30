@@ -7,7 +7,7 @@ namespace Modules\Escrow\Providers;
 use Illuminate\Support\ServiceProvider;
 use Modules\Escrow\Services\EscrowService;
 
-class EscrowServiceProvider extends ServiceProvider
+final class EscrowServiceProvider extends ServiceProvider
 {
     public function register(): void { $this->app->singleton(EscrowService::class); }
 }

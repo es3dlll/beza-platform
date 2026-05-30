@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Remittance\DTOs;
 
-class RegisterBeneficiaryDto
+final class RegisterBeneficiaryDto
 {
     public function __construct(
         public readonly string $userId = '',

@@ -8,7 +8,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
-class RateLimitMiddleware
+final class RateLimitMiddleware
 {
     public const int OTP_LIMIT = 10;
 

@@ -6,7 +6,7 @@ namespace Modules\OpenFinance\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class OpenFinanceWebhook extends Model
+final class OpenFinanceWebhook extends Model
 {
     protected $table = 'open_finance_webhooks';
     protected $keyType = 'string';

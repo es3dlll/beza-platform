@@ -6,7 +6,7 @@ namespace Modules\Savings\Repositories;
 
 use Modules\Savings\Models\SavingsTransaction;
 
-class SavingsTransactionRepository
+final class SavingsTransactionRepository
 {
     public function create(array $data): SavingsTransaction
     {

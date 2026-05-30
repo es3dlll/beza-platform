@@ -13,7 +13,7 @@ use Modules\Payroll\Repositories\EmployeeRecordRepository;
 use Modules\Payroll\Repositories\PayrollBatchRepository;
 use Modules\Payroll\Repositories\PayrollDisbursementRepository;
 
-class PayrollServiceProvider extends ServiceProvider
+final class PayrollServiceProvider extends ServiceProvider
 {
     public function register(): void
     {

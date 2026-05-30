@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Escrow\Models\EscrowAgreement;
 
-class EscrowAgreementFactory extends Factory
+final class EscrowAgreementFactory extends Factory
 {
     protected $model = EscrowAgreement::class;
 

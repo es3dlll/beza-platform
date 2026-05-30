@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Savings\DTOs;
 
-class SavingsContributionDto
+final class SavingsContributionDto
 {
     public function __construct(
         public readonly string $savingsGoalId = '',

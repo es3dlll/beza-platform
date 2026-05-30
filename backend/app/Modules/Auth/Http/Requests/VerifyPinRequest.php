@@ -6,7 +6,7 @@ namespace Modules\Auth\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class VerifyPinRequest extends FormRequest
+final class VerifyPinRequest extends FormRequest
 {
     public function authorize(): bool
     {

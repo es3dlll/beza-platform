@@ -7,7 +7,7 @@ namespace Modules\Remittance\Repositories;
 use Modules\Remittance\Models\Beneficiary;
 use Modules\Remittance\DTOs\RegisterBeneficiaryDto;
 
-class BeneficiaryRepository
+final class BeneficiaryRepository
 {
     public function create(RegisterBeneficiaryDto $dto): Beneficiary
     {

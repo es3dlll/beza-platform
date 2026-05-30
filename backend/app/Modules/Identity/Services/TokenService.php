@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Modules\Identity\Models\Session;
 use Modules\Identity\Models\User;
 
-class TokenService
+final class TokenService
 {
     public function generateToken(User $user): string
     {

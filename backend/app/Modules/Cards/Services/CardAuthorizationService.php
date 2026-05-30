@@ -21,7 +21,7 @@ use Modules\Cards\Repositories\CardRepository;
 use Modules\Cards\Repositories\CardTransactionRepository;
 use Modules\Cards\Repositories\CardMerchantBlockRepository;
 
-class CardAuthorizationService
+final class CardAuthorizationService
 {
     public function __construct(
         private readonly CardRepository $cardRepository,

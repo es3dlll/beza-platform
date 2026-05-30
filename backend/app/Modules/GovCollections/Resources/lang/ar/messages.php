@@ -1,4 +1,6 @@
 <?php
 
+declare(strict_types=1);
+
 return ['name'=>'التحصيلات الحكومية','description'=>'المدفوعات الحكومية: المصرف العقاري، الجمارك، الضرائب، الخدمات',
 'errors'=>['provider_not_found'=>'المزود غير موجود: :id','inquiry_expired'=>'انتهت صلاحية استعلام الدفع']];

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'name' => 'محرك الفواتير',
     'description' => 'دفع فواتير الخدمات والاتصالات والحكومة',

@@ -15,8 +15,8 @@ Route::prefix('v1')->group(function () {
 
 Route::prefix('v1/auth')->group(function () {
     Route::post('/register', [RegisterController::class, 'register']);
-    Route::post('/otp/request', [OtpController::class, 'send']);
-    Route::post('/otp/verify', [OtpController::class, 'verify']);
+    Route::post('/otp/request', [OtpController::class, 'send'])->middleware('throttle:5,1');
+    Route::post('/otp/verify', [OtpController::class, 'verify'])->middleware('throttle:10,1');
     Route::post('/pin/create', [PinController::class, 'create']);
     Route::post('/login', [LoginController::class, 'login']);
     Route::post('/login-with-password', [LoginController::class, 'loginWithPassword']);

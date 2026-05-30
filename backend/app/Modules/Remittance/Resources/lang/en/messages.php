@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'name' => 'Remittance Engine',
     'description' => 'Cross-border remittance management for inbound diaspora and outbound transfers',

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Wallet\Models\WalletLimit;
 
-class WalletLimitFactory extends Factory
+final class WalletLimitFactory extends Factory
 {
     protected $model = WalletLimit::class;
 

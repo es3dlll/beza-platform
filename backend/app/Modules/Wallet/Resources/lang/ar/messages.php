@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'wallet_created' => 'تم إنشاء المحفظة بنجاح',
     'wallet_credited' => 'تم إيداع المبلغ في المحفظة',

@@ -6,7 +6,7 @@ namespace Modules\Auth\Exceptions;
 
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class TokenExpiredException extends HttpException
+final class TokenExpiredException extends HttpException
 {
     public function __construct(
         string $message = 'Token has expired.',

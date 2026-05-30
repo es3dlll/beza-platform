@@ -7,7 +7,7 @@ namespace Modules\Identity\Repositories;
 use Illuminate\Support\Str;
 use Modules\Identity\Models\OtpCode;
 
-class OtpRepository
+final class OtpRepository
 {
     public function create(string $phone, string $purpose, ?string $userId = null): OtpCode
     {

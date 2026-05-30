@@ -11,9 +11,11 @@ use Modules\Marketplace\Models\Order;
 use Modules\Marketplace\Models\Product;
 use Modules\Marketplace\Models\ProductCategory;
 use Modules\Marketplace\Services\OrderService;
+use App\Support\ApiResponse;
 
-class ApiController extends Controller
+final class ApiController extends Controller
 {
+    use ApiResponse;
     public function __construct(
         private OrderService $orders,
     ) {}
@@ -26,26 +28,14 @@ class ApiController extends Controller
             ->with(['vendor', 'category'])
             ->paginate(min($perPage, 100));
 
-        return response()->json([
-            'success' => true,
-            'data' => $products->items(),
-            'meta' => [
-                'current_page' => $products->currentPage(),
-                'last_page' => $products->lastPage(),
-                'per_page' => $products->perPage(),
-                'total' => $products->total(),
-            ],
-        ]);
+        return $this->respondPaginated($products->items(), $products->total(), $products->currentPage(), $products->perPage());
     }
 
     public function productDetail(string $id): JsonResponse
     {
         $product = Product::with(['vendor', 'category'])->findOrFail($id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $product,
-        ]);
+        return $this->respond($product);
     }
 
     public function categories(): JsonResponse
@@ -54,10 +44,7 @@ class ApiController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $categories,
-        ]);
+        return $this->respond($categories);
     }
 
     public function createOrder(Request $request): JsonResponse
@@ -75,27 +62,21 @@ class ApiController extends Controller
             $data['items'],
         );
 
-        return response()->json([
-            'success' => true,
-            'data' => $order,
-        ], 201);
+        return $this->respondCreated($order);
     }
 
     public function orderStatus(string $id): JsonResponse
     {
         $order = $this->orders->findOrFail($id);
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'id' => $order->id,
-                'order_number' => $order->order_number,
-                'status' => $order->status,
-                'total_amount' => $order->total_amount,
-                'currency' => $order->currency,
-                'placed_at' => $order->placed_at,
-                'completed_at' => $order->completed_at,
-            ],
+        return $this->respond([
+            'id' => $order->id,
+            'order_number' => $order->order_number,
+            'status' => $order->status,
+            'total_amount' => $order->total_amount,
+            'currency' => $order->currency,
+            'placed_at' => $order->placed_at,
+            'completed_at' => $order->completed_at,
         ]);
     }
 
@@ -127,9 +108,6 @@ class ApiController extends Controller
             ]);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Webhook processed',
-        ]);
+        return $this->respond(null, 'Webhook processed');
     }
 }

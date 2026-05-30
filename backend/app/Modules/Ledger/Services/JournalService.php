@@ -11,7 +11,7 @@ use Modules\Ledger\Models\JournalLine;
 use Modules\Ledger\Repositories\JournalEntryRepository;
 use Illuminate\Support\Str;
 
-final class JournalService
+final class JournalService implements \Modules\Ledger\Contracts\JournalServiceInterface
 {
     public function __construct(
         private readonly JournalEntryRepository $entries,

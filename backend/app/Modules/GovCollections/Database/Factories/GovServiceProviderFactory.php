@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\GovCollections\Models\GovServiceProvider;
 
-class GovServiceProviderFactory extends Factory
+final class GovServiceProviderFactory extends Factory
 {
     protected $model = GovServiceProvider::class;
 

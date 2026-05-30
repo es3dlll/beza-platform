@@ -6,7 +6,7 @@ namespace Modules\Fraud\Exceptions;
 
 use Exception;
 
-class FraudTransactionBlockedException extends Exception
+final class FraudTransactionBlockedException extends Exception
 {
     public function __construct(string $reason = 'Transaction automatically blocked by fraud detection')
     {

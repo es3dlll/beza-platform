@@ -6,7 +6,7 @@ namespace Modules\GovCollections\Exceptions;
 
 use Exception;
 
-class GovInquiryExpiredException extends Exception
+final class GovInquiryExpiredException extends Exception
 {
     public function __construct() { parent::__construct('Payment inquiry has expired'); }
 }

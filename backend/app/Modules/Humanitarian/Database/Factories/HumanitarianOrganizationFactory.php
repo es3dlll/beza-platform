@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Humanitarian\Models\HumanitarianOrganization;
 
-class HumanitarianOrganizationFactory extends Factory
+final class HumanitarianOrganizationFactory extends Factory
 {
     protected $model = HumanitarianOrganization::class;
 

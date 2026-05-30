@@ -7,7 +7,7 @@ namespace Modules\Education\Providers;
 use Illuminate\Support\ServiceProvider;
 use Modules\Education\Services\EducationService;
 
-class EducationServiceProvider extends ServiceProvider
+final class EducationServiceProvider extends ServiceProvider
 {
     public function register(): void { $this->app->singleton(EducationService::class); }
 }

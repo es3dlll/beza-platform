@@ -6,7 +6,7 @@ namespace Modules\Cards\Repositories;
 
 use Modules\Cards\Models\Card;
 
-class CardRepository
+final class CardRepository
 {
     public function create(array $data): Card
     {

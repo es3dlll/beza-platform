@@ -6,7 +6,7 @@ namespace Modules\Auth\Exceptions;
 
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class AuthenticationException extends HttpException
+final class AuthenticationException extends HttpException
 {
     public function __construct(
         string $message = 'Authentication failed.',

@@ -13,7 +13,7 @@ use Modules\IAM\Repositories\RoleRepository;
 use Modules\IAM\Services\AuthorizationService;
 use Modules\IAM\Services\IamService;
 
-class IamServiceProvider extends ServiceProvider
+final class IamServiceProvider extends ServiceProvider
 {
     public function register(): void
     {

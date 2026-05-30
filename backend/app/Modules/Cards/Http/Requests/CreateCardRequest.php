@@ -6,7 +6,7 @@ namespace Modules\Cards\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateCardRequest extends FormRequest
+final class CreateCardRequest extends FormRequest
 {
     public function authorize(): bool
     {

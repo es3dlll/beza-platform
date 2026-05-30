@@ -29,7 +29,7 @@ use Modules\FX\Services\FxConversionService;
 use Modules\FX\DTOs\GetQuoteDto;
 use Modules\FX\DTOs\ExecuteConversionDto;
 
-class RemittanceService
+final class RemittanceService
 {
     private const PURPOSE_CODES = [
         'FAMILY_SUPPORT', 'SALARY', 'EDUCATION', 'MEDICAL', 'SAVINGS',

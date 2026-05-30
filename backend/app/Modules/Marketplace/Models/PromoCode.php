@@ -7,7 +7,7 @@ namespace Modules\Marketplace\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
-class PromoCode extends Model
+final class PromoCode extends Model
 {
     use HasUlids;
 

@@ -26,7 +26,7 @@ use Modules\Identity\Repositories\UserRepository;
 use Modules\Identity\Services\IdentityService;
 use Modules\Identity\Services\OtpService;
 
-class AuthService
+final class AuthService
 {
     public function __construct(
         private UserRepository $users,

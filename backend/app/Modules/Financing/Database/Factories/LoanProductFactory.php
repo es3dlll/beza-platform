@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Financing\Models\LoanProduct;
 
-class LoanProductFactory extends Factory
+final class LoanProductFactory extends Factory
 {
     protected $model = LoanProduct::class;
 

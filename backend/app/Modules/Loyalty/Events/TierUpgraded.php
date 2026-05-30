@@ -6,7 +6,7 @@ namespace Modules\Loyalty\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
 
-class TierUpgraded
+final class TierUpgraded
 {
     use Dispatchable;
 

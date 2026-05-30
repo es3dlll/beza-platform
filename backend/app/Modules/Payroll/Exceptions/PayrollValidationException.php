@@ -6,7 +6,7 @@ namespace Modules\Payroll\Exceptions;
 
 use Exception;
 
-class PayrollValidationException extends Exception
+final class PayrollValidationException extends Exception
 {
     public function __construct(string $message = 'Payroll validation failed')
     {

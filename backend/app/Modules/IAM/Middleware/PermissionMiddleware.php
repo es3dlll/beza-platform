@@ -8,7 +8,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Modules\IAM\Services\AuthorizationService;
 
-class PermissionMiddleware
+final class PermissionMiddleware
 {
     public function __construct(private AuthorizationService $auth) {}
 

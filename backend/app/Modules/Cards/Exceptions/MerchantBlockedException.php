@@ -6,7 +6,7 @@ namespace Modules\Cards\Exceptions;
 
 use Exception;
 
-class MerchantBlockedException extends Exception
+final class MerchantBlockedException extends Exception
 {
     public function __construct(string $category)
     {

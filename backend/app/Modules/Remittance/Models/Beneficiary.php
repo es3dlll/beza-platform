@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Modules\Identity\Models\User;
 
-class Beneficiary extends Model
+final class Beneficiary extends Model
 {
     use HasUlids;
 

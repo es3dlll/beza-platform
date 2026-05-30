@@ -23,7 +23,7 @@ use Modules\Bills\Exceptions\BillInvalidAmountException;
 use Modules\Bills\Exceptions\BillAccountFormatInvalidException;
 use Modules\Bills\Exceptions\BillRetryExceededException;
 
-class BillPaymentService
+final class BillPaymentService
 {
     private const MAX_RETRIES = 3;
     private const RETRY_WINDOW_MINUTES = 15;

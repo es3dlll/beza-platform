@@ -6,7 +6,7 @@ namespace Modules\Merchant\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class MerchantRefundRequest extends FormRequest
+final class MerchantRefundRequest extends FormRequest
 {
     public function authorize(): bool
     {

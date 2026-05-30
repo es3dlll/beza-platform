@@ -7,7 +7,7 @@ namespace Modules\Marketplace\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
-class LoyaltyPoint extends Model
+final class LoyaltyPoint extends Model
 {
     use HasUlids;
 

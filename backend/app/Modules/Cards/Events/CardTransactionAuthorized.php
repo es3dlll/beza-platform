@@ -6,7 +6,7 @@ namespace Modules\Cards\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
 
-class CardTransactionAuthorized
+final class CardTransactionAuthorized
 {
     use Dispatchable;
 

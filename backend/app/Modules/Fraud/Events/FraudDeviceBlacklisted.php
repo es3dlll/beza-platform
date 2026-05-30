@@ -6,7 +6,7 @@ namespace Modules\Fraud\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
 
-class FraudDeviceBlacklisted
+final class FraudDeviceBlacklisted
 {
     use Dispatchable;
 

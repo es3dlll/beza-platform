@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Marketplace\Enums\ShipmentStatus;
 
-class Shipment extends Model
+final class Shipment extends Model
 {
     use HasUlids;
 

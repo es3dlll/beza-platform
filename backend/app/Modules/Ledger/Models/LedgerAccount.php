@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
-class LedgerAccount extends Model
+final class LedgerAccount extends Model
 {
     protected $table = 'ledger_accounts';
 

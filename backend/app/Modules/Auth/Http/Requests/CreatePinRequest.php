@@ -6,7 +6,7 @@ namespace Modules\Auth\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreatePinRequest extends FormRequest
+final class CreatePinRequest extends FormRequest
 {
     public function authorize(): bool
     {

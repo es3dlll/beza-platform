@@ -7,7 +7,7 @@ namespace Modules\Identity\Services;
 use Modules\Identity\DTOs\RegisterUserDto;
 use Modules\Identity\Models\User;
 
-class RegistrationService
+final class RegistrationService
 {
     public function __construct(
         private OtpService $otpService,

@@ -6,7 +6,7 @@ namespace Modules\Loyalty\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class LoyaltyPointsTransaction extends Model
+final class LoyaltyPointsTransaction extends Model
 {
     protected $table = 'loyalty_points_transactions';
     protected $keyType = 'string';

@@ -15,7 +15,7 @@ use Modules\Merchant\Exceptions\MerchantPaymentAboveMaximumException;
 use Modules\Merchant\Exceptions\MerchantRefundExpiredException;
 use Modules\Merchant\Events\MerchantPaymentCompleted;
 
-class MerchantPaymentService
+final class MerchantPaymentService implements \Modules\Merchant\Contracts\MerchantPaymentServiceInterface
 {
     private const MIN_AMOUNT = 500;
     private const REFUND_DAYS = 7;
@@ -103,8 +103,8 @@ class MerchantPaymentService
 
     private function calculateMdr(int $amount, $merchant): int
     {
-        $rate = $merchant->is_micro_merchant ? 0.75 : (float) $merchant->mdr_percentage;
-        $fee = (int) round($amount * ($rate / 100));
+        $basisPoints = $merchant->is_micro_merchant ? 75 : (int) round((float) $merchant->mdr_percentage * 100);
+        $fee = (int) floor(($amount * $basisPoints) / 10000);
         return max($merchant->mdr_min_syp, min($fee, $merchant->mdr_max_syp));
     }
 }

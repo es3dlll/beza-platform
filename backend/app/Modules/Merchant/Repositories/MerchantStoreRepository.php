@@ -7,7 +7,7 @@ namespace Modules\Merchant\Repositories;
 use Modules\Merchant\Models\MerchantStore;
 use Modules\Merchant\DTOs\CreateStoreDto;
 
-class MerchantStoreRepository
+final class MerchantStoreRepository
 {
     public function create(CreateStoreDto $dto): MerchantStore
     {

@@ -4,19 +4,22 @@ declare(strict_types=1);
 
 namespace Modules\Notification\Controllers;
 
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Notification\Models\Notification;
 
 final class NotificationController
 {
+    use ApiResponse;
+
     public function index(Request $request): JsonResponse
     {
         $notifications = Notification::where('user_id', $request->user()->id)
             ->orderByDesc('created_at')
             ->paginate(20);
 
-        return response()->json(['data' => $notifications]);
+        return $this->respond($notifications);
     }
 
     public function unread(Request $request): JsonResponse
@@ -25,7 +28,7 @@ final class NotificationController
             ->whereNull('read_at')
             ->count();
 
-        return response()->json(['data' => ['unread_count' => $count]]);
+        return $this->respond(['unread_count' => $count]);
     }
 
     public function markRead(string $id, Request $request): JsonResponse
@@ -35,7 +38,7 @@ final class NotificationController
 
         $notification->update(['read_at' => now()]);
 
-        return response()->json(['data' => $notification]);
+        return $this->respond($notification);
     }
 
     public function markAllRead(Request $request): JsonResponse
@@ -44,6 +47,6 @@ final class NotificationController
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
-        return response()->json(['data' => ['message' => 'All notifications marked as read']]);
+        return $this->respond(['message' => 'All notifications marked as read']);
     }
 }

@@ -16,6 +16,7 @@ final class TrialBalanceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->authenticateUser();
 
         LedgerAccount::create([
             'id' => '01AR123456789012345678t1',

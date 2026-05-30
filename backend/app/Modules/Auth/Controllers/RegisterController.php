@@ -9,9 +9,11 @@ use Illuminate\Routing\Controller;
 use Modules\Auth\Http\Requests\RegisterRequest;
 use Modules\Auth\Services\AuthService;
 use Modules\Identity\DTOs\RegisterUserDto;
+use App\Support\ApiResponse;
 
-class RegisterController extends Controller
+final class RegisterController extends Controller
 {
+    use ApiResponse;
     public function __construct(
         private AuthService $authService,
     ) {}
@@ -30,20 +32,17 @@ class RegisterController extends Controller
 
         $result = $this->authService->register($dto);
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'user' => [
-                    'id' => $result['user']->id,
-                    'first_name' => $result['user']->first_name ?? '',
-                    'last_name' => $result['user']->last_name ?? '',
-                    'email' => $result['user']->email ?? '',
-                    'phone' => $result['user']->phone,
-                    'status' => $result['user']->status,
-                ],
-                'token' => $result['token'],
-                'token_type' => 'Bearer',
+        return $this->respondCreated([
+            'user' => [
+                'id' => $result['user']->id,
+                'first_name' => $result['user']->first_name ?? '',
+                'last_name' => $result['user']->last_name ?? '',
+                'email' => $result['user']->email ?? '',
+                'phone' => $result['user']->phone,
+                'status' => $result['user']->status,
             ],
-        ], 201);
+            'token' => $result['token'],
+            'token_type' => 'Bearer',
+        ]);
     }
 }

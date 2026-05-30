@@ -13,7 +13,7 @@ use Modules\Payroll\Models\PayrollDisbursement;
 use Modules\Payroll\Repositories\PayrollBatchRepository;
 use Modules\Payroll\Repositories\PayrollDisbursementRepository;
 
-class BatchProcessingService
+final class BatchProcessingService
 {
     public function __construct(
         private readonly PayrollBatchRepository $batchRepository,

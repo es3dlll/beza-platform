@@ -6,7 +6,7 @@ namespace Modules\Remittance\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateCorridorRequest extends FormRequest
+final class CreateCorridorRequest extends FormRequest
 {
     public function authorize(): bool
     {

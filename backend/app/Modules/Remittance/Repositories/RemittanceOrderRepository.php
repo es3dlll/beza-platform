@@ -8,7 +8,7 @@ use Modules\Remittance\Models\RemittanceOrder;
 use Modules\Remittance\Enums\RemittanceStatus;
 use Modules\Remittance\DTOs\CreateRemittanceDto;
 
-class RemittanceOrderRepository
+final class RemittanceOrderRepository
 {
     public function create(CreateRemittanceDto $dto, string $referenceNumber): RemittanceOrder
     {

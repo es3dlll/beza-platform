@@ -6,7 +6,7 @@ namespace Modules\Savings\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ContributeRequest extends FormRequest
+final class ContributeRequest extends FormRequest
 {
     public function authorize(): bool
     {

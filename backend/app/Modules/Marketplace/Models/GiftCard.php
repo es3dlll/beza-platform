@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Marketplace\Enums\GiftCardStatus;
 
-class GiftCard extends Model
+final class GiftCard extends Model
 {
     use HasUlids;
 

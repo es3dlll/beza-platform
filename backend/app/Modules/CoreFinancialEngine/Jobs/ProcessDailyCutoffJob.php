@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\CoreFinancialEngine\Jobs;
 
 use Modules\CoreFinancialEngine\Services\SettlementEngine;

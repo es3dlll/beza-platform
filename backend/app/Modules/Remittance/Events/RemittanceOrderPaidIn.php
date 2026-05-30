@@ -6,7 +6,7 @@ namespace Modules\Remittance\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
 
-class RemittanceOrderPaidIn
+final class RemittanceOrderPaidIn
 {
     use Dispatchable;
 

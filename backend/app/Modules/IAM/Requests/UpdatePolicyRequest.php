@@ -7,7 +7,7 @@ namespace Modules\IAM\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdatePolicyRequest extends FormRequest
+final class UpdatePolicyRequest extends FormRequest
 {
     public function authorize(): bool
     {

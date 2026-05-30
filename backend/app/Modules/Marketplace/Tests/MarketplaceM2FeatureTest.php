@@ -15,7 +15,7 @@ use Modules\Marketplace\Models\Vendor;
 use Modules\Marketplace\Services\LoyaltyService;
 use Tests\TestCase;
 
-class MarketplaceM2FeatureTest extends TestCase
+final class MarketplaceM2FeatureTest extends TestCase
 {
     use RefreshDatabase;
 

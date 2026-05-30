@@ -6,7 +6,7 @@ namespace Modules\Bills\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateBillProviderRequest extends FormRequest
+final class CreateBillProviderRequest extends FormRequest
 {
     public function authorize(): bool
     {

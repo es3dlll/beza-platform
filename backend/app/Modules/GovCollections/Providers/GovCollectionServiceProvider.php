@@ -7,7 +7,7 @@ namespace Modules\GovCollections\Providers;
 use Illuminate\Support\ServiceProvider;
 use Modules\GovCollections\Services\GovCollectionService;
 
-class GovCollectionServiceProvider extends ServiceProvider
+final class GovCollectionServiceProvider extends ServiceProvider
 {
     public function register(): void
     {

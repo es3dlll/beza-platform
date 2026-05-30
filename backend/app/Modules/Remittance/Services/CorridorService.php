@@ -9,7 +9,7 @@ use Modules\Remittance\DTOs\CreateCorridorDto;
 use Modules\Remittance\Repositories\CorridorRepository;
 use Modules\Remittance\Exceptions\RemittanceCorridorUnavailableException;
 
-class CorridorService
+final class CorridorService
 {
     public function __construct(
         private readonly CorridorRepository $corridorRepository,

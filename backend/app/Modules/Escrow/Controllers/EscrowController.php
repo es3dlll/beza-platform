@@ -13,26 +13,28 @@ use Modules\Escrow\Exceptions\EscrowExpiredException;
 use Modules\Escrow\Exceptions\EscrowDisputeNotFoundException;
 use Modules\Escrow\Models\EscrowAgreement;
 use Modules\Escrow\Services\EscrowService;
+use App\Support\ApiResponse;
 
-class EscrowController extends Controller
+final class EscrowController extends Controller
 {
+    use ApiResponse;
     public function __construct(private readonly EscrowService $service) {}
 
     public function index(Request $request): JsonResponse
     {
         $status = $request->query('status');
         if ($status) {
-            return response()->json(['data' => $this->service->listByStatus($status, (int) $request->query('per_page', 15))]);
+            return $this->respond($this->service->listByStatus($status, (int) $request->query('per_page', 15)));
         }
-        return response()->json(['data' => $this->service->listByUser($request->user()->id)]);
+        return $this->respond($this->service->listByUser($request->user()->id));
     }
 
     public function show(string $id): JsonResponse
     {
         try {
-            return response()->json(['data' => $this->service->findOrFail($id)]);
+            return $this->respond($this->service->findOrFail($id));
         } catch (EscrowNotFoundException $e) {
-            return response()->json(['error' => 'ESCOW_NOT_FOUND'], 404);
+            return $this->respondNotFound('Escrow');
         }
     }
 
@@ -57,32 +59,32 @@ class EscrowController extends Controller
             $request->integer('fee_percent', 1),
         );
 
-        return response()->json(['data' => $agreement], 201);
+        return $this->respondCreated($agreement);
     }
 
     public function release(string $id): JsonResponse
     {
         try {
-            return response()->json(['data' => $this->service->release($id)]);
+            return $this->respond($this->service->release($id));
         } catch (EscrowAlreadyResolvedException $e) {
-            return response()->json(['error' => 'ALREADY_RESOLVED'], 422);
+            return $this->respondError('ALREADY_RESOLVED', $e->getMessage());
         } catch (EscrowExpiredException $e) {
-            return response()->json(['error' => 'ESCOW_EXPIRED'], 422);
+            return $this->respondError('ESCOW_EXPIRED', $e->getMessage());
         } catch (EscrowNotFoundException $e) {
-            return response()->json(['error' => 'ESCOW_NOT_FOUND'], 404);
+            return $this->respondNotFound('Escrow');
         }
     }
 
     public function refund(string $id): JsonResponse
     {
         try {
-            return response()->json(['data' => $this->service->refund($id)]);
+            return $this->respond($this->service->refund($id));
         } catch (EscrowAlreadyResolvedException $e) {
-            return response()->json(['error' => 'ALREADY_RESOLVED'], 422);
+            return $this->respondError('ALREADY_RESOLVED', $e->getMessage());
         } catch (EscrowExpiredException $e) {
-            return response()->json(['error' => 'ESCOW_EXPIRED'], 422);
+            return $this->respondError('ESCOW_EXPIRED', $e->getMessage());
         } catch (EscrowNotFoundException $e) {
-            return response()->json(['error' => 'ESCOW_NOT_FOUND'], 404);
+            return $this->respondNotFound('Escrow');
         }
     }
 
@@ -93,10 +95,10 @@ class EscrowController extends Controller
         try {
             $this->service->findOrFail($id);
         } catch (EscrowNotFoundException $e) {
-            return response()->json(['error' => 'ESCOW_NOT_FOUND'], 404);
+            return $this->respondNotFound('Escrow');
         }
 
-        return response()->json(['data' => $this->service->openDispute($id, $request->user()->id, $request->input('reason'))], 201);
+        return $this->respondCreated($this->service->openDispute($id, $request->user()->id, $request->input('reason')));
     }
 
     public function resolveDispute(Request $request, string $id): JsonResponse
@@ -107,9 +109,9 @@ class EscrowController extends Controller
         ]);
 
         try {
-            return response()->json(['data' => $this->service->resolveDispute($id, $request->user()->id, $request->input('resolution'), $request->input('action', 'release'))]);
+            return $this->respond($this->service->resolveDispute($id, $request->user()->id, $request->input('resolution'), $request->input('action', 'release')));
         } catch (EscrowDisputeNotFoundException $e) {
-            return response()->json(['error' => 'DISPUTE_NOT_FOUND'], 404);
+            return $this->respondError('DISPUTE_NOT_FOUND', $e->getMessage());
         }
     }
 }

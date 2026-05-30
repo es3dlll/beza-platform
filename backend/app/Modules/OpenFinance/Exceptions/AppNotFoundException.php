@@ -6,7 +6,7 @@ namespace Modules\OpenFinance\Exceptions;
 
 use Exception;
 
-class AppNotFoundException extends Exception
+final class AppNotFoundException extends Exception
 {
     public function __construct(string $id) { parent::__construct("App not found: {$id}"); }
 }

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Ledger\Models\JournalLine;
 
-class JournalLineFactory extends Factory
+final class JournalLineFactory extends Factory
 {
     protected $model = JournalLine::class;
 

@@ -12,24 +12,14 @@ final class AdminDashboardTest extends TestCase
 {
     use RefreshDatabase;
 
-    private User $user;
     private string $token;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->user = User::factory()->verified()->withPin('123456')->create([
-            'phone' => '963900000001',
-            'status' => 'active',
-        ]);
-
-        $response = $this->postJson('/api/v1/auth/login', [
-            'phone' => '963900000001',
-            'pin' => '123456',
-        ]);
-
-        $this->token = $response->json('data.token') ?? 'test-token';
+        $this->authenticateAdmin();
+        $this->token = $this->authToken;
     }
 
     public function test_financing_admin_dashboard(): void

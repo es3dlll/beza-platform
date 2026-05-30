@@ -12,7 +12,7 @@ use Modules\Remittance\Repositories\CorridorRepository;
 use Modules\Remittance\Repositories\BeneficiaryRepository;
 use Modules\Remittance\Repositories\RemittanceOrderRepository;
 
-class RemittanceServiceProvider extends ServiceProvider
+final class RemittanceServiceProvider extends ServiceProvider
 {
     public function register(): void
     {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Remittance\Controllers;
 
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -17,8 +18,10 @@ use Modules\Remittance\Services\CorridorService;
 use Modules\Remittance\Services\BeneficiaryService;
 use Modules\Remittance\Services\RemittanceService;
 
-class RemittanceController extends Controller
+final class RemittanceController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(
         private readonly CorridorService $corridorService,
         private readonly BeneficiaryService $beneficiaryService,
@@ -48,13 +51,13 @@ class RemittanceController extends Controller
 
         $corridor = $this->corridorService->create($dto);
 
-        return response()->json(['data' => $corridor], 201);
+        return $this->respondCreated($corridor);
     }
 
     public function listCorridors(): JsonResponse
     {
         $corridors = $this->corridorService->allActive();
-        return response()->json(['data' => $corridors]);
+        return $this->respond($corridors);
     }
 
     public function registerBeneficiary(RegisterBeneficiaryRequest $request): JsonResponse
@@ -74,13 +77,13 @@ class RemittanceController extends Controller
 
         $beneficiary = $this->beneficiaryService->register($dto);
 
-        return response()->json(['data' => $beneficiary], 201);
+        return $this->respondCreated($beneficiary);
     }
 
     public function listBeneficiaries(Request $request): JsonResponse
     {
         $beneficiaries = $this->beneficiaryService->findByUser($request->user()->id);
-        return response()->json(['data' => $beneficiaries]);
+        return $this->respond($beneficiaries);
     }
 
     public function createRemittance(CreateRemittanceRequest $request): JsonResponse
@@ -105,7 +108,7 @@ class RemittanceController extends Controller
 
         $order = $this->remittanceService->create($dto);
 
-        return response()->json(['data' => $order], 201);
+        return $this->respondCreated($order);
     }
 
     public function screenRemittance(Request $request, string $id): JsonResponse
@@ -117,49 +120,49 @@ class RemittanceController extends Controller
 
         $order = $this->remittanceService->screen($id, $request->boolean('passed'), $request->input('case_id'));
 
-        return response()->json(['data' => $order]);
+        return $this->respond($order);
     }
 
     public function quoteRemittance(string $id): JsonResponse
     {
         $order = $this->remittanceService->quote($id);
-        return response()->json(['data' => $order]);
+        return $this->respond($order);
     }
 
     public function confirmPaidIn(Request $request, string $id): JsonResponse
     {
         $request->validate(['amount_paid' => 'required|integer|min:1']);
         $order = $this->remittanceService->confirmPaidIn($id, (int) $request->input('amount_paid'));
-        return response()->json(['data' => $order]);
+        return $this->respond($order);
     }
 
     public function completeRemittance(string $id): JsonResponse
     {
         $order = $this->remittanceService->complete($id);
-        return response()->json(['data' => $order]);
+        return $this->respond($order);
     }
 
     public function failRemittance(Request $request, string $id): JsonResponse
     {
         $request->validate(['reason' => 'required|string|max:500']);
         $order = $this->remittanceService->fail($id, $request->input('reason'));
-        return response()->json(['data' => $order]);
+        return $this->respond($order);
     }
 
     public function refundRemittance(Request $request, string $id): JsonResponse
     {
         $request->validate(['reason' => 'required|string|max:500']);
         $order = $this->remittanceService->refund($id, $request->input('reason'));
-        return response()->json(['data' => $order]);
+        return $this->respond($order);
     }
 
     public function showRemittance(string $id): JsonResponse
     {
         $order = $this->remittanceService->findById($id);
         if (!$order) {
-            return response()->json(['error' => 'REMITTANCE_NOT_FOUND'], 404);
+            return $this->respondError('REMITTANCE_NOT_FOUND', null, null, 404);
         }
-        return response()->json(['data' => $order]);
+        return $this->respond($order);
     }
 
     public function listRemittances(Request $request): JsonResponse
@@ -168,6 +171,6 @@ class RemittanceController extends Controller
             $request->user()->id,
             (int) $request->input('per_page', 15),
         );
-        return response()->json(['data' => $orders]);
+        return $this->respond($orders);
     }
 }

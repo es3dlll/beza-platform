@@ -6,7 +6,7 @@ namespace Modules\Savings\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateSavingsGoalRequest extends FormRequest
+final class CreateSavingsGoalRequest extends FormRequest
 {
     public function authorize(): bool
     {

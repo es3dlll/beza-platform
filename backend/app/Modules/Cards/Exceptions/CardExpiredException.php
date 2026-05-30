@@ -6,7 +6,7 @@ namespace Modules\Cards\Exceptions;
 
 use Exception;
 
-class CardExpiredException extends Exception
+final class CardExpiredException extends Exception
 {
     public function __construct(string $id)
     {

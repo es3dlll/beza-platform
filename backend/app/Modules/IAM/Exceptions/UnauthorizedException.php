@@ -6,7 +6,7 @@ namespace Modules\IAM\Exceptions;
 
 use Exception;
 
-class UnauthorizedException extends Exception
+final class UnauthorizedException extends Exception
 {
     public function render(): \Illuminate\Http\JsonResponse
     {

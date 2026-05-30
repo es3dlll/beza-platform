@@ -8,9 +8,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Marketplace\Services\CatalogService;
+use App\Support\ApiResponse;
 
-class ProductController extends Controller
+final class ProductController extends Controller
 {
+    use ApiResponse;
     public function __construct(
         private CatalogService $catalog,
     ) {}
@@ -22,20 +24,14 @@ class ProductController extends Controller
             $request->query('vendor_id'),
         );
 
-        return response()->json([
-            'success' => true,
-            'data' => $products,
-        ]);
+        return $this->respond($products);
     }
 
     public function show(string $id): JsonResponse
     {
         $product = $this->catalog->findProduct($id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $product,
-        ]);
+        return $this->respond($product);
     }
 
     public function store(Request $request): JsonResponse
@@ -55,10 +51,7 @@ class ProductController extends Controller
 
         $product = $this->catalog->createProduct($data);
 
-        return response()->json([
-            'success' => true,
-            'data' => $product,
-        ], 201);
+        return $this->respondCreated($product);
     }
 
     public function update(Request $request, string $id): JsonResponse
@@ -78,9 +71,6 @@ class ProductController extends Controller
 
         $product = $this->catalog->updateProduct($id, $data);
 
-        return response()->json([
-            'success' => true,
-            'data' => $product,
-        ]);
+        return $this->respond($product);
     }
 }

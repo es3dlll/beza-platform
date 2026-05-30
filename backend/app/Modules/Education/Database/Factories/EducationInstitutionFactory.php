@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Education\Models\EducationInstitution;
 
-class EducationInstitutionFactory extends Factory
+final class EducationInstitutionFactory extends Factory
 {
     protected $model = EducationInstitution::class;
 

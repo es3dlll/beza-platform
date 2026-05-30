@@ -6,7 +6,7 @@ namespace Modules\Payroll\Repositories;
 
 use Modules\Payroll\Models\PayrollDisbursement;
 
-class PayrollDisbursementRepository
+final class PayrollDisbursementRepository
 {
     public function create(array $data): PayrollDisbursement
     {

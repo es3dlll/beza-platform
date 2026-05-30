@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Settlement\Models\Settlement;
 
-class SettlementFactory extends Factory
+final class SettlementFactory extends Factory
 {
     protected $model = Settlement::class;
 

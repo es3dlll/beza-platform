@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Cards\Models\Card;
 
-class CardFactory extends Factory
+final class CardFactory extends Factory
 {
     protected $model = Card::class;
 

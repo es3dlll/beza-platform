@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Loyalty\Models\LoyaltyTier;
 
-class LoyaltyTierFactory extends Factory
+final class LoyaltyTierFactory extends Factory
 {
     protected $model = LoyaltyTier::class;
 

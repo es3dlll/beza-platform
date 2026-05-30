@@ -18,6 +18,7 @@ final class PostingTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->authenticateUser();
 
         $this->assetId = LedgerAccount::create([
             'id' => '01AR123456789012345678p1',
@@ -82,7 +83,7 @@ final class PostingTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-            ->assertJson(['code' => 'VALIDATION_ERROR']);
+            ->assertJsonPath('error.code', 'VALIDATION_ERROR');
     }
 
     public function test_cfe_updates_ledger_balances(): void

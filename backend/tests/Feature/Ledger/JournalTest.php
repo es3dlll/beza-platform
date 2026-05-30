@@ -19,6 +19,7 @@ final class JournalTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->authenticateUser();
 
         $this->assetId = LedgerAccount::create([
             'id' => '01AR123456789012345678a1',

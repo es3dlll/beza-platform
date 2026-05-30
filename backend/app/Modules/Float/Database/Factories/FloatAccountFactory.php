@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Float\Models\FloatAccount;
 
-class FloatAccountFactory extends Factory
+final class FloatAccountFactory extends Factory
 {
     protected $model = FloatAccount::class;
 

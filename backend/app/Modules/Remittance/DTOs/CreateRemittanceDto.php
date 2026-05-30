@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Remittance\DTOs;
 
-class CreateRemittanceDto
+final class CreateRemittanceDto
 {
     public function __construct(
         public readonly string $corridorId = '',

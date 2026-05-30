@@ -241,5 +241,61 @@ class EventServiceProvider extends ServiceProvider
             LogAllEvents::class,
             CreateDatabaseNotification::class,
         ],
+
+        // Marketplace
+        \Modules\Marketplace\Events\OrderPlaced::class => [
+            LogAllEvents::class,
+            CreateDatabaseNotification::class,
+        ],
+        \Modules\Marketplace\Events\OrderFulfilled::class => [
+            LogAllEvents::class,
+            CreateDatabaseNotification::class,
+        ],
+        \Modules\Marketplace\Events\OrderRefunded::class => [
+            LogAllEvents::class,
+            CreateDatabaseNotification::class,
+        ],
+
+        // Takaful
+        \Modules\Takaful\Events\PolicySubscribed::class => [
+            LogAllEvents::class,
+            CreateDatabaseNotification::class,
+        ],
+        \Modules\Takaful\Events\ClaimFiled::class => [
+            LogAllEvents::class,
+            CreateDatabaseNotification::class,
+        ],
+        \Modules\Takaful\Events\ClaimApproved::class => [
+            LogAllEvents::class,
+            CreateDatabaseNotification::class,
+        ],
+
+        // Investments
+        \Modules\Investments\Events\Subscribed::class => [
+            LogAllEvents::class,
+            CreateDatabaseNotification::class,
+        ],
+        \Modules\Investments\Events\Redeemed::class => [
+            LogAllEvents::class,
+            CreateDatabaseNotification::class,
+        ],
+
+        // Escrow
+        \Modules\Escrow\Events\EscrowCreated::class => [
+            LogAllEvents::class,
+            CreateDatabaseNotification::class,
+        ],
+        \Modules\Escrow\Events\EscrowReleased::class => [
+            LogAllEvents::class,
+            CreateDatabaseNotification::class,
+        ],
+        \Modules\Escrow\Events\EscrowDisputed::class => [
+            LogAllEvents::class,
+            CreateDatabaseNotification::class,
+        ],
+        \Modules\Escrow\Events\EscrowResolved::class => [
+            LogAllEvents::class,
+            CreateDatabaseNotification::class,
+        ],
     ];
 }

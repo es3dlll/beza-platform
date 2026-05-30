@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'float_created' => 'تم إنشاء حساب الرصيد النقدي',
     'float_credited' => 'تم إيداع الرصيد النقدي',

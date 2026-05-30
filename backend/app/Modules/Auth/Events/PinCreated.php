@@ -10,7 +10,7 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 
-class PinCreated implements ShouldBroadcast
+final class PinCreated implements ShouldBroadcast
 {
     use Dispatchable;
     use InteractsWithSockets;

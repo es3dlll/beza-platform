@@ -14,7 +14,7 @@ use Modules\Marketplace\Models\ShippingZone;
 use Modules\Marketplace\Models\Vendor;
 use Tests\TestCase;
 
-class MarketplaceM3M4FeatureTest extends TestCase
+final class MarketplaceM3M4FeatureTest extends TestCase
 {
     use RefreshDatabase;
 

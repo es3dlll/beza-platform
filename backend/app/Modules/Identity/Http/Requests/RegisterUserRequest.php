@@ -6,7 +6,7 @@ namespace Modules\Identity\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class RegisterUserRequest extends FormRequest
+final class RegisterUserRequest extends FormRequest
 {
     public function authorize(): bool
     {

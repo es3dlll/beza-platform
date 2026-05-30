@@ -6,7 +6,7 @@ namespace Modules\Remittance\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class RegisterBeneficiaryRequest extends FormRequest
+final class RegisterBeneficiaryRequest extends FormRequest
 {
     public function authorize(): bool
     {

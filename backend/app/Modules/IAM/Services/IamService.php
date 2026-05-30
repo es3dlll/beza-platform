@@ -10,7 +10,7 @@ use Modules\IAM\Repositories\PermissionRepository;
 use Modules\IAM\Repositories\RoleRepository;
 use Modules\Identity\Models\User;
 
-class IamService
+final class IamService
 {
     public function __construct(
         private RoleRepository $roles,

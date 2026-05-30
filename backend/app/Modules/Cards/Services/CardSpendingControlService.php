@@ -8,7 +8,7 @@ use Modules\Cards\Models\Card;
 use Modules\Cards\Exceptions\CardLimitExceededException;
 use Modules\Cards\Repositories\CardTransactionRepository;
 
-class CardSpendingControlService
+final class CardSpendingControlService
 {
     public function __construct(
         private readonly CardTransactionRepository $transactionRepository,

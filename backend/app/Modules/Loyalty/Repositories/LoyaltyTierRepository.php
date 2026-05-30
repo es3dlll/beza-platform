@@ -6,7 +6,7 @@ namespace Modules\Loyalty\Repositories;
 
 use Modules\Loyalty\Models\LoyaltyTier;
 
-class LoyaltyTierRepository
+final class LoyaltyTierRepository
 {
     public function findByLevel(string $level): ?LoyaltyTier
     {

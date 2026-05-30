@@ -6,7 +6,7 @@ namespace Modules\Loyalty\Repositories;
 
 use Modules\Loyalty\Models\LoyaltyReward;
 
-class LoyaltyRewardRepository
+final class LoyaltyRewardRepository
 {
     public function findById(string $id): ?LoyaltyReward
     {

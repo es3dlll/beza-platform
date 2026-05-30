@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\CoreFinancialEngine\Models\CfeTransaction;
 
-class CfeTransactionFactory extends Factory
+final class CfeTransactionFactory extends Factory
 {
     protected $model = CfeTransaction::class;
 

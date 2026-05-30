@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Fraud\Controllers;
 
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -20,8 +21,10 @@ use Modules\Fraud\Repositories\FraudBlacklistRepository;
 use Modules\Fraud\Exceptions\FraudTransactionBlockedException;
 use Modules\Fraud\Exceptions\FraudReviewRequiredException;
 
-class FraudController extends Controller
+final class FraudController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(
         private readonly FraudEngine $fraudEngine,
         private readonly FraudRuleRepository $ruleRepository,
@@ -50,18 +53,18 @@ class FraudController extends Controller
         try {
             $event = $this->fraudEngine->evaluate($dto);
         } catch (FraudTransactionBlockedException $e) {
-            return response()->json(['error' => 'FRAUD_TRANSACTION_BLOCKED', 'reason' => $e->getMessage()], 403);
+            return $this->respondForbidden($e->getMessage());
         } catch (FraudReviewRequiredException $e) {
-            return response()->json(['error' => 'FRAUD_REVIEW_REQUIRED', 'reason' => $e->getMessage()], 403);
+            return $this->respondForbidden($e->getMessage());
         }
 
-        return response()->json(['data' => $event, 'risk_score' => $event->risk_score]);
+        return $this->respond($event, null, 200, ['risk_score' => $event->risk_score]);
     }
 
     public function rules(Request $request): JsonResponse
     {
         $rules = $this->ruleRepository->findAllActive();
-        return response()->json(['data' => $rules]);
+        return $this->respond($rules);
     }
 
     public function createRule(CreateFraudRuleRequest $request): JsonResponse
@@ -76,7 +79,7 @@ class FraudController extends Controller
             'severity' => $request->input('severity', 'medium'),
         ]);
 
-        return response()->json(['data' => $rule], 201);
+        return $this->respondCreated($rule);
     }
 
     public function updateRule(Request $request, string $id): JsonResponse
@@ -85,7 +88,7 @@ class FraudController extends Controller
             'name', 'rule_type', 'description', 'parameters', 'risk_score', 'is_active', 'severity',
         ]));
 
-        return response()->json(['data' => $rule]);
+        return $this->respond($rule);
     }
 
     public function cases(Request $request): JsonResponse
@@ -95,16 +98,16 @@ class FraudController extends Controller
             $request->input('status'),
         );
 
-        return response()->json(['data' => $cases]);
+        return $this->respond($cases);
     }
 
     public function showCase(string $id): JsonResponse
     {
         $case = $this->caseRepository->findById($id);
         if (!$case) {
-            return response()->json(['error' => 'FRAUD_CASE_NOT_FOUND'], 404);
+            return $this->respondNotFound('Fraud case');
         }
-        return response()->json(['data' => $case]);
+        return $this->respond($case);
     }
 
     public function reviewCase(ReviewFraudCaseRequest $request, string $id): JsonResponse
@@ -116,7 +119,7 @@ class FraudController extends Controller
             'reviewed_at' => now(),
         ]);
 
-        return response()->json(['data' => $case]);
+        return $this->respond($case);
     }
 
     public function blacklist(Request $request): JsonResponse
@@ -126,7 +129,7 @@ class FraudController extends Controller
             $request->input('type'),
         );
 
-        return response()->json(['data' => $entries]);
+        return $this->respond($entries);
     }
 
     public function addBlacklist(Request $request): JsonResponse
@@ -148,12 +151,12 @@ class FraudController extends Controller
             'expires_at' => $request->input('expires_at'),
         ]);
 
-        return response()->json(['data' => $entry], 201);
+        return $this->respondCreated($entry);
     }
 
     public function removeBlacklist(string $id): JsonResponse
     {
         $this->blacklistRepository->remove($id);
-        return response()->json(null, 204);
+        return $this->respondDeleted();
     }
 }

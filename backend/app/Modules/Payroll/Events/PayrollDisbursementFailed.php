@@ -6,7 +6,7 @@ namespace Modules\Payroll\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
 
-class PayrollDisbursementFailed
+final class PayrollDisbursementFailed
 {
     use Dispatchable;
 

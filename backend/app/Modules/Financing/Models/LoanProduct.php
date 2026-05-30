@@ -6,7 +6,7 @@ namespace Modules\Financing\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class LoanProduct extends Model
+final class LoanProduct extends Model
 {
     protected $table = 'loan_products';
     protected $keyType = 'string';

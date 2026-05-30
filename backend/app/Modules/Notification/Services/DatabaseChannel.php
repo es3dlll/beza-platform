@@ -7,7 +7,7 @@ namespace Modules\Notification\Services;
 use Modules\Notification\Contracts\NotificationChannelInterface;
 use Modules\Notification\Models\Notification;
 
-class DatabaseChannel implements NotificationChannelInterface
+final class DatabaseChannel implements NotificationChannelInterface
 {
     public function send(string $recipient, string $message, array $options = []): bool
     {

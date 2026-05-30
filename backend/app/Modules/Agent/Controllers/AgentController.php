@@ -12,9 +12,11 @@ use Modules\Agent\Http\Requests\CashInRequest;
 use Modules\Agent\Http\Requests\CashOutRequest;
 use Modules\Agent\Services\AgentService;
 use Illuminate\Http\JsonResponse;
+use App\Support\ApiResponse;
 
 final class AgentController
 {
+    use ApiResponse;
     public function __construct(
         private readonly AgentService $agents,
     ) {}
@@ -37,25 +39,22 @@ final class AgentController
         );
 
         $agent = $this->agents->register($dto);
-        return response()->json(['data' => $agent, 'message' => __('agent::messages.agent_registered')], 201);
+        return $this->respondCreated($agent, __('agent::messages.agent_registered'));
     }
 
     public function approve(string $id): JsonResponse
     {
         $agent = $this->agents->approve($id, request()->user()->id ?? 'system');
-        return response()->json(['data' => $agent, 'message' => __('agent::messages.agent_approved')]);
+        return $this->respond($agent, __('agent::messages.agent_approved'));
     }
 
     public function show(string $id): JsonResponse
     {
         try {
             $summary = $this->agents->getTodaySummary($id);
-            return response()->json(['data' => $summary]);
+            return $this->respond($summary);
         } catch (\Modules\Agent\Exceptions\AgentNotFoundException $e) {
-            return response()->json([
-                'success' => false,
-                'error' => ['code' => 'AGENT_NOT_FOUND', 'message' => $e->getMessage()],
-            ], 404);
+            return $this->respondError('AGENT_NOT_FOUND', $e->getMessage(), null, 404);
         }
     }
 
@@ -66,7 +65,7 @@ final class AgentController
         $radius = request()->input('radius') ? (int) request()->input('radius') : null;
 
         $agents = $this->agents->getNearby($governorate, $lat, $lng, $radius);
-        return response()->json(['data' => $agents]);
+        return $this->respond($agents);
     }
 
     public function cashIn(CashInRequest $request, string $id): JsonResponse
@@ -81,19 +80,13 @@ final class AgentController
 
         try {
             $result = $this->agents->cashIn($dto);
-            return response()->json(['data' => $result, 'message' => __('agent::messages.cash_in_success')]);
+            return $this->respond($result, __('agent::messages.cash_in_success'));
         } catch (\Modules\Agent\Exceptions\AgentNotApprovedException $e) {
-            return response()->json([
-                'success' => false, 'error' => ['code' => 'AGENT_NOT_APPROVED', 'message' => $e->getMessage()],
-            ], 403);
+            return $this->respondError('AGENT_NOT_APPROVED', $e->getMessage(), null, 403);
         } catch (\Modules\Agent\Exceptions\AgentLimitExceededException $e) {
-            return response()->json([
-                'success' => false, 'error' => ['code' => 'AGENT_LIMIT_EXCEEDED', 'message' => $e->getMessage()],
-            ], 422);
+            return $this->respondError('AGENT_LIMIT_EXCEEDED', $e->getMessage(), null, 422);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false, 'error' => ['code' => 'CASH_IN_FAILED', 'message' => $e->getMessage()],
-            ], 422);
+            return $this->respondError('CASH_IN_FAILED', $e->getMessage(), null, 422);
         }
     }
 
@@ -111,23 +104,15 @@ final class AgentController
 
         try {
             $result = $this->agents->cashOut($dto);
-            return response()->json(['data' => $result, 'message' => __('agent::messages.cash_out_success')]);
+            return $this->respond($result, __('agent::messages.cash_out_success'));
         } catch (\Modules\Agent\Exceptions\AgentNotApprovedException $e) {
-            return response()->json([
-                'success' => false, 'error' => ['code' => 'AGENT_NOT_APPROVED', 'message' => $e->getMessage()],
-            ], 403);
+            return $this->respondError('AGENT_NOT_APPROVED', $e->getMessage(), null, 403);
         } catch (\Modules\Agent\Exceptions\AgentLimitExceededException $e) {
-            return response()->json([
-                'success' => false, 'error' => ['code' => 'AGENT_LIMIT_EXCEEDED', 'message' => $e->getMessage()],
-            ], 422);
+            return $this->respondError('AGENT_LIMIT_EXCEEDED', $e->getMessage(), null, 422);
         } catch (\Modules\Agent\Exceptions\AgentFloatInsufficientException $e) {
-            return response()->json([
-                'success' => false, 'error' => ['code' => 'AGENT_FLOAT_INSUFFICIENT', 'message' => $e->getMessage()],
-            ], 422);
+            return $this->respondError('AGENT_FLOAT_INSUFFICIENT', $e->getMessage(), null, 422);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false, 'error' => ['code' => 'CASH_OUT_FAILED', 'message' => $e->getMessage()],
-            ], 422);
+            return $this->respondError('CASH_OUT_FAILED', $e->getMessage(), null, 422);
         }
     }
 
@@ -135,12 +120,9 @@ final class AgentController
     {
         try {
             $score = $this->agents->getLiquidityScore($id);
-            return response()->json(['data' => $score]);
+            return $this->respond($score);
         } catch (\Modules\Agent\Exceptions\AgentNotFoundException $e) {
-            return response()->json([
-                'success' => false,
-                'error' => ['code' => 'AGENT_NOT_FOUND', 'message' => $e->getMessage()],
-            ], 404);
+            return $this->respondError('AGENT_NOT_FOUND', $e->getMessage(), null, 404);
         }
     }
 
@@ -150,12 +132,9 @@ final class AgentController
 
         try {
             $agent = $this->agents->updateCoverageRadius($id, $meters);
-            return response()->json(['data' => $agent, 'message' => 'Coverage radius updated']);
+            return $this->respond($agent, 'Coverage radius updated');
         } catch (\Modules\Agent\Exceptions\AgentNotFoundException $e) {
-            return response()->json([
-                'success' => false,
-                'error' => ['code' => 'AGENT_NOT_FOUND', 'message' => $e->getMessage()],
-            ], 404);
+            return $this->respondError('AGENT_NOT_FOUND', $e->getMessage(), null, 404);
         }
     }
 }

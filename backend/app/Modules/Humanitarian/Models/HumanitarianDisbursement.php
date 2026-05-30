@@ -6,7 +6,7 @@ namespace Modules\Humanitarian\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class HumanitarianDisbursement extends Model
+final class HumanitarianDisbursement extends Model
 {
     protected $table = 'humanitarian_disbursements';
     protected $keyType = 'string';

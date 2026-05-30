@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Identity\DTOs;
 
-class RegisterUserDto
+final class RegisterUserDto
 {
     public function __construct(
         public readonly string $phone,

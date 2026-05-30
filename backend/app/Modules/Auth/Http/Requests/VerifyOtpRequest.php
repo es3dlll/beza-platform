@@ -6,7 +6,7 @@ namespace Modules\Auth\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class VerifyOtpRequest extends FormRequest
+final class VerifyOtpRequest extends FormRequest
 {
     public function authorize(): bool
     {

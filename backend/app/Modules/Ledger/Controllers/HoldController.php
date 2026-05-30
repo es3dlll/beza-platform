@@ -6,11 +6,13 @@ namespace Modules\Ledger\Controllers;
 use Modules\Ledger\DTOs\CreateHoldDto;
 use Modules\Ledger\Services\HoldService;
 use Modules\Ledger\Repositories\LedgerHoldRepository;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 final class HoldController
 {
+    use ApiResponse;
     public function __construct(
         private readonly HoldService $holds,
         private readonly LedgerHoldRepository $holdRepo,
@@ -29,18 +31,18 @@ final class HoldController
         );
 
         $hold = $this->holds->place($dto);
-        return response()->json(['data' => $hold], 201);
+        return $this->respondCreated($hold);
     }
 
     public function release(string $id, Request $request): JsonResponse
     {
         $hold = $this->holds->release($id, $request->input('reason', 'manual release'));
-        return response()->json(['data' => $hold]);
+        return $this->respond($hold);
     }
 
     public function byAccount(string $accountId): JsonResponse
     {
         $holds = $this->holdRepo->findByAccount($accountId);
-        return response()->json(['data' => $holds]);
+        return $this->respond($holds);
     }
 }

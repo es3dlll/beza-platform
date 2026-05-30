@@ -6,7 +6,7 @@ namespace Modules\Notification\Services;
 
 use Modules\Notification\Contracts\NotificationChannelInterface;
 
-class NotificationService
+final class NotificationService
 {
     private array $channels = [];
 

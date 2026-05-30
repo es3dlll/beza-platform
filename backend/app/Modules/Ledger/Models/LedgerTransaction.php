@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Str;
 
-class LedgerTransaction extends Model
+final class LedgerTransaction extends Model
 {
     protected $table = 'ledger_transactions';
 

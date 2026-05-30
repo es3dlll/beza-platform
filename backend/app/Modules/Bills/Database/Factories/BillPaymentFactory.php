@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Bills\Models\BillPayment;
 
-class BillPaymentFactory extends Factory
+final class BillPaymentFactory extends Factory
 {
     protected $model = BillPayment::class;
 

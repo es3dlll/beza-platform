@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Cards\DTOs;
 
-class CreateCardDto
+final class CreateCardDto
 {
     public function __construct(
         public readonly string $userId = '',

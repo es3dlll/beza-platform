@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 use Modules\IAM\Models\Permission;
 
-class PermissionRepository
+final class PermissionRepository
 {
     public function findByName(string $name): ?Permission
     {

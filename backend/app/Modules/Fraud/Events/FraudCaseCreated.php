@@ -6,7 +6,7 @@ namespace Modules\Fraud\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
 
-class FraudCaseCreated
+final class FraudCaseCreated
 {
     use Dispatchable;
 

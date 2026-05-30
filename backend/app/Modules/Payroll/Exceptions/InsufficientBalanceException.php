@@ -6,7 +6,7 @@ namespace Modules\Payroll\Exceptions;
 
 use Exception;
 
-class InsufficientBalanceException extends Exception
+final class InsufficientBalanceException extends Exception
 {
     public function __construct(int $required, int $available)
     {

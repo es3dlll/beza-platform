@@ -15,9 +15,11 @@ use Modules\Bills\Http\Requests\BillInquiryRequest;
 use Modules\Bills\Http\Requests\PayBillRequest;
 use Modules\Bills\Services\BillProviderService;
 use Modules\Bills\Services\BillPaymentService;
+use App\Support\ApiResponse;
 
-class BillController extends Controller
+final class BillController extends Controller
 {
+    use ApiResponse;
     public function __construct(
         private readonly BillProviderService $providerService,
         private readonly BillPaymentService $paymentService,
@@ -26,7 +28,7 @@ class BillController extends Controller
     public function listProviders(): JsonResponse
     {
         $providers = $this->providerService->allActive();
-        return response()->json(['data' => $providers]);
+        return $this->respond($providers);
     }
 
     public function createProvider(CreateBillProviderRequest $request): JsonResponse
@@ -47,7 +49,7 @@ class BillController extends Controller
         );
 
         $provider = $this->providerService->create($dto);
-        return response()->json(['data' => $provider], 201);
+        return $this->respondCreated($provider);
     }
 
     public function inquire(BillInquiryRequest $request): JsonResponse
@@ -59,7 +61,7 @@ class BillController extends Controller
         );
 
         $payment = $this->paymentService->inquire($dto);
-        return response()->json(['data' => $payment], 201);
+        return $this->respondCreated($payment);
     }
 
     public function pay(PayBillRequest $request): JsonResponse
@@ -70,14 +72,14 @@ class BillController extends Controller
         );
 
         $payment = $this->paymentService->pay($dto);
-        return response()->json(['data' => $payment]);
+        return $this->respond($payment);
     }
 
     public function refund(Request $request, string $id): JsonResponse
     {
         $request->validate(['reason' => 'required|string|max:500']);
         $payment = $this->paymentService->refund($id, $request->input('reason'));
-        return response()->json(['data' => $payment]);
+        return $this->respond($payment);
     }
 
     public function history(Request $request): JsonResponse
@@ -86,15 +88,15 @@ class BillController extends Controller
             $request->user()->id,
             (int) $request->input('per_page', 15),
         );
-        return response()->json(['data' => $payments]);
+        return $this->respond($payments);
     }
 
     public function showPayment(string $id): JsonResponse
     {
         $payment = $this->paymentService->findById($id);
         if (!$payment) {
-            return response()->json(['error' => 'BILL_NOT_FOUND'], 404);
+            return $this->respondError('BILL_NOT_FOUND', 'Bill not found', 'الفاتورة غير موجودة', 404);
         }
-        return response()->json(['data' => $payment]);
+        return $this->respond($payment);
     }
 }

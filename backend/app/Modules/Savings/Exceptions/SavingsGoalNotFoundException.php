@@ -6,7 +6,7 @@ namespace Modules\Savings\Exceptions;
 
 use Exception;
 
-class SavingsGoalNotFoundException extends Exception
+final class SavingsGoalNotFoundException extends Exception
 {
     public function __construct(string $id)
     {

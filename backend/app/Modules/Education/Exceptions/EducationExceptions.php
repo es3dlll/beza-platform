@@ -6,15 +6,15 @@ namespace Modules\Education\Exceptions;
 
 use Exception;
 
-class InstitutionNotFoundException extends Exception
+final class InstitutionNotFoundException extends Exception
 {
     public function __construct(string $id) { parent::__construct("Institution not found: {$id}"); }
 }
-class StudentNotFoundException extends Exception
+final class StudentNotFoundException extends Exception
 {
     public function __construct(string $id) { parent::__construct("Student not found: {$id}"); }
 }
-class FeeAlreadyPaidException extends Exception
+final class FeeAlreadyPaidException extends Exception
 {
     public function __construct() { parent::__construct('Fee is already fully paid'); }
 }

@@ -6,7 +6,7 @@ namespace Modules\Fraud\Services;
 
 use Modules\Fraud\Repositories\FraudEventRepository;
 
-class VelocityCheckService
+final class VelocityCheckService
 {
     private const DEFAULT_RULES = [
         ['event_type' => 'login', 'max_count' => 10, 'window' => 300],

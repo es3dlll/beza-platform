@@ -6,7 +6,7 @@ namespace Modules\Payroll\Exceptions;
 
 use Exception;
 
-class EmployerNotFoundException extends Exception
+final class EmployerNotFoundException extends Exception
 {
     public function __construct(string $id)
     {

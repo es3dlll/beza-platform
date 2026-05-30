@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Savings\Controllers;
 
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -20,8 +21,10 @@ use Modules\Savings\Repositories\SavingsGoalRepository;
 use Modules\Savings\Repositories\SavingsAccountRepository;
 use Modules\Savings\Repositories\SavingsTransactionRepository;
 
-class SavingsController extends Controller
+final class SavingsController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(
         private readonly SavingsService $savingsService,
         private readonly SavingsGoalRepository $goalRepository,
@@ -46,13 +49,13 @@ class SavingsController extends Controller
         );
 
         $goal = $this->savingsService->createGoal($dto);
-        return response()->json(['data' => $goal], 201);
+        return $this->respondCreated($goal);
     }
 
     public function listGoals(Request $request): JsonResponse
     {
         $goals = $this->goalRepository->findByUser($request->user()->id);
-        return response()->json(['data' => $goals]);
+        return $this->respond($goals);
     }
 
     public function showGoal(string $id): JsonResponse
@@ -60,11 +63,11 @@ class SavingsController extends Controller
         try {
             $goal = $this->savingsService->findGoalOrFail($id);
         } catch (SavingsGoalNotFoundException $e) {
-            return response()->json(['error' => 'SAVINGS_GOAL_NOT_FOUND'], 404);
+            return $this->respondError('SAVINGS_GOAL_NOT_FOUND', null, null, 404);
         }
 
         $account = $this->accountRepository->findByGoal($id);
-        return response()->json(['data' => $goal, 'account' => $account]);
+        return $this->respond(['goal' => $goal, 'account' => $account]);
     }
 
     public function contribute(ContributeRequest $request, string $id): JsonResponse
@@ -78,14 +81,14 @@ class SavingsController extends Controller
         try {
             $goal = $this->savingsService->contribute($dto);
         } catch (SavingsGoalNotFoundException $e) {
-            return response()->json(['error' => 'SAVINGS_GOAL_NOT_FOUND'], 404);
+            return $this->respondError('SAVINGS_GOAL_NOT_FOUND', null, null, 404);
         } catch (SavingsGoalCompletedException $e) {
-            return response()->json(['error' => 'SAVINGS_GOAL_COMPLETED'], 422);
+            return $this->respondError('SAVINGS_GOAL_COMPLETED', null, null, 422);
         } catch (\InvalidArgumentException $e) {
-            return response()->json(['error' => 'INVALID_AMOUNT', 'reason' => $e->getMessage()], 422);
+            return $this->respondError('INVALID_AMOUNT', $e->getMessage(), null, 422);
         }
 
-        return response()->json(['data' => $goal]);
+        return $this->respond($goal);
     }
 
     public function withdraw(WithdrawRequest $request, string $id): JsonResponse
@@ -98,21 +101,21 @@ class SavingsController extends Controller
                 description: $request->input('description'),
             );
         } catch (SavingsGoalNotFoundException $e) {
-            return response()->json(['error' => 'SAVINGS_GOAL_NOT_FOUND'], 404);
+            return $this->respondError('SAVINGS_GOAL_NOT_FOUND', null, null, 404);
         } catch (SavingsGoalCompletedException $e) {
-            return response()->json(['error' => 'SAVINGS_GOAL_COMPLETED'], 422);
+            return $this->respondError('SAVINGS_GOAL_COMPLETED', null, null, 422);
         } catch (InsufficientSavingsBalanceException $e) {
-            return response()->json(['error' => 'INSUFFICIENT_SAVINGS_BALANCE', 'reason' => $e->getMessage()], 422);
+            return $this->respondError('INSUFFICIENT_SAVINGS_BALANCE', $e->getMessage(), null, 422);
         }
 
-        return response()->json(['data' => $goal]);
+        return $this->respond($goal);
     }
 
     public function transactions(Request $request, string $id): JsonResponse
     {
         $account = $this->accountRepository->findByGoal($id);
         if (!$account) {
-            return response()->json(['error' => 'SAVINGS_GOAL_NOT_FOUND'], 404);
+            return $this->respondError('SAVINGS_GOAL_NOT_FOUND', null, null, 404);
         }
 
         $txns = $this->transactionRepository->findByAccount(
@@ -120,7 +123,7 @@ class SavingsController extends Controller
             (int) $request->input('per_page', 15),
         );
 
-        return response()->json(['data' => $txns]);
+        return $this->respond($txns);
     }
 
     public function poolSummary(): JsonResponse
@@ -137,13 +140,13 @@ class SavingsController extends Controller
             ->limit(5)
             ->get();
 
-        return response()->json(['data' => [
+        return $this->respond([
             'total_aum' => $totalAum,
             'active_goals' => $activeGoals,
             'completed_goals' => $completedGoals,
             'total_profit_distributed' => $totalProfit,
             'recent_profit_transactions' => $recentProfitTxns,
-        ]]);
+        ]);
     }
 
     public function profitRules(Request $request): JsonResponse
@@ -151,7 +154,7 @@ class SavingsController extends Controller
         if ($request->isMethod('put')) {
             $rule = \Modules\Savings\Models\SavingsProfitRule::first();
             if (!$rule) {
-                return response()->json(['error' => 'NO_RULE_FOUND'], 404);
+                return $this->respondError('NO_RULE_FOUND', null, null, 404);
             }
             $rule->update($request->validate([
                 'annual_rate' => 'numeric|min:0|max:100',
@@ -159,10 +162,10 @@ class SavingsController extends Controller
                 'min_duration_days' => 'integer|min:0',
                 'early_withdrawal_penalty_rate' => 'numeric|min:0|max:100',
             ]));
-            return response()->json(['data' => $rule->fresh()]);
+            return $this->respond($rule->fresh());
         }
 
         $rule = \Modules\Savings\Models\SavingsProfitRule::first();
-        return response()->json(['data' => $rule]);
+        return $this->respond($rule);
     }
 }

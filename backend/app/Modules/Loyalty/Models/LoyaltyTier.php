@@ -6,7 +6,7 @@ namespace Modules\Loyalty\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class LoyaltyTier extends Model
+final class LoyaltyTier extends Model
 {
     protected $table = 'loyalty_tiers';
     protected $keyType = 'string';

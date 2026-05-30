@@ -18,6 +18,7 @@ final class ReversalTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->authenticateUser();
 
         $this->fromId = LedgerAccount::create([
             'id' => '01AR123456789012345678r1',
@@ -93,6 +94,6 @@ final class ReversalTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-            ->assertJson(['code' => 'ORIGINAL_NOT_FOUND']);
+            ->assertJsonPath('error.code', 'ORIGINAL_NOT_FOUND');
     }
 }

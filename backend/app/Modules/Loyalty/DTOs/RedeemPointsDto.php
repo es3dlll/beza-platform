@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Loyalty\DTOs;
 
-class RedeemPointsDto
+final class RedeemPointsDto
 {
     public function __construct(
         public readonly string $userId = '',

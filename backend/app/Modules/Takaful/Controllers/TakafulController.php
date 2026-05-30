@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Takaful\Controllers;
 
+use App\Support\ApiResponse;
 use Modules\Takaful\Exceptions\ClaimNotFoundException;
 use Modules\Takaful\Exceptions\PolicyExpiredException;
 use Modules\Takaful\Exceptions\PolicyNotFoundException;
@@ -14,6 +15,8 @@ use Illuminate\Http\Request;
 
 final class TakafulController
 {
+    use ApiResponse;
+
     public function __construct(
         private readonly TakafulService $takaful,
     ) {}
@@ -22,7 +25,7 @@ final class TakafulController
     {
         $products = $this->takaful->listProducts($request->input('type'));
 
-        return response()->json(['data' => $products]);
+        return $this->respond($products);
     }
 
     public function subscribe(Request $request): JsonResponse
@@ -45,9 +48,9 @@ final class TakafulController
                 $request->input('end_date'),
             );
 
-            return response()->json(['data' => $policy], 201);
+            return $this->respondCreated($policy);
         } catch (TakafulProductNotFoundException $e) {
-            return response()->json(['error' => ['code' => 'PRODUCT_NOT_FOUND', 'message' => $e->getMessage()]], 404);
+            return $this->respondError('PRODUCT_NOT_FOUND', $e->getMessage(), null, 404);
         }
     }
 
@@ -55,7 +58,7 @@ final class TakafulController
     {
         $policies = $this->takaful->listPolicies($request->user()->getAuthIdentifier());
 
-        return response()->json(['data' => $policies]);
+        return $this->respond($policies);
     }
 
     public function showPolicy(string $id): JsonResponse
@@ -63,9 +66,9 @@ final class TakafulController
         try {
             $policy = $this->takaful->findPolicyOrFail($id);
 
-            return response()->json(['data' => $policy]);
+            return $this->respond($policy);
         } catch (PolicyNotFoundException $e) {
-            return response()->json(['error' => ['code' => 'POLICY_NOT_FOUND', 'message' => $e->getMessage()]], 404);
+            return $this->respondError('POLICY_NOT_FOUND', $e->getMessage(), null, 404);
         }
     }
 
@@ -84,11 +87,11 @@ final class TakafulController
                 $request->input('reason'),
             );
 
-            return response()->json(['data' => $claim], 201);
+            return $this->respondCreated($claim);
         } catch (PolicyNotFoundException $e) {
-            return response()->json(['error' => ['code' => 'POLICY_NOT_FOUND', 'message' => $e->getMessage()]], 404);
+            return $this->respondError('POLICY_NOT_FOUND', $e->getMessage(), null, 404);
         } catch (PolicyExpiredException $e) {
-            return response()->json(['error' => ['code' => 'POLICY_EXPIRED', 'message' => $e->getMessage()]], 422);
+            return $this->respondError('POLICY_EXPIRED', $e->getMessage(), null, 422);
         }
     }
 
@@ -96,7 +99,7 @@ final class TakafulController
     {
         $claims = $this->takaful->listClaims($request->user()->getAuthIdentifier());
 
-        return response()->json(['data' => $claims]);
+        return $this->respond($claims);
     }
 
     public function approveClaim(string $id, Request $request): JsonResponse
@@ -111,9 +114,9 @@ final class TakafulController
                 (int) $request->input('approved_amount'),
             );
 
-            return response()->json(['data' => $claim]);
+            return $this->respond($claim);
         } catch (ClaimNotFoundException $e) {
-            return response()->json(['error' => ['code' => 'CLAIM_NOT_FOUND', 'message' => $e->getMessage()]], 404);
+            return $this->respondError('CLAIM_NOT_FOUND', $e->getMessage(), null, 404);
         }
     }
 
@@ -129,9 +132,9 @@ final class TakafulController
                 $request->input('reason'),
             );
 
-            return response()->json(['data' => $claim]);
+            return $this->respond($claim);
         } catch (ClaimNotFoundException $e) {
-            return response()->json(['error' => ['code' => 'CLAIM_NOT_FOUND', 'message' => $e->getMessage()]], 404);
+            return $this->respondError('CLAIM_NOT_FOUND', $e->getMessage(), null, 404);
         }
     }
 
@@ -139,6 +142,6 @@ final class TakafulController
     {
         $dashboard = $this->takaful->adminDashboard();
 
-        return response()->json(['data' => $dashboard]);
+        return $this->respond($dashboard);
     }
 }

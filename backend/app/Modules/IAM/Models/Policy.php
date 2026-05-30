@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Modules\Identity\Models\User;
 
-class Policy extends Model
+final class Policy extends Model
 {
     protected $table = 'policies';
 

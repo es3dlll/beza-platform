@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Identity\Controllers;
 
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Modules\Identity\DTOs\RegisterUserDto;
@@ -14,8 +15,10 @@ use Modules\Identity\Http\Requests\UpdateProfileRequest;
 use Modules\Identity\Http\Requests\VerifyPhoneOtpRequest;
 use Modules\Identity\Services\IdentityService;
 
-class IdentityController extends Controller
+final class IdentityController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(
         private IdentityService $identityService,
     ) {}
@@ -30,40 +33,30 @@ class IdentityController extends Controller
 
         $user = $this->identityService->register($dto);
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'user' => [
-                    'id' => $user->id,
-                    'phone' => $user->phone,
-                    'status' => $user->status,
-                ],
+        return $this->respondWithMeta([
+            'user' => [
+                'id' => $user->id,
+                'phone' => $user->phone,
+                'status' => $user->status,
             ],
-            'meta' => [
-                'message' => __('identity::messages.otp_sent'),
-            ],
-        ], 201);
+        ], [
+            'message' => __('identity::messages.otp_sent'),
+        ], null, 201);
     }
 
     public function checkPhone(CheckPhoneRequest $request): JsonResponse
     {
         $result = $this->identityService->checkPhone($request->input('phone'));
 
-        return response()->json([
-            'success' => true,
-            'data' => $result,
-        ]);
+        return $this->respond($result);
     }
 
     public function profile(): JsonResponse
     {
         $user = $this->identityService->getUserProfile(auth()->id());
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'user' => $user->toArray(),
-            ],
+        return $this->respond([
+            'user' => $user->toArray(),
         ]);
     }
 
@@ -71,8 +64,7 @@ class IdentityController extends Controller
     {
         $this->identityService->sendPhoneVerificationOtp(auth()->id());
 
-        return response()->json([
-            'success' => true,
+        return $this->respond(null, null, 200, [
             'meta' => [
                 'message' => __('identity::messages.otp_sent'),
             ],
@@ -87,22 +79,13 @@ class IdentityController extends Controller
         );
 
         if (! $verified) {
-            return response()->json([
-                'success' => false,
-                'meta' => [
-                    'message' => __('identity::messages.invalid_or_expired_otp'),
-                ],
-            ], 422);
+            return $this->respondError('INVALID_OTP', __('identity::messages.invalid_or_expired_otp'), null, 422);
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'phone_verified' => true,
-            ],
-            'meta' => [
-                'message' => __('identity::messages.phone_verified'),
-            ],
+        return $this->respondWithMeta([
+            'phone_verified' => true,
+        ], [
+            'message' => __('identity::messages.phone_verified'),
         ]);
     }
 
@@ -123,14 +106,10 @@ class IdentityController extends Controller
             ])
         );
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'profile' => $profile->fresh(),
-            ],
-            'meta' => [
-                'message' => __('identity::messages.profile_updated'),
-            ],
+        return $this->respondWithMeta([
+            'profile' => $profile->fresh(),
+        ], [
+            'message' => __('identity::messages.profile_updated'),
         ]);
     }
 }

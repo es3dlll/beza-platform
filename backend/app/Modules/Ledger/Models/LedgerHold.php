@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
-class LedgerHold extends Model
+final class LedgerHold extends Model
 {
     protected $table = 'ledger_holds';
 

@@ -6,7 +6,7 @@ namespace Modules\Loyalty\Exceptions;
 
 use Exception;
 
-class RewardNotFoundException extends Exception
+final class RewardNotFoundException extends Exception
 {
     public function __construct(string $id)
     {

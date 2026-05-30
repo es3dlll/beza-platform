@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Fraud\Services;
 
-class GeolocationAnomalyService
+final class GeolocationAnomalyService
 {
     private const MAX_TRAVEL_KM_PER_HOUR = 900;
     private const EARTH_RADIUS_KM = 6371;

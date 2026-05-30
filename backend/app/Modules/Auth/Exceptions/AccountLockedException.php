@@ -6,7 +6,7 @@ namespace Modules\Auth\Exceptions;
 
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class AccountLockedException extends HttpException
+final class AccountLockedException extends HttpException
 {
     public function __construct(
         string $message = 'Account is locked.',

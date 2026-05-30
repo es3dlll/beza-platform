@@ -6,7 +6,7 @@ namespace Modules\Auth\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class LoginWithPasswordRequest extends FormRequest
+final class LoginWithPasswordRequest extends FormRequest
 {
     public function authorize(): bool
     {

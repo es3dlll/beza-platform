@@ -13,7 +13,7 @@ use Modules\Ledger\Repositories\LedgerAccountRepository;
 use Modules\Ledger\Repositories\LedgerHoldRepository;
 use Illuminate\Support\Str;
 
-final class AccountService
+final class AccountService implements \Modules\Ledger\Contracts\AccountServiceInterface
 {
     public function __construct(
         private readonly LedgerAccountRepository $accounts,

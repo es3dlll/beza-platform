@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 use Modules\Identity\DTOs\RegisterUserDto;
 use Modules\Identity\Models\User;
 
-class UserRepository
+final class UserRepository
 {
     public function findByPhone(string $phone): ?User
     {

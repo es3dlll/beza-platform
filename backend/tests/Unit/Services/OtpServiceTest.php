@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
+use Modules\Auth\Events\OtpGenerated;
 use Modules\Identity\Models\OtpCode;
 use Modules\Identity\Models\User;
 use Modules\Identity\Services\OtpService;
@@ -26,12 +27,15 @@ class OtpServiceTest extends TestCase
 
     public function test_generates_six_digit_otp(): void
     {
-        $otp = $this->otpService->generate('963123456789', OtpService::PURPOSE_REGISTER);
+        Event::fake([OtpGenerated::class]);
+        $this->otpService->generate('963123456789', OtpService::PURPOSE_REGISTER);
 
-        $cachedCode = Cache::get("otp_plain_{$otp->id}");
-
-        $this->assertNotNull($cachedCode);
-        $this->assertMatchesRegularExpression('/^\d{6}$/', $cachedCode);
+        Event::assertDispatched(OtpGenerated::class, function (OtpGenerated $event) {
+            $this->assertMatchesRegularExpression('/^\d{6}$/', $event->code);
+            $this->assertSame('963123456789', $event->phone);
+            $this->assertSame(OtpService::PURPOSE_REGISTER, $event->purpose);
+            return true;
+        });
     }
 
     public function test_otp_has_expiry_time(): void
@@ -51,8 +55,13 @@ class OtpServiceTest extends TestCase
 
     public function test_verify_returns_true_for_valid_otp(): void
     {
-        $otp = $this->otpService->generate('963123456789', OtpService::PURPOSE_REGISTER);
-        $plainCode = Cache::get("otp_plain_{$otp->id}");
+        $plainCode = '';
+        Event::fake([OtpGenerated::class]);
+        $this->otpService->generate('963123456789', OtpService::PURPOSE_REGISTER);
+        Event::assertDispatched(OtpGenerated::class, function (OtpGenerated $event) use (&$plainCode) {
+            $plainCode = $event->code;
+            return true;
+        });
 
         $result = $this->otpService->verify('963123456789', $plainCode, OtpService::PURPOSE_REGISTER);
 
@@ -111,8 +120,13 @@ class OtpServiceTest extends TestCase
 
     public function test_verified_at_is_set_on_successful_verification(): void
     {
+        $plainCode = '';
+        Event::fake([OtpGenerated::class]);
         $otp = $this->otpService->generate('963123456789', OtpService::PURPOSE_REGISTER);
-        $plainCode = Cache::get("otp_plain_{$otp->id}");
+        Event::assertDispatched(OtpGenerated::class, function (OtpGenerated $event) use (&$plainCode) {
+            $plainCode = $event->code;
+            return true;
+        });
 
         $this->otpService->verify('963123456789', $plainCode, OtpService::PURPOSE_REGISTER);
 

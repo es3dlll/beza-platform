@@ -6,7 +6,7 @@ namespace Modules\Payroll\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UploadCsvRequest extends FormRequest
+final class UploadCsvRequest extends FormRequest
 {
     public function authorize(): bool
     {

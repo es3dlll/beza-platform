@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'name' => 'QR التجار',
     'description' => 'تسجيل التجار ومدفوعات QR والتسوية',

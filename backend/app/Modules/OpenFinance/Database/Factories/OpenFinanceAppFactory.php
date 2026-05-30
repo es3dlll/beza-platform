@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\OpenFinance\Models\OpenFinanceApp;
 
-class OpenFinanceAppFactory extends Factory
+final class OpenFinanceAppFactory extends Factory
 {
     protected $model = OpenFinanceApp::class;
 

@@ -6,7 +6,7 @@ namespace Modules\Payroll\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class PayrollBatch extends Model
+final class PayrollBatch extends Model
 {
     protected $table = 'payroll_batches';
     protected $keyType = 'string';

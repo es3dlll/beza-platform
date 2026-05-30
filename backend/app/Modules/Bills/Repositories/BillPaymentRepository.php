@@ -7,7 +7,7 @@ namespace Modules\Bills\Repositories;
 use Modules\Bills\Models\BillPayment;
 use Modules\Bills\Enums\BillPaymentStatus;
 
-class BillPaymentRepository
+final class BillPaymentRepository
 {
     public function create(array $data): BillPayment
     {

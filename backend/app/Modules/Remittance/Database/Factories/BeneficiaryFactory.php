@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Remittance\Models\Beneficiary;
 
-class BeneficiaryFactory extends Factory
+final class BeneficiaryFactory extends Factory
 {
     protected $model = Beneficiary::class;
 

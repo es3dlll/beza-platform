@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Str;
 
-class JournalEntry extends Model
+final class JournalEntry extends Model
 {
     protected $table = 'journal_entries';
 

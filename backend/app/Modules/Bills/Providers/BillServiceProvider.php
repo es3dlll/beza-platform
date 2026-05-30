@@ -10,7 +10,7 @@ use Modules\Bills\Services\BillPaymentService;
 use Modules\Bills\Repositories\BillProviderRepository;
 use Modules\Bills\Repositories\BillPaymentRepository;
 
-class BillServiceProvider extends ServiceProvider
+final class BillServiceProvider extends ServiceProvider
 {
     public function register(): void
     {

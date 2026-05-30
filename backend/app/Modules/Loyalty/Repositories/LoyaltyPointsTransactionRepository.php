@@ -6,7 +6,7 @@ namespace Modules\Loyalty\Repositories;
 
 use Modules\Loyalty\Models\LoyaltyPointsTransaction;
 
-class LoyaltyPointsTransactionRepository
+final class LoyaltyPointsTransactionRepository
 {
     public function create(array $data): LoyaltyPointsTransaction
     {

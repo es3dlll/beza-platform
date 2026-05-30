@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Savings\Models\SavingsGoal;
 
-class SavingsGoalFactory extends Factory
+final class SavingsGoalFactory extends Factory
 {
     protected $model = SavingsGoal::class;
 

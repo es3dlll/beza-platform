@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Bills\DTOs;
 
-class BillInquiryDto
+final class BillInquiryDto
 {
     public function __construct(
         public readonly string $userId = '',

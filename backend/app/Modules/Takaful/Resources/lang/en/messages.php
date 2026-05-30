@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'product_created' => 'Takaful product created',
     'product_not_found' => 'Takaful product not found',

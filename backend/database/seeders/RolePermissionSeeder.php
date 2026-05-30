@@ -25,6 +25,7 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'transaction.reverse', 'module' => 'Transaction'],
             ['name' => 'report.view', 'module' => 'Reporting'],
             ['name' => 'settings.manage', 'module' => 'Settings'],
+            ['name' => 'admin.access', 'module' => 'Admin'],
         ];
 
         $now = now();
@@ -50,6 +51,7 @@ class RolePermissionSeeder extends Seeder
                     'transaction.reverse' => 'Reverse or void transactions',
                     'report.view' => 'View reports and analytics',
                     'settings.manage' => 'Manage system settings',
+                    'admin.access' => 'Access admin dashboard and management features',
                     default => null,
                 },
                 'created_at' => $now,
@@ -70,6 +72,7 @@ class RolePermissionSeeder extends Seeder
                     'role.manage', 'permission.manage',
                     'kyc.review', 'kyc.approve',
                     'report.view', 'settings.manage',
+                    'admin.access',
                 ],
             ],
             'compliance_officer' => [

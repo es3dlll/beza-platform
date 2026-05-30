@@ -9,9 +9,11 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use App\Support\ApiResponse;
 
-class HealthController extends Controller
+final class HealthController extends Controller
 {
+    use ApiResponse;
     public function __invoke(): JsonResponse
     {
         $checks = [
@@ -22,9 +24,8 @@ class HealthController extends Controller
         ];
         $status = collect($checks)->contains(fn ($c) => $c['status'] === 'error') ? 503 : 200;
 
-        return response()->json([
-            'success' => $status === 200,
-            'data' => [
+        return $this->respondWithMeta(
+            data: [
                 'status' => $status === 200 ? 'healthy' : 'degraded',
                 'timestamp' => now()->toIso8601String(),
                 'app' => config('app.name'),
@@ -32,10 +33,9 @@ class HealthController extends Controller
                 'php_version' => PHP_VERSION,
                 'laravel_version' => app()->version(),
             ],
-            'meta' => [
-                'checks' => $checks,
-            ],
-        ], $status);
+            meta: ['checks' => $checks],
+            status: $status,
+        );
     }
 
     private function checkDatabase(): array

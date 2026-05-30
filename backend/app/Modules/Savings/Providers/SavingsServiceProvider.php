@@ -13,7 +13,7 @@ use Modules\Savings\Repositories\SavingsAccountRepository;
 use Modules\Savings\Repositories\SavingsTransactionRepository;
 use Modules\Savings\Repositories\SavingsProfitRuleRepository;
 
-class SavingsServiceProvider extends ServiceProvider
+final class SavingsServiceProvider extends ServiceProvider
 {
     public function register(): void
     {

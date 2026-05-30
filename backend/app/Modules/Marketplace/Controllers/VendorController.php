@@ -8,9 +8,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Marketplace\Services\VendorService;
+use App\Support\ApiResponse;
 
-class VendorController extends Controller
+final class VendorController extends Controller
 {
+    use ApiResponse;
     public function __construct(
         private VendorService $vendors,
     ) {}
@@ -29,10 +31,7 @@ class VendorController extends Controller
 
         $vendor = $this->vendors->register($data);
 
-        return response()->json([
-            'success' => true,
-            'data' => $vendor,
-        ], 201);
+        return $this->respondCreated($vendor);
     }
 
     public function index(Request $request): JsonResponse
@@ -42,39 +41,27 @@ class VendorController extends Controller
             (int) $request->query('per_page', 15),
         );
 
-        return response()->json([
-            'success' => true,
-            'data' => $vendors,
-        ]);
+        return $this->respond($vendors);
     }
 
     public function show(string $id): JsonResponse
     {
         $vendor = $this->vendors->findOrFail($id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $vendor,
-        ]);
+        return $this->respond($vendor);
     }
 
     public function approve(string $id): JsonResponse
     {
         $vendor = $this->vendors->approve($id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $vendor,
-        ]);
+        return $this->respond($vendor);
     }
 
     public function suspend(string $id): JsonResponse
     {
         $vendor = $this->vendors->suspend($id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $vendor,
-        ]);
+        return $this->respond($vendor);
     }
 }

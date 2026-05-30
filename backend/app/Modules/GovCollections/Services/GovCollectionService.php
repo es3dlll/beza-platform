@@ -12,7 +12,7 @@ use Modules\GovCollections\Enums\GovCollectionStatus;
 use Modules\GovCollections\Exceptions\GovServiceProviderNotFoundException;
 use Modules\GovCollections\Exceptions\GovInquiryExpiredException;
 
-class GovCollectionService
+final class GovCollectionService
 {
     public function findProvider(string $id): GovServiceProvider
     {

@@ -8,11 +8,13 @@ use Modules\Ledger\DTOs\PostEntryDto;
 use Modules\Ledger\Exceptions\DoubleEntryViolationException;
 use Modules\Ledger\Repositories\JournalEntryRepository;
 use Modules\Ledger\Services\JournalService;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 final class JournalController
 {
+    use ApiResponse;
     public function __construct(
         private readonly JournalService $journal,
         private readonly JournalEntryRepository $entries,
@@ -41,23 +43,23 @@ final class JournalController
         try {
             $entry = $this->journal->post($dto);
         } catch (DoubleEntryViolationException $e) {
-            return response()->json(['error' => 'DOUBLE_ENTRY_VIOLATION', 'message' => $e->getMessage()], 422);
+            return $this->respondError('DOUBLE_ENTRY_VIOLATION', $e->getMessage());
         }
-        return response()->json(['data' => $entry->load('lines')], 201);
+        return $this->respondCreated($entry->load('lines'));
     }
 
     public function show(string $id): JsonResponse
     {
         $entry = $this->entries->findById($id);
         if (!$entry) {
-            return response()->json(['error' => 'Journal entry not found'], 404);
+            return $this->respondNotFound('JournalEntry');
         }
-        return response()->json(['data' => $entry]);
+        return $this->respond($entry);
     }
 
     public function byReference(string $type, string $id): JsonResponse
     {
         $entries = $this->entries->findByReference($type, $id);
-        return response()->json(['data' => $entries]);
+        return $this->respond($entries);
     }
 }

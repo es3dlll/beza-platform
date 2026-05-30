@@ -6,7 +6,7 @@ namespace Modules\OpenFinance\Exceptions;
 
 use Exception;
 
-class ConsentExpiredException extends Exception
+final class ConsentExpiredException extends Exception
 {
     public function __construct() { parent::__construct('Consent has expired'); }
 }

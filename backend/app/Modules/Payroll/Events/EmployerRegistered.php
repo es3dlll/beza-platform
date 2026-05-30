@@ -6,7 +6,7 @@ namespace Modules\Payroll\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
 
-class EmployerRegistered
+final class EmployerRegistered
 {
     use Dispatchable;
 

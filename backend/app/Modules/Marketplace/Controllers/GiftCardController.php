@@ -8,9 +8,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Marketplace\Services\GiftCardService;
+use App\Support\ApiResponse;
 
-class GiftCardController extends Controller
+final class GiftCardController extends Controller
 {
+    use ApiResponse;
     public function __construct(
         private GiftCardService $giftCards,
     ) {}
@@ -28,10 +30,7 @@ class GiftCardController extends Controller
 
         $giftCards = $this->giftCards->purchase($data['order_id'], $data['cards']);
 
-        return response()->json([
-            'success' => true,
-            'data' => $giftCards,
-        ], 201);
+        return $this->respondCreated($giftCards);
     }
 
     public function deliverGiftCard(string $id, Request $request): JsonResponse
@@ -42,10 +41,7 @@ class GiftCardController extends Controller
 
         $giftCard = $this->giftCards->deliver($id, $data['method'] ?? 'sms');
 
-        return response()->json([
-            'success' => true,
-            'data' => $giftCard,
-        ]);
+        return $this->respond($giftCard);
     }
 
     public function redeemGiftCard(Request $request): JsonResponse
@@ -61,10 +57,7 @@ class GiftCardController extends Controller
             $request->user()->id,
         );
 
-        return response()->json([
-            'success' => true,
-            'data' => $result,
-        ]);
+        return $this->respond($result);
     }
 
     public function checkBalance(Request $request): JsonResponse
@@ -75,20 +68,14 @@ class GiftCardController extends Controller
 
         $balance = $this->giftCards->checkBalance($data['code']);
 
-        return response()->json([
-            'success' => true,
-            'data' => ['balance' => $balance],
-        ]);
+        return $this->respond(['balance' => $balance]);
     }
 
     public function listByVendor(Request $request): JsonResponse
     {
         $giftCards = $this->giftCards->listByVendor($request->user()->id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $giftCards,
-        ]);
+        return $this->respond($giftCards);
     }
 
     public function listByRecipient(Request $request): JsonResponse
@@ -99,9 +86,6 @@ class GiftCardController extends Controller
 
         $giftCards = $this->giftCards->listByRecipient($data['phone']);
 
-        return response()->json([
-            'success' => true,
-            'data' => $giftCards,
-        ]);
+        return $this->respond($giftCards);
     }
 }

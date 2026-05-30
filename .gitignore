@@ -41,6 +41,10 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Pipeline
+.pipeline-worktrees/
+plan.md
+
 # Temp
 *.swp
 *.swo

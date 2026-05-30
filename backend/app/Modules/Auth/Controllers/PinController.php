@@ -11,9 +11,11 @@ use Modules\Auth\Http\Requests\CreatePinRequest;
 use Modules\Auth\Http\Requests\VerifyPinRequest;
 use Modules\Auth\Services\AuthService;
 use Modules\Auth\Services\PinService;
+use App\Support\ApiResponse;
 
-class PinController extends Controller
+final class PinController extends Controller
 {
+    use ApiResponse;
     public function __construct(
         private AuthService $authService,
         private PinService $pinService,
@@ -24,23 +26,12 @@ class PinController extends Controller
         $user = auth()->user();
 
         if ($user === null) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'AUTH_UNAUTHENTICATED',
-                    'message' => __('identity::messages.session_expired'),
-                ],
-            ], 401);
+            return $this->respondUnauthenticated(__('identity::messages.session_expired'));
         }
 
         $this->authService->createPin($user->id, $request->input('pin'));
 
-        return response()->json([
-            'success' => true,
-            'meta' => [
-                'message' => __('identity::messages.pin_created'),
-            ],
-        ], 201);
+        return $this->respondCreated(null, __('identity::messages.pin_created'));
     }
 
     public function change(ChangePinRequest $request): JsonResponse
@@ -48,33 +39,16 @@ class PinController extends Controller
         $user = auth()->user();
 
         if ($user === null) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'AUTH_UNAUTHENTICATED',
-                    'message' => __('identity::messages.session_expired'),
-                ],
-            ], 401);
+            return $this->respondUnauthenticated(__('identity::messages.session_expired'));
         }
 
         if (! $this->pinService->verify($request->input('current_pin'), $user->pin_hash)) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'AUTH_INVALID_PIN',
-                    'message' => __('identity::messages.pin_incorrect'),
-                ],
-            ], 400);
+            return $this->respondError('AUTH_INVALID_PIN', __('identity::messages.pin_incorrect'), status: 400);
         }
 
         $this->authService->createPin($user->id, $request->input('new_pin'));
 
-        return response()->json([
-            'success' => true,
-            'meta' => [
-                'message' => __('identity::messages.pin_changed'),
-            ],
-        ]);
+        return $this->respond(null, __('identity::messages.pin_changed'));
     }
 
     public function verify(VerifyPinRequest $request): JsonResponse
@@ -82,32 +56,15 @@ class PinController extends Controller
         $user = auth()->user();
 
         if ($user === null) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'AUTH_UNAUTHENTICATED',
-                    'message' => __('identity::messages.session_expired'),
-                ],
-            ], 401);
+            return $this->respondUnauthenticated(__('identity::messages.session_expired'));
         }
 
         $valid = $this->pinService->verify($request->input('pin'), $user->pin_hash);
 
         if (! $valid) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'AUTH_INVALID_PIN',
-                    'message' => __('identity::messages.pin_incorrect'),
-                ],
-            ], 400);
+            return $this->respondError('AUTH_INVALID_PIN', __('identity::messages.pin_incorrect'), status: 400);
         }
 
-        return response()->json([
-            'success' => true,
-            'meta' => [
-                'message' => __('identity::messages.pin_verified'),
-            ],
-        ]);
+        return $this->respond(null, __('identity::messages.pin_verified'));
     }
 }

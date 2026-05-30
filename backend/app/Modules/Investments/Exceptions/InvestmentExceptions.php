@@ -6,7 +6,7 @@ namespace Modules\Investments\Exceptions;
 
 use Exception;
 
-class FundNotFoundException extends Exception
+final class FundNotFoundException extends Exception
 {
     public function __construct(string $id)
     {
@@ -14,7 +14,7 @@ class FundNotFoundException extends Exception
     }
 }
 
-class SubscriptionNotFoundException extends Exception
+final class SubscriptionNotFoundException extends Exception
 {
     public function __construct(string $id)
     {
@@ -22,7 +22,7 @@ class SubscriptionNotFoundException extends Exception
     }
 }
 
-class MinimumInvestmentException extends Exception
+final class MinimumInvestmentException extends Exception
 {
     public function __construct(int $minimum, int $provided)
     {

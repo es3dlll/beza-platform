@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\IAM\Models\Policy;
 
-class PolicyFactory extends Factory
+final class PolicyFactory extends Factory
 {
     protected $model = Policy::class;
 

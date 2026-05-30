@@ -11,7 +11,7 @@ use Modules\Merchant\Repositories\MerchantRepository;
 use Modules\Merchant\Repositories\MerchantStoreRepository;
 use Modules\Merchant\Repositories\MerchantPaymentRepository;
 
-class MerchantServiceProvider extends ServiceProvider
+final class MerchantServiceProvider extends ServiceProvider
 {
     public function register(): void
     {

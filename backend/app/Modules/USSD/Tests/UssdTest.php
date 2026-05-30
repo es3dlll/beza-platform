@@ -8,7 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\USSD\Services\UssdMenuEngine;
 use Tests\TestCase;
 
-class UssdTest extends TestCase
+final class UssdTest extends TestCase
 {
     use RefreshDatabase;
 

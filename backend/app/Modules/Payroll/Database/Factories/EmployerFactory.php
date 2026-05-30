@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Payroll\Models\Employer;
 
-class EmployerFactory extends Factory
+final class EmployerFactory extends Factory
 {
     protected $model = Employer::class;
 

@@ -6,7 +6,7 @@ namespace Modules\Humanitarian\Exceptions;
 
 use Exception;
 
-class ProgramNotFoundException extends Exception
+final class ProgramNotFoundException extends Exception
 {
     public function __construct(string $id) { parent::__construct("Program not found: {$id}"); }
 }

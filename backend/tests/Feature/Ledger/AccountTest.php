@@ -12,6 +12,12 @@ final class AccountTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->authenticateUser();
+    }
+
     public function test_can_create_account(): void
     {
         $response = $this->postJson('/api/v1/ledger/accounts', [

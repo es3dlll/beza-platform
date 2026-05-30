@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Escrow\Services;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Escrow\Enums\EscrowStatus;
 use Modules\Escrow\Events\EscrowCreated;
@@ -18,109 +19,119 @@ use Modules\Escrow\Models\EscrowAgreement;
 use Modules\Escrow\Models\EscrowMilestone;
 use Modules\Escrow\Models\EscrowDispute;
 
-final class EscrowService
+final class EscrowService implements \Modules\Escrow\Contracts\EscrowServiceInterface
 {
     public function create(string $buyerId, string $sellerId, int $amount, string $referenceType, string $referenceId, ?string $description = null, ?int $feePercent = 1): EscrowAgreement
     {
-        $feeAmount = (int) round($amount * $feePercent / 100);
-        $netAmount = $amount - $feeAmount;
-        $id = (string) Str::ulid();
+        return DB::transaction(function () use ($buyerId, $sellerId, $amount, $referenceType, $referenceId, $description, $feePercent) {
+            $feeAmount = (int) round($amount * $feePercent / 100);
+            $netAmount = $amount - $feeAmount;
+            $id = (string) Str::ulid();
 
-        $agreement = EscrowAgreement::create([
-            'id' => $id,
-            'buyer_id' => $buyerId,
-            'seller_id' => $sellerId,
-            'reference_type' => $referenceType,
-            'reference_id' => $referenceId,
-            'total_amount' => $amount,
-            'fee_amount' => $feeAmount,
-            'net_amount' => $netAmount,
-            'currency' => 'SYP',
-            'status' => EscrowStatus::PENDING->value,
-            'description' => $description,
-            'expires_at' => now()->addDays(30),
-        ]);
+            $agreement = EscrowAgreement::create([
+                'id' => $id,
+                'buyer_id' => $buyerId,
+                'seller_id' => $sellerId,
+                'reference_type' => $referenceType,
+                'reference_id' => $referenceId,
+                'total_amount' => $amount,
+                'fee_amount' => $feeAmount,
+                'net_amount' => $netAmount,
+                'currency' => 'SYP',
+                'status' => EscrowStatus::PENDING->value,
+                'description' => $description,
+                'expires_at' => now()->addDays(30),
+            ]);
 
-        $cfeHoldId = (string) Str::ulid();
-        $agreement->update(['cfe_hold_id' => $cfeHoldId, 'status' => EscrowStatus::HELD->value]);
+            $cfeHoldId = (string) Str::ulid();
+            $agreement->update(['cfe_hold_id' => $cfeHoldId, 'status' => EscrowStatus::HELD->value]);
 
-        EscrowCreated::dispatch($agreement->id, $buyerId, $sellerId, $amount);
+            EscrowCreated::dispatch($agreement->id, $buyerId, $sellerId, $amount);
 
-        return $agreement;
+            return $agreement;
+        });
     }
 
     public function release(string $id): EscrowAgreement
     {
-        $agreement = $this->findOrFail($id);
+        return DB::transaction(function () use ($id) {
+            $agreement = $this->findOrFail($id);
 
-        if ($agreement->status === EscrowStatus::RELEASED->value) throw new EscrowAlreadyResolvedException;
-        if (now()->isAfter($agreement->expires_at)) throw new EscrowExpiredException;
+            if ($agreement->status === EscrowStatus::RELEASED->value) throw new EscrowAlreadyResolvedException;
+            if (now()->isAfter($agreement->expires_at)) throw new EscrowExpiredException;
 
-        $agreement->update([
-            'status' => EscrowStatus::RELEASED->value,
-            'completed_at' => now(),
-        ]);
+            $agreement->update([
+                'status' => EscrowStatus::RELEASED->value,
+                'completed_at' => now(),
+            ]);
 
-        EscrowReleased::dispatch($agreement->id, $agreement->cfe_hold_id);
+            EscrowReleased::dispatch($agreement->id, $agreement->cfe_hold_id);
 
-        return $agreement;
+            return $agreement;
+        });
     }
 
     public function refund(string $id): EscrowAgreement
     {
-        $agreement = $this->findOrFail($id);
+        return DB::transaction(function () use ($id) {
+            $agreement = $this->findOrFail($id);
 
-        if ($agreement->status === EscrowStatus::REFUNDED->value) throw new EscrowAlreadyResolvedException;
-        if (now()->isAfter($agreement->expires_at)) throw new EscrowExpiredException;
+            if ($agreement->status === EscrowStatus::REFUNDED->value) throw new EscrowAlreadyResolvedException;
+            if (now()->isAfter($agreement->expires_at)) throw new EscrowExpiredException;
 
-        $agreement->update([
-            'status' => EscrowStatus::REFUNDED->value,
-            'completed_at' => now(),
-        ]);
+            $agreement->update([
+                'status' => EscrowStatus::REFUNDED->value,
+                'completed_at' => now(),
+            ]);
 
-        return $agreement;
+            return $agreement;
+        });
     }
 
     public function openDispute(string $escrowId, string $userId, string $reason): EscrowDispute
     {
-        $this->findOrFail($escrowId);
+        return DB::transaction(function () use ($escrowId, $userId, $reason) {
+            $this->findOrFail($escrowId);
 
-        $dispute = EscrowDispute::create([
-            'id' => (string) Str::ulid(),
-            'escrow_id' => $escrowId,
-            'opened_by' => $userId,
-            'reason' => $reason,
-            'status' => 'open',
-        ]);
+            $dispute = EscrowDispute::create([
+                'id' => (string) Str::ulid(),
+                'escrow_id' => $escrowId,
+                'opened_by' => $userId,
+                'reason' => $reason,
+                'status' => 'open',
+            ]);
 
-        EscrowAgreement::where('id', $escrowId)->update(['status' => EscrowStatus::DISPUTED->value]);
+            EscrowAgreement::where('id', $escrowId)->update(['status' => EscrowStatus::DISPUTED->value]);
 
-        EscrowDisputed::dispatch($dispute->id, $escrowId, $reason);
+            EscrowDisputed::dispatch($dispute->id, $escrowId, $reason);
 
-        return $dispute;
+            return $dispute;
+        });
     }
 
     public function resolveDispute(string $disputeId, string $resolvedBy, string $resolution, string $action = 'release'): EscrowDispute
     {
-        $dispute = EscrowDispute::find($disputeId);
-        if (!$dispute) throw new EscrowDisputeNotFoundException($disputeId);
+        return DB::transaction(function () use ($disputeId, $resolvedBy, $resolution, $action) {
+            $dispute = EscrowDispute::find($disputeId);
+            if (!$dispute) throw new EscrowDisputeNotFoundException($disputeId);
 
-        $dispute->update([
-            'status' => 'resolved',
-            'resolution' => $resolution,
-            'resolved_by' => $resolvedBy,
-            'resolved_at' => now(),
-        ]);
+            $dispute->update([
+                'status' => 'resolved',
+                'resolution' => $resolution,
+                'resolved_by' => $resolvedBy,
+                'resolved_at' => now(),
+            ]);
 
-        $newStatus = $action === 'release' ? EscrowStatus::RELEASED : EscrowStatus::REFUNDED;
-        EscrowAgreement::where('id', $dispute->escrow_id)->update([
-            'status' => $newStatus->value,
-            'completed_at' => now(),
-        ]);
+            $newStatus = $action === 'release' ? EscrowStatus::RELEASED : EscrowStatus::REFUNDED;
+            EscrowAgreement::where('id', $dispute->escrow_id)->update([
+                'status' => $newStatus->value,
+                'completed_at' => now(),
+            ]);
 
-        EscrowResolved::dispatch($dispute->escrow_id, $disputeId, $resolution);
+            EscrowResolved::dispatch($dispute->escrow_id, $disputeId, $resolution);
 
-        return $dispute;
+            return $dispute;
+        });
     }
 
     public function findOrFail(string $id): EscrowAgreement

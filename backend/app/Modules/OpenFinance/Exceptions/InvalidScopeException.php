@@ -6,7 +6,7 @@ namespace Modules\OpenFinance\Exceptions;
 
 use Exception;
 
-class InvalidScopeException extends Exception
+final class InvalidScopeException extends Exception
 {
     public function __construct(string $scope) { parent::__construct("Invalid scope: {$scope}"); }
 }

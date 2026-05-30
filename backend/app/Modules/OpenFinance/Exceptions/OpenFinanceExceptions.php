@@ -6,19 +6,19 @@ namespace Modules\OpenFinance\Exceptions;
 
 use Exception;
 
-class AppNotFoundException extends Exception
+final class AppNotFoundException extends Exception
 {
     public function __construct(string $id) { parent::__construct("App not found: {$id}"); }
 }
-class ConsentNotFoundException extends Exception
+final class ConsentNotFoundException extends Exception
 {
     public function __construct(string $id) { parent::__construct("Consent not found: {$id}"); }
 }
-class ConsentExpiredException extends Exception
+final class ConsentExpiredException extends Exception
 {
     public function __construct() { parent::__construct('Consent has expired'); }
 }
-class InvalidScopeException extends Exception
+final class InvalidScopeException extends Exception
 {
     public function __construct(string $scope) { parent::__construct("Invalid scope: {$scope}"); }
 }

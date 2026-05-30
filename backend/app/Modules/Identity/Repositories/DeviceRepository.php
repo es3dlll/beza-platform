@@ -7,7 +7,7 @@ namespace Modules\Identity\Repositories;
 use Modules\Identity\Models\Device;
 use Modules\Identity\Exceptions\DeviceLimitExceededException;
 
-class DeviceRepository
+final class DeviceRepository
 {
     public const int MAX_DEVICES = 5;
 

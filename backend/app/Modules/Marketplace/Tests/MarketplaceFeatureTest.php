@@ -12,7 +12,7 @@ use Modules\Marketplace\Models\ProductCategory;
 use Modules\Marketplace\Models\Vendor;
 use Tests\TestCase;
 
-class MarketplaceFeatureTest extends TestCase
+final class MarketplaceFeatureTest extends TestCase
 {
     use RefreshDatabase;
 

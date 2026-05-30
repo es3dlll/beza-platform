@@ -8,7 +8,7 @@ use Modules\Merchant\Models\Merchant;
 use Modules\Merchant\DTOs\RegisterMerchantDto;
 use Modules\Merchant\Enums\MerchantStatus;
 
-class MerchantRepository
+final class MerchantRepository
 {
     public function create(RegisterMerchantDto $dto): Merchant
     {

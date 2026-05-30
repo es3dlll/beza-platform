@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Fraud\Models\FraudRule;
 
-class FraudRuleFactory extends Factory
+final class FraudRuleFactory extends Factory
 {
     protected $model = FraudRule::class;
 

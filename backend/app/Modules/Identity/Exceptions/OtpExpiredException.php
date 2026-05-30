@@ -6,7 +6,7 @@ namespace Modules\Identity\Exceptions;
 
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class OtpExpiredException extends HttpException
+final class OtpExpiredException extends HttpException
 {
     public function __construct(
         string $message = 'OTP has expired or is invalid.',

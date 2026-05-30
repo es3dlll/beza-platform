@@ -7,7 +7,7 @@ namespace Modules\Marketplace\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
-class ProductCategory extends Model
+final class ProductCategory extends Model
 {
     use HasUlids;
 

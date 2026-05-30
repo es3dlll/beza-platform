@@ -6,7 +6,7 @@ namespace Modules\Merchant\Repositories;
 
 use Modules\Merchant\Models\MerchantPayment;
 
-class MerchantPaymentRepository
+final class MerchantPaymentRepository
 {
     public function create(array $data): MerchantPayment
     {

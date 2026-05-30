@@ -6,7 +6,7 @@ namespace Modules\Education\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class EducationStudent extends Model
+final class EducationStudent extends Model
 {
     protected $table = 'education_students';
     protected $keyType = 'string';

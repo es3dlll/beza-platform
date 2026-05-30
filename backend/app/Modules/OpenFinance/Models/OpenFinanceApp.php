@@ -6,7 +6,7 @@ namespace Modules\OpenFinance\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class OpenFinanceApp extends Model
+final class OpenFinanceApp extends Model
 {
     protected $table = 'open_finance_apps';
     protected $keyType = 'string';

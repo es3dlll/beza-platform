@@ -11,9 +11,11 @@ use Modules\IAM\Requests\AssignPermissionsRequest;
 use Modules\IAM\Requests\StoreRoleRequest;
 use Modules\IAM\Requests\UpdateRoleRequest;
 use Modules\IAM\Services\IamService;
+use App\Support\ApiResponse;
 
-class RoleController extends Controller
+final class RoleController extends Controller
 {
+    use ApiResponse;
     public function __construct(
         private IamService $iamService,
     ) {}
@@ -22,10 +24,7 @@ class RoleController extends Controller
     {
         $roles = Role::withCount('permissions')->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $roles,
-        ]);
+        return $this->respond($roles);
     }
 
     public function store(StoreRoleRequest $request): JsonResponse
@@ -36,21 +35,14 @@ class RoleController extends Controller
             $request->validated()['guard_name'] ?? 'api',
         );
 
-        return response()->json([
-            'success' => true,
-            'data' => $role->loadCount('permissions'),
-            'message' => 'Role created successfully',
-        ], 201);
+        return $this->respondCreated($role->loadCount('permissions'), 'Role created successfully');
     }
 
     public function show(string $id): JsonResponse
     {
         $role = Role::with('permissions')->findOrFail($id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $role,
-        ]);
+        return $this->respond($role);
     }
 
     public function update(UpdateRoleRequest $request, string $id): JsonResponse
@@ -58,23 +50,12 @@ class RoleController extends Controller
         $role = Role::findOrFail($id);
 
         if ($role->is_system && $request->has('name')) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'SYSTEM_ROLE_IMMUTABLE',
-                    'message' => 'Cannot change the name of a system role',
-                    'message_ar' => 'لا يمكن تغيير اسم دور النظام',
-                ],
-            ], 422);
+            return $this->respondError('SYSTEM_ROLE_IMMUTABLE', 'Cannot change the name of a system role', 'لا يمكن تغيير اسم دور النظام');
         }
 
         $role->update($request->validated());
 
-        return response()->json([
-            'success' => true,
-            'data' => $role->loadCount('permissions'),
-            'message' => 'Role updated successfully',
-        ]);
+        return $this->respond($role->loadCount('permissions'), 'Role updated successfully');
     }
 
     public function destroy(string $id): JsonResponse
@@ -82,22 +63,12 @@ class RoleController extends Controller
         $role = Role::findOrFail($id);
 
         if ($role->is_system) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'SYSTEM_ROLE_PROTECTED',
-                    'message' => 'System roles cannot be deleted',
-                    'message_ar' => 'لا يمكن حذف أدوار النظام',
-                ],
-            ], 422);
+            return $this->respondError('SYSTEM_ROLE_PROTECTED', 'System roles cannot be deleted', 'لا يمكن حذف أدوار النظام');
         }
 
         $role->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Role deleted successfully',
-        ]);
+        return $this->respondDeleted('Role deleted successfully');
     }
 
     public function assignPermissions(string $roleId, AssignPermissionsRequest $request): JsonResponse
@@ -106,10 +77,6 @@ class RoleController extends Controller
 
         $role->permissions()->syncWithoutDetaching($request->validated()['permissions']);
 
-        return response()->json([
-            'success' => true,
-            'data' => $role->load('permissions'),
-            'message' => 'Permissions assigned successfully',
-        ]);
+        return $this->respond($role->load('permissions'), 'Permissions assigned successfully');
     }
 }

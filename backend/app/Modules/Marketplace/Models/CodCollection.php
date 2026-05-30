@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Marketplace\Enums\CodStatus;
 
-class CodCollection extends Model
+final class CodCollection extends Model
 {
     use HasUlids;
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'phone_required' => 'Phone number is required',
     'phone_invalid_format' => 'Invalid phone format, must start with 963',

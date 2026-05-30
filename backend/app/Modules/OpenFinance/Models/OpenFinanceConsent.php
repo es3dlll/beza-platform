@@ -6,7 +6,7 @@ namespace Modules\OpenFinance\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class OpenFinanceConsent extends Model
+final class OpenFinanceConsent extends Model
 {
     protected $table = 'open_finance_consents';
     protected $keyType = 'string';

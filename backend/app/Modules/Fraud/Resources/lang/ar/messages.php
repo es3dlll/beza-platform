@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'name' => 'محرك الاحتيال',
     'description' => 'كشف الاحتيال وإدارة القائمة السوداء ومراجعة الحالات',

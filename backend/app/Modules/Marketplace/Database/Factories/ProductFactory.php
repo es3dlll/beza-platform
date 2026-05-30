@@ -7,7 +7,7 @@ namespace Modules\Marketplace\Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Marketplace\Models\Product;
 
-class ProductFactory extends Factory
+final class ProductFactory extends Factory
 {
     protected $model = Product::class;
 

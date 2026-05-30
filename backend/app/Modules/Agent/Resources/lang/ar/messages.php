@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'agent_registered' => 'تم تقديم طلب التسجيل كوكيل. يرجى الانتظار للموافقة',
     'agent_approved' => 'تم الموافقة على الوكيل',

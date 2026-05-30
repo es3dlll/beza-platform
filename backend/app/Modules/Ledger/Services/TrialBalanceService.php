@@ -6,7 +6,7 @@ namespace Modules\Ledger\Services;
 use Modules\Ledger\Repositories\LedgerAccountRepository;
 use Illuminate\Support\Collection;
 
-final class TrialBalanceService
+final class TrialBalanceService implements \Modules\Ledger\Contracts\TrialBalanceServiceInterface
 {
     public function __construct(
         private readonly LedgerAccountRepository $accounts,

@@ -6,7 +6,7 @@ namespace Modules\Cards\Repositories;
 
 use Modules\Cards\Models\CardMerchantBlock;
 
-class CardMerchantBlockRepository
+final class CardMerchantBlockRepository
 {
     public function isBlocked(string $cardId, string $merchantCategory): bool
     {

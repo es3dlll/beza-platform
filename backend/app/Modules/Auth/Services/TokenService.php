@@ -9,7 +9,7 @@ use Modules\Identity\Models\User;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
-class TokenService
+final class TokenService
 {
     public function generateToken(User $user): string
     {

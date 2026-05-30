@@ -6,7 +6,7 @@ namespace Modules\Cards\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class AuthorizeTransactionRequest extends FormRequest
+final class AuthorizeTransactionRequest extends FormRequest
 {
     public function authorize(): bool
     {

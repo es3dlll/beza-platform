@@ -8,7 +8,7 @@ use Modules\Loyalty\Exceptions\RewardNotFoundException;
 use Modules\Loyalty\Exceptions\InsufficientPointsException;
 use Modules\Loyalty\Repositories\LoyaltyRewardRepository;
 
-class RewardService
+final class RewardService
 {
     public function __construct(
         private readonly LoyaltyRewardRepository $rewardRepository,

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
 
-class Permission extends Model
+final class Permission extends Model
 {
     protected $keyType = 'string';
 

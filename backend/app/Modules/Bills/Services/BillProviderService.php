@@ -8,7 +8,7 @@ use Modules\Bills\Models\BillProvider;
 use Modules\Bills\DTOs\CreateBillProviderDto;
 use Modules\Bills\Repositories\BillProviderRepository;
 
-class BillProviderService
+final class BillProviderService
 {
     public function __construct(
         private readonly BillProviderRepository $providerRepository,

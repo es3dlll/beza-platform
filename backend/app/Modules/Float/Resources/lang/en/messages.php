@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'float_created' => 'Float account created',
     'float_credited' => 'Float account credited',

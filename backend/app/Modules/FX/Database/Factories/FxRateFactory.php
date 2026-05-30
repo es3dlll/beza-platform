@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\FX\Models\FxRate;
 
-class FxRateFactory extends Factory
+final class FxRateFactory extends Factory
 {
     protected $model = FxRate::class;
 

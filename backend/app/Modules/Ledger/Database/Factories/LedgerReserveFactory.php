@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Ledger\Models\LedgerReserve;
 
-class LedgerReserveFactory extends Factory
+final class LedgerReserveFactory extends Factory
 {
     protected $model = LedgerReserve::class;
 

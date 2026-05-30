@@ -6,7 +6,7 @@ namespace Modules\Cards\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class CardSpendingLimit extends Model
+final class CardSpendingLimit extends Model
 {
     protected $table = 'card_spending_limits';
     protected $keyType = 'string';

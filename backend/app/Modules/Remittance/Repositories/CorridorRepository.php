@@ -7,7 +7,7 @@ namespace Modules\Remittance\Repositories;
 use Modules\Remittance\Models\Corridor;
 use Modules\Remittance\DTOs\CreateCorridorDto;
 
-class CorridorRepository
+final class CorridorRepository
 {
     public function create(CreateCorridorDto $dto): Corridor
     {

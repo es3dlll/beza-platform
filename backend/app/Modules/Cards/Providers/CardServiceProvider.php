@@ -12,7 +12,7 @@ use Modules\Cards\Repositories\CardRepository;
 use Modules\Cards\Repositories\CardTransactionRepository;
 use Modules\Cards\Repositories\CardMerchantBlockRepository;
 
-class CardServiceProvider extends ServiceProvider
+final class CardServiceProvider extends ServiceProvider
 {
     public function register(): void
     {

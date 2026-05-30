@@ -6,7 +6,7 @@ namespace Modules\Financing\Exceptions;
 
 use Exception;
 
-class LoanAlreadyCompletedException extends Exception
+final class LoanAlreadyCompletedException extends Exception
 {
     public function __construct() { parent::__construct('Loan is already completed'); }
 }

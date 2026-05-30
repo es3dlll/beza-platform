@@ -6,7 +6,7 @@ namespace Modules\Auth\Services;
 
 use Illuminate\Support\Facades\Hash;
 
-class PinService
+final class PinService
 {
     public function hash(string $pin): string
     {

@@ -6,7 +6,7 @@ namespace Modules\Fraud\Exceptions;
 
 use Exception;
 
-class FraudIpBlockedException extends Exception
+final class FraudIpBlockedException extends Exception
 {
     public function __construct(string $ipAddress = '')
     {

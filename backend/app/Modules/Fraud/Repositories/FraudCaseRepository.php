@@ -6,7 +6,7 @@ namespace Modules\Fraud\Repositories;
 
 use Modules\Fraud\Models\FraudCase;
 
-class FraudCaseRepository
+final class FraudCaseRepository
 {
     public function create(array $data): FraudCase
     {

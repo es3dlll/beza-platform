@@ -6,7 +6,7 @@ namespace Modules\Fraud\Repositories;
 
 use Modules\Fraud\Models\FraudRule;
 
-class FraudRuleRepository
+final class FraudRuleRepository
 {
     public function findActiveByType(string $ruleType): iterable
     {

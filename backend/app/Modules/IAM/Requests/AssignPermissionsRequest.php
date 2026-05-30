@@ -6,7 +6,7 @@ namespace Modules\IAM\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class AssignPermissionsRequest extends FormRequest
+final class AssignPermissionsRequest extends FormRequest
 {
     public function authorize(): bool
     {
