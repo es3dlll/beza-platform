@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Auth\Listeners;
 
-use App\Services\Notification\NotificationService;
+use Modules\Notification\Services\NotificationService;
 use Modules\Auth\Events\OtpGenerated;
 
 class SendOtpNotification

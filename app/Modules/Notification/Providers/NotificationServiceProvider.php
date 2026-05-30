@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Providers;
+namespace Modules\Notification\Providers;
 
-use App\Contracts\Notification\NotificationChannelInterface;
-use App\Services\Notification\NotificationService;
-use App\Services\Notification\SmsChannel;
+use Modules\Notification\Services\NotificationService;
+use Modules\Notification\Services\SmsChannel;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 

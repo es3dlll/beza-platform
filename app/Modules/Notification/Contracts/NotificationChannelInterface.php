@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Contracts\Notification;
+namespace Modules\Notification\Contracts;
 
 interface NotificationChannelInterface
 {

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Notification;
+namespace Modules\Notification\Services;
 
-use App\Contracts\Notification\NotificationChannelInterface;
+use Modules\Notification\Contracts\NotificationChannelInterface;
 use Illuminate\Support\Facades\Log;
 
 class SmsChannel implements NotificationChannelInterface
