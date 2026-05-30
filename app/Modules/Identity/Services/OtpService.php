@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Identity\Services;
 
 use Illuminate\Support\Facades\Cache;
+use Modules\Auth\Events\OtpGenerated;
 use Modules\Identity\Models\OtpCode;
 use Modules\Identity\Models\User;
 
@@ -37,6 +38,8 @@ class OtpService
         ]);
 
         Cache::put("otp_plain_{$otp->id}", $code, now()->addMinutes(config('beza.otp_expiry_minutes', 5)));
+
+        event(new OtpGenerated($phone, $code, $purpose));
 
         return $otp;
     }

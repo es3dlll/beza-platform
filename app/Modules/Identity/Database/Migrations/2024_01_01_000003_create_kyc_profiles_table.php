@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('id_back_path')->nullable();
             $table->string('selfie_path')->nullable();
             $table->string('proof_of_address_path')->nullable();
-            $table->string('status', 20)->default('pending');
+            $table->string('status', 20)->default('draft');
             $table->ulid('reviewed_by')->nullable();
             $table->timestamp('reviewed_at')->nullable();
             $table->text('rejection_reason')->nullable();

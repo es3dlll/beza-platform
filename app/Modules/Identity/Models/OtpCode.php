@@ -5,12 +5,20 @@ declare(strict_types=1);
 namespace Modules\Identity\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 class OtpCode extends Model
 {
+    use HasUlids;
+
+    protected $keyType = 'string';
+
+    public $incrementing = false;
+
     public const PURPOSE_REGISTER = 'register';
 
     public const PURPOSE_LOGIN = 'login';
@@ -113,5 +121,16 @@ class OtpCode extends Model
         $max = $this->max_attempts ?? self::MAX_ATTEMPTS;
 
         return max(0, $max - $this->attempts);
+    }
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::creating(function (self $model) {
+            if (empty($model->{$model->getKeyName()})) {
+                $model->{$model->getKeyName()} = (string) Str::ulid();
+            }
+        });
     }
 }
