@@ -22,6 +22,15 @@
 └── plans/               Session .plan files
 ```
 
+## Pipeline
+
+A 4-phase automation script runs tasks from `tasks/` through the full lifecycle.
+```bash
+npm run pipeline          # Full loop over all tasks
+npm run pipeline:phase1   # Planning only
+npm run pipeline:phase2   # Execution only
+```
+
 ## Quick Nav
 
 - **Vision**: `product/vision-2026.md`
