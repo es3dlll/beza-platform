@@ -1,8 +1,10 @@
-# Dependency Map — Beza Platform V1
+# Dependency Map — Beza Platform V1 (Corrected)
 
 ## Module Inventory
 
-Beza V1 consists of 12 engineering modules plus 3 cross-cutting infrastructure services. Each module is a self-contained Laravel directory under `Modules/` with its own models, migrations, controllers, services, tests, and routes.
+Beza V1 consists of 13 engineering modules plus 3 cross-cutting infrastructure services. Each module is a self-contained Laravel directory under `Modules/` with its own models, migrations, controllers, services, tests, and routes.
+
+**Architectural correction:** Ledger and CFE precede Wallet. Wallet balance is a cached projection of Ledger journal entries. Building Wallet before Ledger would create unrecoverable technical debt.
 
 ---
 
@@ -10,17 +12,19 @@ Beza V1 consists of 12 engineering modules plus 3 cross-cutting infrastructure s
 
 | Module | Depends On | Blocks | Shared Services | Syria-Specific Notes |
 |--------|-----------|--------|-----------------|---------------------|
-| **Identity** | — | ALL | Cache, Queue, SMS | Phone prefix +963, OTP via Syriatel SMPP, device binding for Syrian phones |
-| **Wallet** | Identity | Agent, FX, Remittance, Bills, Merchant | CFE, Fraud, Rate Limiter | Dual-currency SYP/USD, tier limits based on CBS regulation |
-| **CFE (Ledger)** | Wallet, FX, Settlement | Reconciliation | — | Chart of accounts must be CBS-compatible (Central Bank of Syria classification) |
-| **Agent** | Identity, Wallet | — | Fraud, Compliance, Notification | Agent registration requires Syrian business registration (سجل تجاري) |
-| **FX** | Wallet | Remittance | CFE, Rate Cache | CBS daily rate feed, spread caps regulated by CBS (max 3%) |
-| **Remittance** | FX, Wallet, Agent | — | Compliance, Fraud, CBS Reporting | OFAC/EU/UN sanction screening required for diaspora senders |
-| **Bills** | Wallet | — | — | Syriatel and MTN prepaid top-up, Electricity Ministry SOAP API, Water Authority |
-| **Merchant** | Wallet | Settlement | Fraud, Notification | T+1 settlement, MDR (Merchant Discount Rate) capped by CBS |
-| **Settlement** | Wallet, Merchant, Agent | — | CFE, Notification | Batch settlement to Syrian bank accounts (IBAN format) |
-| **Fraud** | ALL (consumes events) | — | Compliance, Alerting | Syria-specific rules: phone recycling detection, agent-customer collusion |
-| **Compliance** | Identity, Fraud, Remittance | — | CBS Reporting, AML | Sanction screening, STR reporting to Syrian AML Commission |
+| **Identity** | — | IAM, ALL | Cache, Queue, SMS | Phone prefix +963, OTP via Syriatel SMPP, device binding for Syrian phones |
+| **IAM** | Identity | Ledger, Wallet, ALL | Cache | Spatie Laravel Permission, module-based authorization, role hierarchy (Super Admin, Compliance, Finance, Agent Manager, Support) |
+| **Ledger** | IAM | CFE, Wallet, Settlement | — | Chart of accounts must be CBS-compatible (Central Bank of Syria classification). Account types: asset, liability, income, expense, suspense |
+| **CFE** | Ledger | Wallet, FX, Settlement | Reconciliation | State machine (initiated → held → completed → reversed), hold engine (30-min expiry), fee engine, reversal engine, suspense handling |
+| **Wallet** | Identity, IAM, CFE | Agent, FX, Remittance, Bills, Merchant | Fraud, Rate Limiter | Dual-currency SYP/USD, tier limits based on CBS regulation. Balance = cached projection of Ledger journal entries |
+| **Agent** | Wallet | Settlement | Fraud, Compliance, Notification | Agent registration requires Syrian business registration (سجل تجاري). Float managed via Ledger account 1200 |
+| **FX** | Wallet, CFE | Remittance | Rate Cache, CFE Posting | CBS daily rate feed, spread caps regulated by CBS (max 3%). Uses CFE suspense account for multi-currency conversion |
+| **Remittance** | FX, Wallet, Agent | — | Compliance, Fraud, CBS Reporting | OFAC/EU/UN sanction screening required for diaspora senders. Payout via CFE posting to recipient wallet |
+| **Bills** | Wallet | — | CFE Posting | Syriatel and MTN prepaid top-up, Electricity Ministry SOAP API, Water Authority. Settlement via daily batch |
+| **Merchant** | Wallet | Settlement | Fraud, Notification | T+1 settlement, MDR (Merchant Discount Rate) capped by CBS. CFE posting on every transaction |
+| **Settlement** | Wallet, Agent, Merchant, CFE | — | Notification, Bank API | Batch settlement to Syrian bank accounts (IBAN format). Nett all payables before bank transfer |
+| **Fraud** | ALL (consumes events) | — | Compliance, Alerting | Syria-specific rules: phone recycling detection, agent-customer collusion. Non-blocking event consumer |
+| **Compliance** | Identity, Fraud, Remittance | — | CBS Reporting, AML | Sanction screening, STR reporting to Syrian AML Commission. KYC tier enforcement |
 | **Notification** | Identity (user prefs) | — | — | SMS via Syriatel SMPP + fallback, Arabic/English bilingual |
 | **Admin** | ALL | — | — | Multi-role admin: Super Admin, Compliance Officer, Agent Manager, Finance |
 | **USSD** | Identity | — | — | *123# shortcode, Arabic-first menus, Syriatel USSD gateway |
@@ -38,41 +42,58 @@ Beza V1 consists of 12 engineering modules plus 3 cross-cutting infrastructure s
                                │
                                ▼
                     ┌──────────────────────┐
+                    │         IAM          │
+                    │  (Roles, Permissions, │
+                    │   Module Auth, Audit) │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │       LEDGER         │
+                    │  (Chart of Accounts, │
+                    │   Journal, Posting,  │
+                    │   Trial Balance)     │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │         CFE          │
+                    │  (State Machine,     │
+                    │   Hold Engine, Fee,  │
+                    │   Reversal, Suspense)│
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
                     │       WALLET         │
                     │  (Transfer, Hold,    │
-                    │   Limits, Idempotency)│
+                    │   Limits, History,   │
+                    │   Balance Query)     │
                     └────┬────────┬────┬───┘
                          │        │    │
-          ┌──────────────┘        │    └──────────────┐
-          ▼                       ▼                   ▼
-   ┌────────────┐         ┌────────────┐      ┌──────────────┐
-   │   AGENT    │         │     FX     │      │   MERCHANT   │
-   │(Cash-in/out│         │(FX Quote,  │      │ (QR, POS,    │
-   │ Float,     │         │ Conversion,│      │  Settlement) │
-   │ Commissions)│         │ Corridors) │      └──────┬───────┘
-   └─────┬──────┘         └──────┬─────┘             │
-         │                      │                    │
-         │              ┌───────┘                    │
-         │              ▼                            │
-         │      ┌──────────────┐                     │
-         │      │  REMITTANCE  │                     │
-         │      │ (Send, AML,  │                     │
-         │      │  Payout, CBS)│                     │
-         │      └──────┬───────┘                     │
-         │             │                             │
-         ▼             ▼                             ▼
-   ┌───────────────────────────────────────────────────────┐
-   │                     SETTLEMENT                        │
-   │  (Agent settlement, Merchant settlement, Remittance   │
-   │   payout settlement, Bank transfer settlement)        │
-   └───────────────────────────────────────────────────────┘
-                              │
-                              ▼
-                     ┌────────────────┐
-                     │   CFE (LEDGER) │
-                     │  (Double-entry,│
-                     │   Reconcile)   │
-                     └────────────────┘
+           ┌─────────────┘        │    └─────────────┐
+           ▼                      ▼                   ▼
+    ┌────────────┐         ┌────────────┐      ┌──────────────┐
+    │   AGENT    │         │     FX     │      │   MERCHANT   │
+    │(Cash-in/out│         │(FX Quote,  │      │ (QR, POS,    │
+    │ Float,     │         │ Conversion,│      │  Settlement) │
+    │ Commissions)│         │ Corridors) │      └──────┬───────┘
+    └─────┬──────┘         └──────┬─────┘             │
+          │                      │                    │
+          │              ┌───────┘                    │
+          │              ▼                            │
+          │      ┌──────────────┐                     │
+          │      │  REMITTANCE  │                     │
+          │      │ (Send, AML,  │                     │
+          │      │  Payout, CBS)│                     │
+          │      └──────┬───────┘                     │
+          │             │                             │
+          ▼             ▼                             ▼
+    ┌───────────────────────────────────────────────────────┐
+    │                     SETTLEMENT                        │
+    │  (Agent settlement, Merchant settlement, Remittance   │
+    │   payout settlement, Bank transfer settlement)        │
+    └───────────────────────────────────────────────────────┘
 
 NON-BLOCKING (async, run in parallel from W1):
   ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
@@ -99,35 +120,40 @@ The critical path determines the minimum time to launch V1. Every week on the cr
 ```
 Step 1: IDENTITY (W1–W4, 4 weeks)
         ↓ NO DEPENDENCIES — START HERE
-Step 2: WALLET (W5–W8, 4 weeks)
+Step 2: IAM (W5–W6, 2 weeks)
         ↓ WAIT for Identity
-Step 3A: AGENT (W9–W12, 4 weeks)
-         ↓ WAIT for Wallet
-         (Agent runs on critical path because cash-in/cash-out is MVP feature)
-Step 3B: FX (W13–W16, 4 weeks)
-         ↓ WAIT for Wallet
-         (FX runs after Agent because Remittance depends on FX — parallel not possible)
-Step 4:  REMITTANCE (W17–W20, 4 weeks)
-         ↓ WAIT for FX + Wallet
-Step 5:  MERCHANT (W21–W24, 4 weeks)
-         ↓ WAIT for Wallet
-Step 6:  SETTLEMENT (W21–W24, 4 weeks, parallel with Merchant)
-         ↓ WAIT for Merchant + Agent
-Step 7:  OPERATIONS (W21–W24, paralel wrap)
+Step 3: LEDGER (W7–W8, 2 weeks)
+        ↓ WAIT for IAM
+Step 4: CFE (W9–W12, 4 weeks)
+        ↓ WAIT for Ledger
+Step 5: WALLET (W13–W16, 4 weeks)
+        ↓ WAIT for CFE + Identity + IAM
+Step 6: AGENT (W17–W20, 4 weeks)
+        ↓ WAIT for Wallet
+        (Agent runs on critical path because cash-in/cash-out is MVP feature)
+Step 7: FX (W21–W24, 4 weeks)
+        ↓ WAIT for Wallet + CFE
+        (FX runs after Agent because Remittance depends on FX)
+Step 8: REMITTANCE (W25–W28, 4 weeks)
+        ↓ WAIT for FX + Wallet
+Step 9: SETTLEMENT (W29–W32, 4 weeks)
+        ↓ WAIT for Merchant + Agent + CFE
+Step 10: OPERATIONS (W29–W32, parallel wrap)
 ```
 
-**Critical Path Duration: 24 weeks**
+**Critical Path Duration: 32 weeks**
 
 ### What Is NOT on the Critical Path
 These can be shifted right without delaying V1 launch:
 | Module | Slack | Rationale |
 |--------|-------|-----------|
-| Bills | 4 weeks (W17–W20) | Runs parallel to Remittance, same dependency (Wallet) |
+| Bills | 4 weeks (W25–W28) | Runs parallel to Remittance, same dependency (Wallet) |
+| Merchant | 4 weeks (W29–W32) | Settlement is final step; merchant can start later |
 | USSD | 8 weeks (W3–W10) | Started early but can slip; not core to wallet/agent flow |
-| Fraud Engine | Unlimited (W5–W24) | Non-blocking — rules start simple, improve iteratively |
-| Compliance | Unlimited (W1–W24) | Required for launch but runs async; basic checks ship W1 |
-| Admin Panel | Unlimited (W1–W24) | Iterative; read-only dashboard ships W1, full ops W21 |
-| Notification | Unlimited (W1–W24) | Async infrastructure; SMS ships W1, push later |
+| Fraud Engine | Unlimited (W5–W32) | Non-blocking — rules start simple, improve iteratively |
+| Compliance | Unlimited (W1–W32) | Required for launch but runs async; basic checks ship W1 |
+| Admin Panel | Unlimited (W1–W32) | Iterative; read-only dashboard ships W1, full ops W29 |
+| Notification | Unlimited (W1–W32) | Async infrastructure; SMS ships W1, push later |
 
 ---
 
@@ -135,12 +161,24 @@ These can be shifted right without delaying V1 launch:
 
 Some services are consumed by multiple modules. These must be built with stable contracts (interfaces, events, DTOs) before the first consuming module ships.
 
-### CFE (Chart of Financial Events) — Shared Ledger
+### Ledger — Single Source of Truth for Balances
 ```
-Suppliers: Wallet, FX, Settlement, Agent (float adjustments)
+Suppliers: CFE (posts entries), Wallet (reads balance), Settlement (posts batch entries)
 Consumers: Reconciliation, Compliance (audit trail), Admin (P&L)
-Contract:  CFEInterface::postEntry(accountId, amount, currency, referenceType, referenceId, metadata)
+Contract:  LedgerInterface::postEntry(accountId, debit, credit, currency, referenceType, referenceId, metadata)
 Guarantee: All posting is idempotent (unique referenceId prevents doubles)
+Rule:      Wallet balance = SUM(ledger.journal_entries WHERE account_id = wallet.cfe_account_id)
+```
+
+### CFE (Core Financial Engine) — Transaction Orchestrator
+```
+Suppliers: Wallet, FX, Agent, Bills, Merchant (initiate transactions)
+Consumers: Ledger (posts journal entries), Fraud (consumes events), Notification (sends receipts)
+Contract:  CfeInterface::hold(accountId, amount, currency, ttl=30min)
+           CfeInterface::post(debits[], credits[], referenceType, referenceId)
+           CfeInterface::reverse(transactionId, reason)
+           CfeInterface::moveToSuspense(transactionId, reason)
+Guarantee: All-or-nothing posting (transactional), immutable entries
 ```
 
 ### Fraud Engine — Shared Risk Scoring
@@ -182,23 +220,23 @@ GOOD: Wallet → FX → Remittance (acyclic)
 When Module A depends on Module B, Module B must provide a stable interface (PHP interface + DTO) before Module A's development begins. Implementation can follow.
 
 ```
-Week 5: Wallet team defines WalletInterface (transfer(), hold(), release())
-Week 5: Agent team starts coding against WalletInterface (mock)
-Week 6: Wallet team implements WalletInterface
+Week 13: Wallet team defines WalletInterface (transfer(), hold(), release())
+Week 13: Agent team starts coding against WalletInterface (mock)
+Week 14: Wallet team implements WalletInterface
 ```
 
 ### Rule 3: Events Not Coupling
-Cross-module communication should use Laravel events + listeners, not direct method calls, except for CFE posting (must be synchronous for consistency).
+Cross-module communication should use Laravel events + listeners, not direct method calls, except for CFE/Ledger posting (must be synchronous for consistency).
 
 ```
 FraudEvent::dispatch($fraudData);     // GOOD: async, non-blocking
-WalletService::transfer($data);       // GOOD: synchronous for consistency
+CfeService::post($debits, $credits);  // GOOD: synchronous for consistency
 FraudService::score($data);           // GOOD: synchronous, <200ms
 Agent::create(new Agent(...));        // CONTAINS Wallet::adjustFloat() — BAD: coupling
 ```
 
 ### Rule 4: Database Schema Isolation
-Each module uses its own MySQL schema (`beza_identity`, `beza_wallet`, etc.). Cross-schema queries are forbidden. Data joins across modules go through the application layer (service calls), not database.
+Each module uses its own MySQL schema (`beza_identity`, `beza_ledger`, `beza_cfe`, `beza_wallet`, etc.). Cross-schema queries are forbidden. Data joins across modules go through the application layer (service calls), not database.
 
 ```
 SELECT * FROM beza_wallet.wallets WHERE user_id IN (
@@ -209,61 +247,83 @@ $user = IdentityService::findByPhone($phone);            -- GOOD: service call
 $wallet = WalletService::getByUserId($user->id);
 ```
 
-### Rule 5: CFE Is the Single Source of Truth for Balances
-Wallet balance in Redis is a cache. Wallet balance in MySQL is a cached projection. The CFE journal entries are the single source of truth. Reconciliation runs daily.
+### Rule 5: Ledger Is the Single Source of Truth for Balances
+Wallet balance in Redis is a cache. Wallet balance in MySQL is a cached projection. The Ledger journal entries are the single source of truth. Reconciliation runs daily.
 
 ```
 Balance query path:
-  CFE.journal_entries → SUM(amount) WHERE account_id = wallet.cfe_account_id
+  Ledger.journal_entries → SUM(amount) WHERE account_id = wallet.cfe_account_id
   └──→ Written to wallet.balance (MySQL, cached)
        └──→ Written to redis:wallet:{id}:balance (Redis, cached for 60s)
 ```
+
+### Rule 6: CFE Orchestrates, Ledger Records
+CFE manages transaction state (hold, confirm, reverse, suspense). Ledger records the immutable double-entry journal. CFE calls Ledger; Ledger never calls CFE.
 
 ---
 
 ## Dependency Graph (ASCII)
 
 ```
+                  ┌──────────┐
+                  │IDENTITY  │◄─── (Notification: user prefs)
+                  │(no deps) │
+                  └────┬─────┘
+                       │
+           ┌───────────┼───────────────┐
+           │           │               │
+           ▼           ▼               ▼
+      ┌────────┐ ┌──────────┐   ┌──────────┐
+      │USSD    │ │   IAM    │   │ADMIN     │
+      │(Auth)  │ │(Identity)│   │(Ident)   │
+      └────────┘ └────┬─────┘   └──────────┘
+                      │
+                      ▼
                  ┌──────────┐
-                 │IDENTITY  │◄─── (Notification: user prefs)
-                 │(no deps) │
+                 │  LEDGER  │
+                 │  (IAM)   │
                  └────┬─────┘
                       │
-          ┌───────────┼───────────┐
-          │           │           │
-          ▼           ▼           ▼
-     ┌────────┐ ┌────────┐ ┌──────────┐
-     │USSD    │ │WALLET  │ │ADMIN     │
-     │(Auth)  │ │(Ident) │ │(Ident)   │
-     └────────┘ └────┬───┘ └──────────┘
-                     │
-          ┌──────────┼──────────┬──────────┐
-          │          │          │          │
-          ▼          ▼          ▼          ▼
-     ┌────────┐ ┌────────┐ ┌────────┐ ┌──────────┐
-     │AGENT   │ │FX      │ │BILLS   │ │MERCHANT  │
-     │(Id,Wal)│ │(Wallet)│ │(Wallet)│ │(Wallet)  │
-     └────┬───┘ └────┬───┘ └────────┘ └────┬─────┘
-          │          │                     │
-          │          ▼                     │
-          │   ┌──────────────┐            │
-          │   │REMITTANCE    │            │
-          │   │(FX, Wal, Ag) │            │
-          │   └──────┬───────┘            │
-          │          │                    │
-          └──────────┼────────────────────┘
-                     ▼
-              ┌────────────┐
-              │SETTLEMENT  │
-              │(Wal,Merch, │
-              │ Agent)     │
-              └──────┬─────┘
-                     │
-                     ▼
-              ┌────────────┐
-              │CFE (LEDGER)│
-              │(Wal,FX,Set)│
-              └────────────┘
+                      ▼
+                 ┌──────────┐
+                 │   CFE    │
+                 │ (Ledger) │
+                 └────┬─────┘
+                      │
+                      ▼
+                 ┌──────────┐
+                 │  WALLET  │
+                 │(Id,IAM,  │
+                 │ CFE)     │
+                 └────┬─────┘
+                      │
+           ┌──────────┼──────────┬──────────┐
+           │          │          │          │
+           ▼          ▼          ▼          ▼
+      ┌────────┐ ┌────────┐ ┌────────┐ ┌──────────┐
+      │AGENT   │ │FX      │ │BILLS   │ │MERCHANT  │
+      │(Wallet)│ │(Wal,   │ │(Wallet)│ │(Wallet)  │
+      └────┬───┘ │ CFE)   │ └────────┘ └────┬─────┘
+           │      └────┬───┘                 │
+           │           │                     │
+           │           ▼                     │
+           │   ┌──────────────┐             │
+           │   │REMITTANCE    │             │
+           │   │(FX, Wal, Ag) │             │
+           │   └──────┬───────┘             │
+           │          │                     │
+           └──────────┼─────────────────────┘
+                      ▼
+               ┌────────────┐
+               │SETTLEMENT  │
+               │(Wal,Merch, │
+               │ Agent,CFE) │
+               └──────┬─────┘
+                      │
+                      ▼
+               ┌────────────┐
+               │  BANK API  │
+               └────────────┘
 
 NON-BLOCKING STREAMS (separate, no blocking edges):
   Compliance ──── Consumers: Identity, Fraud, Remittance
@@ -278,11 +338,14 @@ NON-BLOCKING STREAMS (separate, no blocking edges):
 | Level | Modules | Start Week | Deps Satisfied By |
 |-------|---------|------------|-------------------|
 | 0 | Identity | W1 | — |
-| 1 | Wallet, USSD, Admin, Notification | W5 | Identity |
-| 2 | Agent, FX, Bills, Merchant, Compliance | W9 | Wallet |
-| 3 | Remittance, Fraud (advanced) | W13 | FX, Wallet, Agent |
-| 4 | Settlement | W17 | Merchant, Agent, Wallet |
-| 5 | Operations (full) | W21 | ALL |
+| 1 | IAM, USSD, Admin, Notification | W5 | Identity |
+| 2 | Ledger | W7 | IAM |
+| 3 | CFE | W9 | Ledger |
+| 4 | Wallet, Fraud (basic) | W13 | CFE, IAM, Identity |
+| 5 | Agent, FX, Bills, Merchant, Compliance | W17 | Wallet, CFE |
+| 6 | Remittance | W25 | FX, Wallet, Agent |
+| 7 | Settlement | W29 | Merchant, Agent, Wallet, CFE |
+| 8 | Operations (full) | W29 | ALL |
 
 ---
 
@@ -291,16 +354,18 @@ NON-BLOCKING STREAMS (separate, no blocking edges):
 ### High Risk (single point of failure)
 | Dependency | Risk | Mitigation |
 |-----------|------|------------|
-| Wallet → Identity | Identity delay blocks ALL financial features | Identity team is 2 engineers minimum, code review for quality |
-| Agent → Wallet | Agent launch requires working wallet | Wallet API frozen by contract in W5, Agent builds against mock |
-| Remittance → FX | FX delay blocks remittance | FX team starts W9, one week before Agent (buffer) |
-| CFE → Wallet, FX, Settlement | CFE bugs corrupt entire ledger | CFE has its own test suite + daily reconciliation check |
+| Identity → IAM | Identity delay blocks authorization | Identity team is 2 engineers minimum, code review for quality |
+| IAM → Ledger | IAM delay blocks ledger posting | IAM contract frozen by W5, Ledger builds against mock |
+| Ledger → CFE | Ledger bugs corrupt entire financial system | Ledger has its own test suite + daily trial balance check |
+| CFE → Wallet | CFE delay blocks ALL financial features | CFE uses LedgerInterface; Wallet builds against CFE contract from W12 |
+| Agent → Wallet | Agent launch requires working wallet | Wallet API frozen by contract in W13, Agent builds against mock |
+| Remittance → FX | FX delay blocks remittance | FX team starts W21, one week before Remittance (buffer) |
 | SMS → Syriatel SMPP | SMPP downtime blocks OTP/notifications | GSM modem fallback, SMS queue with retry, exponential backoff |
 
 ### Medium Risk
 | Dependency | Risk | Mitigation |
 |-----------|------|------------|
-| Fraud → ML model | ML not ready for launch | Rule engine ships W5 without ML; ML added W13 as enhancement |
+| Fraud → ML model | ML not ready for launch | Rule engine ships W5 without ML; ML added as enhancement |
 | CBS reporting → Remittance | CBS XML format changes | Adapter pattern: parse CBS format into internal DTO, swap implementation |
 | Agent app → Android SDK | Android fragmentation | Min SDK 26 (Android 8), test on top 5 Syrian devices (Samsung A series, Xiaomi Redmi) |
 
@@ -329,11 +394,11 @@ Modules/Wallet/
 ├── tests/
 │   ├── Unit/
 │   ├── Feature/
-│   └── Integration/     (cross-module, e.g. Wallet → CFE)
+│   └── Integration/     (cross-module, e.g. Wallet → CFE → Ledger)
 └── config.php
 ```
 
 Inter-module communication is via:
 - **Events + Listeners** (async, non-blocking): Fraud, Notification, Compliance
-- **Contracts + Service Container** (sync, blocking): Wallet → CFE, Wallet → Fraud scoring
+- **Contracts + Service Container** (sync, blocking): Wallet → CFE, CFE → Ledger, Ledger → posting
 - **Queued Jobs**: SMS sending, report generation, biller API calls

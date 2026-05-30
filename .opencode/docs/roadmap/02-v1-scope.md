@@ -45,20 +45,23 @@
 - [x] USD balance can be received from remittance only (no direct USD cash-in at agents in V1)
 
 ### Fraud Prevention Module (V1)
-- [x] Real-time transaction screening for ALL wallet transactions (transfer, cash-in, cash-out, bill pay, merchant QR)
-- [x] Rule-based engine: 50+ rules (velocity, amount thresholds, device fingerprint, location anomaly)
-- [x] ML model scoring: LightGBM trained on Syria-specific fraud patterns (SIM swap, mule accounts, agent fraud)
-- [x] Risk scoring: 0–1000 scale, threshold configurable per product (wallet=700, remittance=600, merchant=750)
-- [x] Automatic block: risk score > 900 → transaction declined + alert to compliance team
-- [x] Manual review queue: risk score 700–900 → flagged for ops team review within 15 min
-- [x] False positive feedback loop: confirmed FP → retrain model within 24h
+- [x] Rule-based engine: 20+ rules (velocity, amount thresholds, device fingerprint, location anomaly)
 - [x] Device fingerprinting: collect device ID, IP, GPS, SIM card, app version on every session
 - [x] Velocity rules: >5 transactions/minute → block, >3 failed PIN attempts → 30min lock
-- [x] Agent fraud detection: float mismatch > 10% → alert, same-device multi-agent login → block
-- [x] Mule account detection: graph-based (same device + different users → investigation)
-- [x] Fraud operations dashboard: real-time alerts, case management, decision (block/allow/review)
-- [x] Fraud reporting: daily fraud summary, weekly trend analysis, monthly CBS fraud report
-- [x] Integration with Compliance module: fraud case → AML screening → SAR if > 1M SYP
+- [x] Agent fraud detection: same-device multi-agent login → block
+- [x] Blacklist management: blocklisted users, devices, IPs, phone numbers
+- [x] Risk scoring: 0–1000 scale based on rules only (no ML in V1)
+- [x] Automatic block: risk score > 900 → transaction declined + alert
+- [x] Manual review queue: risk score 700–900 → flagged for ops team
+- [x] Fraud operations dashboard: real-time alerts, case management
+- [x] Fraud reporting: daily fraud summary, weekly trend analysis
+
+### NOT in Fraud V1
+- [ ] ML models (LightGBM) → V2
+- [ ] Behavioral analysis → V2
+- [ ] Graph-based mule account detection → V2
+- [ ] Agent float mismatch > 10% alert → V2
+- [ ] Automatic model retraining → V2
 
 ### Remittance Module
 - [x] Inbound corridors: Lebanon, UAE, Jordan, Germany (via partner MTOs)
