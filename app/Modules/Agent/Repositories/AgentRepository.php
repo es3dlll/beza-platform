@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Agent\Repositories;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Modules\Agent\Models\Agent;
 use Modules\Agent\Models\AgentTransaction;
 
@@ -29,6 +30,20 @@ final class AgentRepository
     {
         return Agent::where('governorate', $governorate)
             ->whereIn('status', ['approved', 'active'])
+            ->get();
+    }
+
+    public function findNearby(float $lat, float $lng, int $radiusMeters = 5000): Collection
+    {
+        $haversine = "(6371000 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude))))";
+
+        return Agent::select('*')
+            ->selectRaw("{$haversine} AS distance", [$lat, $lng, $lat])
+            ->whereIn('status', ['approved', 'active'])
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->having('distance', '<=', $radiusMeters)
+            ->orderBy('distance')
             ->get();
     }
 

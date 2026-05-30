@@ -15,6 +15,8 @@ interface AgentServiceInterface
     public function approve(string $agentId, string $approvedBy): Agent;
     public function cashIn(CashInDto $dto): array;
     public function cashOut(CashOutDto $dto): array;
-    public function getNearby(string $governorate): array;
+    public function getNearby(string $governorate, ?float $lat = null, ?float $lng = null, ?int $radius = null): array;
     public function getTodaySummary(string $agentId): array;
+    public function getLiquidityScore(string $agentId): array;
+    public function updateCoverageRadius(string $agentId, int $meters): Agent;
 }

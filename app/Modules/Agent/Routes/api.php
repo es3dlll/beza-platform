@@ -12,6 +12,8 @@ Route::prefix('v1/agents')->middleware('auth:api')->group(function () {
     Route::get('/nearby/{governorate}', [AgentController::class, 'nearby']);
     Route::post('/{id}/cash-in', [AgentController::class, 'cashIn']);
     Route::post('/{id}/cash-out', [AgentController::class, 'cashOut']);
+    Route::get('/{id}/liquidity-score', [AgentController::class, 'liquidityScore']);
+    Route::patch('/{id}/coverage-radius', [AgentController::class, 'updateRadius']);
 });
 
 Route::prefix('v1/public/agents')->group(function () {

@@ -15,6 +15,7 @@ use Modules\Agent\Events\AgentCashOutCompleted;
 use Modules\Agent\Exceptions\AgentNotFoundException;
 use Modules\Agent\Exceptions\AgentNotApprovedException;
 use Modules\Agent\Exceptions\AgentLimitExceededException;
+use Modules\Agent\Exceptions\AgentFloatInsufficientException;
 use Modules\Agent\Models\Agent;
 use Modules\Agent\Models\AgentTransaction;
 use Modules\Agent\Models\AgentCommission;
@@ -23,6 +24,7 @@ use Modules\CoreFinancialEngine\DTOs\FeeAssessmentDto;
 use Modules\CoreFinancialEngine\DTOs\PostingInstructionDto;
 use Modules\CoreFinancialEngine\Services\PostingEngine;
 use Modules\CoreFinancialEngine\Services\FeeEngine;
+use Modules\Float\Services\FloatOrchestrator;
 use Modules\Wallet\DTOs\DepositDto;
 use Modules\Wallet\DTOs\WithdrawDto;
 use Modules\Wallet\Services\WalletService;
@@ -35,6 +37,7 @@ final class AgentService implements AgentServiceInterface
         private readonly WalletService $wallets,
         private readonly PostingEngine $posting,
         private readonly FeeEngine $fees,
+        private readonly FloatOrchestrator $floatOrchestrator,
     ) {}
 
     public function register(RegisterAgentDto $dto): Agent
@@ -51,11 +54,15 @@ final class AgentService implements AgentServiceInterface
         $agent->address = $dto->address;
         $agent->latitude = $dto->latitude;
         $agent->longitude = $dto->longitude;
+        $agent->coverage_radius = $dto->coverageRadius;
+        $agent->liquidity_score = 100;
         $agent->phone = $dto->phone;
         $agent->alt_phone = $dto->altPhone;
         $agent->metadata = $dto->metadata;
 
         $this->agents->save($agent);
+
+        $this->floatOrchestrator->ensureAgentAccounts($agent->id);
 
         event(new AgentRegistered(
             agentId: $agent->id,
@@ -101,12 +108,16 @@ final class AgentService implements AgentServiceInterface
 
         $wallet = $this->wallets->deposit($walletDeposit);
 
+        $this->floatOrchestrator->processCashIn($agent->id, $dto->amount);
+
         $commission = $this->calculateCommission($agent, $dto->amount, 'cash_in');
         if ($commission > 0) {
             $this->recordCommission($agent->id, null, $commission, 'cash_in');
         }
 
         $txn = $this->recordTransaction($agent, $dto, 'cash_in', $commission);
+
+        $this->refreshLiquidityScore($agent);
 
         event(new AgentCashInCompleted(
             agentId: $agent->id,
@@ -129,6 +140,19 @@ final class AgentService implements AgentServiceInterface
         $agent = $this->findActiveOrFail($dto->agentId);
         $this->checkDailyLimit($agent, 'cash_out', $dto->amount);
 
+        $cashFloat = $this->floatOrchestrator->getBalancesForOwner('agent', $agent->id);
+        $cashBalance = 0;
+        foreach ($cashFloat as $f) {
+            if ($f['float_type'] === 'cash') {
+                $cashBalance = $f['available'];
+                break;
+            }
+        }
+
+        if ($cashBalance < $dto->amount) {
+            throw new AgentFloatInsufficientException($cashBalance, $dto->amount);
+        }
+
         $walletWithdraw = new WithdrawDto(
             walletId: $dto->userWalletId,
             amount: $dto->amount,
@@ -143,12 +167,16 @@ final class AgentService implements AgentServiceInterface
 
         $wallet = $this->wallets->withdraw($walletWithdraw);
 
+        $this->floatOrchestrator->processCashOut($agent->id, $dto->amount);
+
         $commission = $this->calculateCommission($agent, $dto->amount, 'cash_out');
         if ($commission > 0) {
             $this->recordCommission($agent->id, null, $commission, 'cash_out');
         }
 
         $txn = $this->recordTransaction($agent, $dto, 'cash_out', $commission);
+
+        $this->refreshLiquidityScore($agent);
 
         event(new AgentCashOutCompleted(
             agentId: $agent->id,
@@ -166,8 +194,11 @@ final class AgentService implements AgentServiceInterface
         ];
     }
 
-    public function getNearby(string $governorate): array
+    public function getNearby(string $governorate, ?float $lat = null, ?float $lng = null, ?int $radius = null): array
     {
+        if ($lat !== null && $lng !== null) {
+            return $this->agents->findNearby($lat, $lng, $radius ?? 5000)->toArray();
+        }
         return $this->agents->findByGovernorate($governorate)->toArray();
     }
 
@@ -182,6 +213,24 @@ final class AgentService implements AgentServiceInterface
             'daily_cash_in_limit' => $agent->daily_cash_in_limit,
             'daily_cash_out_limit' => $agent->daily_cash_out_limit,
         ];
+    }
+
+    public function getLiquidityScore(string $agentId): array
+    {
+        $agent = $this->findOrFail($agentId);
+        $score = $this->floatOrchestrator->getLiquidityScore($agentId);
+        $score['coverage_radius'] = $agent->coverage_radius;
+
+        return $score;
+    }
+
+    public function updateCoverageRadius(string $agentId, int $meters): Agent
+    {
+        $agent = $this->findOrFail($agentId);
+        $agent->coverage_radius = max(100, min($meters, 50000));
+        $this->agents->save($agent);
+
+        return $agent;
     }
 
     private function calculateCommission(Agent $agent, int $amount, string $type): int
@@ -248,5 +297,12 @@ final class AgentService implements AgentServiceInterface
         if (($todayTotal + $amount) > $limit) {
             throw new AgentLimitExceededException($type, $limit, $todayTotal, $amount);
         }
+    }
+
+    private function refreshLiquidityScore(Agent $agent): void
+    {
+        $score = $this->floatOrchestrator->getLiquidityScore($agent->id);
+        $agent->liquidity_score = $score['liquidity_score'];
+        $agent->save();
     }
 }

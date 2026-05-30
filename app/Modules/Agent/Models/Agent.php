@@ -18,6 +18,7 @@ final class Agent extends Model
         'daily_cash_in_limit', 'daily_cash_out_limit',
         'max_commission_per_txn', 'commission_rate',
         'wallet_id', 'phone', 'alt_phone', 'metadata',
+        'coverage_radius', 'liquidity_score',
         'approved_at', 'approved_by',
     ];
 
@@ -28,6 +29,8 @@ final class Agent extends Model
         'daily_cash_out_limit' => 'integer',
         'max_commission_per_txn' => 'integer',
         'commission_rate' => 'float',
+        'coverage_radius' => 'integer',
+        'liquidity_score' => 'integer',
         'approved_at' => 'datetime',
         'metadata' => 'json',
     ];

@@ -46,11 +46,10 @@ Every API error returns this exact JSON structure. The `details` object is domai
 
 | Domain | Prefix | Total | HTTP Statuses Used |
 |--------|--------|-------|-------------------|
-| `Wallet (WALLET_*)` | 19 | 400, 403, 404, 409, 422, 503 |
-| **Agent (AGENT_*)** | **6** | **400, 403, 404, 422** |
-| FX | `FX_*` | 8 | 400, 422, 503 |
-| Remittance | `REMITTANCE_*` | 8 | 400, 403, 404, 422, 503 |
+| Wallet | `WALLET_*` | 19 | 400, 403, 404, 409, 422, 503 |
 | Agent | `AGENT_*` | 12 | 400, 403, 404, 409, 422 |
+| FX | `FX_*` | 9 | 400, 404, 409, 422, 503 |
+| Remittance | `REMITTANCE_*` | 8 | 400, 403, 404, 422, 503 |
 | Merchant | `MERCHANT_*` | 7 | 400, 403, 404, 409, 422 |
 | Bill Payment | `BILL_*` | 8 | 400, 404, 409, 422, 502, 503 |
 | Card | `CARD_*` | 6 | 400, 403, 404, 409, 422 |
@@ -61,7 +60,7 @@ Every API error returns this exact JSON structure. The `details` object is domai
 | Settlement | `SETTLEMENT_*` | 7 | 400, 409, 422, 500, 502 |
 | Fraud | `FRAUD_*` | 5 | 403, 409 |
 | System | `SYS_*` | 10 | 400, 409, 429, 500, 503 |
-| **Total** | | **122** | |
+| **Total** | | **126** | |
 
 ---
 
@@ -114,6 +113,7 @@ Every API error returns this exact JSON structure. The `details` object is domai
 | `FX_RATE_STALE` | 503 | Rate feed is stale; using last known rate with warning | بيانات سعر الصرف قديمة؛ يتم استخدام آخر سعر معروف مع تحذير | Continue with caution or wait for feed recovery | تابع بحذر أو انتظر حتى استعادة التغذية | Rate feed > 5 minutes stale; system uses cached rate but flags risk |
 | `FX_MARGIN_TOO_HIGH` | 422 | Calculated margin exceeds maximum allowed spread | هامش الربح المحسوب يتجاوز الحد الأقصى المسموح به | Contact support to adjust margin configuration | اتصل بالدعم لتعديل إعدادات هامش الربح | Manual rate override with spread > 5% |
 | `FX_RATE_LOCK_CONTENTION` | 409 | Rate lock contention; another transaction consumed this quote | تعارض في قفل سعر الصرف؛ عملية أخرى استهلكت هذا السعر | Fetch a new rate quote | احصل على سعر صرف جديد | Race condition where two confirmations use same quote ID |
+| `FX_NOT_FOUND` | 404 | FX resource not found | المورد غير موجود في نظام الصرف | Check the resource ID and try again | تحقق من معرف المورد وحاول مرة أخرى | Invalid conversion or quote ID |
 
 ---
 

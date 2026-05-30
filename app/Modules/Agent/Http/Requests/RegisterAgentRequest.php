@@ -20,6 +20,7 @@ final class RegisterAgentRequest extends FormRequest
             'address' => 'sometimes|string|max:255',
             'latitude' => 'sometimes|numeric|between:-90,90',
             'longitude' => 'sometimes|numeric|between:-180,180',
+            'coverage_radius' => 'sometimes|integer|min:100|max:50000',
             'alt_phone' => 'sometimes|string|max:20',
         ];
     }

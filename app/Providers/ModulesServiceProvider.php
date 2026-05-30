@@ -57,6 +57,16 @@ class ModulesServiceProvider extends ServiceProvider
                     ->name("{$moduleName}.")
                     ->group($routesFile);
             }
+
+            $migrationsPath = $moduleDir . '/Database/Migrations';
+            if (is_dir($migrationsPath)) {
+                $this->loadMigrationsFrom($migrationsPath);
+            }
+
+            $langPath = $moduleDir . '/Resources/lang';
+            if (is_dir($langPath)) {
+                $this->loadTranslationsFrom($langPath, basename($moduleDir));
+            }
         }
     }
 }

@@ -5,8 +5,8 @@ namespace Modules\CoreFinancialEngine\Services;
 use Modules\CoreFinancialEngine\DTOs\PostingInstructionDto;
 use Modules\CoreFinancialEngine\DTOs\PostingResultDto;
 use Modules\CoreFinancialEngine\Events\SettlementCompleted;
-use App\Modules\Ledger\Repositories\LedgerAccountRepository;
-use App\Modules\Ledger\Repositories\JournalEntryRepository;
+use Modules\Ledger\Repositories\LedgerAccountRepository;
+use Modules\Ledger\Repositories\JournalEntryRepository;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 

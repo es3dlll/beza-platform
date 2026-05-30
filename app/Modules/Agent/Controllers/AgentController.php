@@ -32,6 +32,7 @@ final class AgentController
             address: $request->input('address'),
             latitude: $request->input('latitude') ? (float) $request->input('latitude') : null,
             longitude: $request->input('longitude') ? (float) $request->input('longitude') : null,
+            coverageRadius: (int) $request->input('coverage_radius', 5000),
             altPhone: $request->input('alt_phone'),
         );
 
@@ -60,7 +61,11 @@ final class AgentController
 
     public function nearby(string $governorate): JsonResponse
     {
-        $agents = $this->agents->getNearby($governorate);
+        $lat = request()->input('lat') ? (float) request()->input('lat') : null;
+        $lng = request()->input('lng') ? (float) request()->input('lng') : null;
+        $radius = request()->input('radius') ? (int) request()->input('radius') : null;
+
+        $agents = $this->agents->getNearby($governorate, $lat, $lng, $radius);
         return response()->json(['data' => $agents]);
     }
 
@@ -115,10 +120,42 @@ final class AgentController
             return response()->json([
                 'success' => false, 'error' => ['code' => 'AGENT_LIMIT_EXCEEDED', 'message' => $e->getMessage()],
             ], 422);
+        } catch (\Modules\Agent\Exceptions\AgentFloatInsufficientException $e) {
+            return response()->json([
+                'success' => false, 'error' => ['code' => 'AGENT_FLOAT_INSUFFICIENT', 'message' => $e->getMessage()],
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false, 'error' => ['code' => 'CASH_OUT_FAILED', 'message' => $e->getMessage()],
             ], 422);
+        }
+    }
+
+    public function liquidityScore(string $id): JsonResponse
+    {
+        try {
+            $score = $this->agents->getLiquidityScore($id);
+            return response()->json(['data' => $score]);
+        } catch (\Modules\Agent\Exceptions\AgentNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'error' => ['code' => 'AGENT_NOT_FOUND', 'message' => $e->getMessage()],
+            ], 404);
+        }
+    }
+
+    public function updateRadius(string $id): JsonResponse
+    {
+        $meters = (int) request()->input('coverage_radius', 5000);
+
+        try {
+            $agent = $this->agents->updateCoverageRadius($id, $meters);
+            return response()->json(['data' => $agent, 'message' => 'Coverage radius updated']);
+        } catch (\Modules\Agent\Exceptions\AgentNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'error' => ['code' => 'AGENT_NOT_FOUND', 'message' => $e->getMessage()],
+            ], 404);
         }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Modules\CoreFinancialEngine\Jobs;
 
-use App\Modules\Ledger\Services\HoldService;
+use Modules\Ledger\Services\HoldService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

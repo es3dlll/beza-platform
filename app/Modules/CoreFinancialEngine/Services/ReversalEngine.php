@@ -7,7 +7,7 @@ use Modules\CoreFinancialEngine\DTOs\ReversalInstructionDto;
 use Modules\CoreFinancialEngine\DTOs\PostingResultDto;
 use Modules\CoreFinancialEngine\DTOs\PostingInstructionDto;
 use Modules\CoreFinancialEngine\Events\TransactionReversed;
-use App\Modules\Ledger\Repositories\JournalEntryRepository;
+use Modules\Ledger\Repositories\JournalEntryRepository;
 use Illuminate\Support\Str;
 
 final class ReversalEngine implements ReversalEngineInterface

@@ -5,8 +5,8 @@ namespace Modules\CoreFinancialEngine\Services;
 use Modules\CoreFinancialEngine\Contracts\HoldEngineInterface;
 use Modules\CoreFinancialEngine\DTOs\HoldInstructionDto;
 use Modules\CoreFinancialEngine\DTOs\HoldResultDto;
-use App\Modules\Ledger\Services\HoldService;
-use App\Modules\Ledger\DTOs\CreateHoldDto;
+use Modules\Ledger\Services\HoldService;
+use Modules\Ledger\DTOs\CreateHoldDto;
 
 final class HoldEngine implements HoldEngineInterface
 {

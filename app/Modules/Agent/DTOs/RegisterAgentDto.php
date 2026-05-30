@@ -17,6 +17,7 @@ final class RegisterAgentDto
         public readonly ?string $address = null,
         public readonly ?float $latitude = null,
         public readonly ?float $longitude = null,
+        public readonly int $coverageRadius = 5000,
         public readonly ?string $altPhone = null,
         public readonly ?array $metadata = [],
     ) {}
