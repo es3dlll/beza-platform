@@ -30,7 +30,7 @@ app/Modules/
 ├── Settlement/     # Batch settlement, reconciliation
 ├── Education/      # School/university fee management
 ├── Humanitarian/   # NGO aid distribution
-├── Marketplace/    # Digital goods, top-up
+├── Loyalty/       # Rewards, cashback
 ├── OpenFinance/    # API gateway for third parties
 ├── Loyalty/        # Points, tiers, rewards
 ├── Compliance/     # KYC, AML, sanctions screening

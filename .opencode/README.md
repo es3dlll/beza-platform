@@ -27,7 +27,7 @@ Level 6 → (generated at build)     Expected Source Structure
 | 5 | Payroll Platform | Ready | 30 files | 5 specs | 12 tasks |
 | 6 | Agent Network | Ready | 30 files | 5 specs | 12 tasks |
 | 7 | Merchant Services | Ready | 30 files | 5 specs | 12 tasks |
-| 8 | Marketplace | Ready | 30 files | 5 specs | 12 tasks |
+| 8 | Marketplace | **DEFERRED (V4+)** | — | — | — |
 | 9 | Savings | Ready | 30 files | 5 specs | 12 tasks |
 | 10 | Financing | Ready | 30 files | 5 specs | 12 tasks |
 | 11 | Cards | Ready | 30 files | 5 specs | 12 tasks |

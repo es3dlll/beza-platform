@@ -110,7 +110,7 @@ Tier E (V4+, Months 24+): Marketplace, Insurance, Investments — not shown (req
 | M16 | V2 launch (Financing, Loyalty) |
 | M18 | Cards scheme approval expected; card manufacturing begins |
 | M20 | Cards live; Government Collections MoU signed |
-| M24 | V3 launch (Education, Humanitarian, Marketplace, Open Finance) |
+| M24 | V3 launch (Education, Humanitarian, Open Finance) |
 
 ---
 
