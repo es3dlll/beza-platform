@@ -1,5 +1,7 @@
 # Observability Stack
 
+> **See also:** [Operations Command Center](./01-command-center.md) — the ops team's 24/7 real-time dashboard built on this observability stack.
+
 ## Three Pillars
 
 ### 1. Logging (Elasticsearch + Filebeat + Kibana)
