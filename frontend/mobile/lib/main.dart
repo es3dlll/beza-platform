@@ -1,24 +1,38 @@
 import 'package:flutter/material.dart';
+import 'config/app_config.dart';
 import 'services/auth_service.dart';
+import 'services/crash_reporter.dart';
 import 'widgets/route_guard.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  final authService = AuthService(baseUrl: 'http://localhost:8000/api');
 
-  runApp(BezaApp(authService: authService));
+  final config = AppConfig.development();
+  crashReporter.initialize();
+
+  final authService = AuthService(baseUrl: config.apiBaseUrl);
+
+  runApp(BezaApp(
+    authService: authService,
+    config: config,
+  ));
 }
 
 class BezaApp extends StatelessWidget {
   final AuthService authService;
+  final AppConfig config;
 
-  const BezaApp({super.key, required this.authService});
+  const BezaApp({
+    super.key,
+    required this.authService,
+    required this.config,
+  });
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'بيزا',
-      debugShowCheckedModeBanner: false,
+      title: config.appName,
+      debugShowCheckedModeBanner: config.isDevelopment,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1A6B4E)),
         useMaterial3: true,

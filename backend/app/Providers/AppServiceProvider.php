@@ -26,5 +26,20 @@ final class AppServiceProvider extends ServiceProvider
             $userId = $request->user()?->id ?? 'guest';
             return Limit::perMinute(10)->by($userId);
         });
+
+        RateLimiter::for('api', function (Request $request): Limit {
+            $key = $request->user()?->id ?? $request->ip() ?? 'guest';
+            return Limit::perMinute(60)->by($key);
+        });
+
+        RateLimiter::for('notifications', function (Request $request): Limit {
+            $userId = $request->user()?->id ?? 'guest';
+            return Limit::perMinute(30)->by($userId);
+        });
+
+        RateLimiter::for('analytics', function (Request $request): Limit {
+            $userId = $request->user()?->id ?? 'guest';
+            return Limit::perMinute(20)->by($userId);
+        });
     }
 }
