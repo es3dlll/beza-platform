@@ -17,6 +17,10 @@ export class ApiClient {
 
     this.client.interceptors.request.use((config) => {
       config.headers.set('X-Request-Id', this.generateRequestId());
+      const token = localStorage.getItem('beza_token');
+      if (token) {
+        config.headers.set('Authorization', `Bearer ${token}`);
+      }
       return config;
     });
   }

@@ -33,7 +33,16 @@ Route::prefix('v1/wallet')->middleware('token.auth')->group(function (): void {
         $money = \App\Modules\Core\ValueObjects\Money::fromFils($validated['amount_fils'], \App\Modules\Core\Enums\Currency::from($validated['currency']));
 
         $engine = app(\App\Modules\Ledger\Services\CoreFinancialEngine::class);
-        $entry = $engine->transfer($money, $wallet, $toWallet, 'تحويل', 'transfer', request()->header('X-Request-Id'));
+        $entry = $engine->transfer(
+            amount: $money,
+            from: $wallet,
+            to: $toWallet,
+            description: 'تحويل',
+            referenceType: 'transfer',
+            referenceId: request()->header('X-Request-Id'),
+            fromUserId: request()->user()->id,
+            toUserId: $toWallet->user_id,
+        );
 
         return response()->json([
             'success' => true,

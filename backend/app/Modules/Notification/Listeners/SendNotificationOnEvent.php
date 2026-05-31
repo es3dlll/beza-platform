@@ -36,6 +36,15 @@ final class SendNotificationOnEvent
     private function getMapping(): array
     {
         return [
+            \App\Modules\Ledger\Events\TransferCompleted::class => [
+                'user_id' => fn($e) => $e->fromUserId,
+                'type' => 'transfer_sent',
+                'title' => fn($e) => 'تم تحويل الأموال',
+                'body' => fn($e) => 'تم تحويل مبلغ ' . ($e->amount->fils() / 1000) . ' ل.س من محفظتك بنجاح.',
+                'channels' => ['in_app'],
+                'ref_type' => 'ledger_entry',
+                'ref_id' => fn($e) => $e->entry->id,
+            ],
             \App\Modules\Remittance\Events\RemittanceCompleted::class => [
                 'user_id' => fn($e) => $e->remittance->user_id ?? null,
                 'type' => 'remittance_completed',

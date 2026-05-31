@@ -9,6 +9,7 @@ use App\Modules\Escrow\Events\EscrowDisputed;
 use App\Modules\Escrow\Events\EscrowRefunded;
 use App\Modules\Escrow\Events\EscrowReleased;
 use App\Modules\Fraud\Events\FraudAlertTriggered;
+use App\Modules\Ledger\Events\TransferCompleted;
 use App\Modules\Notification\Events\NotificationDispatched;
 use App\Modules\Notification\Listeners\LogNotificationDispatch;
 use App\Modules\Notification\Listeners\SendNotificationOnEvent;
@@ -27,6 +28,7 @@ final class ModuleServiceProvider extends ServiceProvider
 
         Event::listen(NotificationDispatched::class, LogNotificationDispatch::class);
 
+        Event::listen(TransferCompleted::class, SendNotificationOnEvent::class);
         Event::listen(RemittanceCompleted::class, SendNotificationOnEvent::class);
         Event::listen(RemittanceApproved::class, SendNotificationOnEvent::class);
         Event::listen(FraudAlertTriggered::class, SendNotificationOnEvent::class);

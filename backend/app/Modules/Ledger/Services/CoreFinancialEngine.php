@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Modules\Ledger\Services;
 
 use App\Modules\Core\ValueObjects\Money;
+use App\Modules\Ledger\Events\TransferCompleted;
 use App\Modules\Ledger\Models\LedgerEntry;
 use App\Modules\Wallet\Models\Wallet;
 use Illuminate\Support\Facades\DB;
 
 final class CoreFinancialEngine
 {
-    public function transfer(Money $amount, Wallet $from, Wallet $to, ?string $description = null, ?string $referenceType = null, ?string $referenceId = null): LedgerEntry
+    public function transfer(Money $amount, Wallet $from, Wallet $to, ?string $description = null, ?string $referenceType = null, ?string $referenceId = null, ?string $fromUserId = null, ?string $toUserId = null): LedgerEntry
     {
         $this->assertSameCurrency($from, $to);
 
@@ -22,7 +23,7 @@ final class CoreFinancialEngine
         $fromBefore = (int) $from->balance_fils;
         $toBefore = (int) $to->balance_fils;
 
-        return DB::transaction(function () use ($amount, $from, $to, $description, $referenceType, $referenceId, $fromBefore, $toBefore) {
+        $entry = DB::transaction(function () use ($amount, $from, $to, $description, $referenceType, $referenceId, $fromBefore, $toBefore) {
             $from->decrement('balance_fils', $amount->fils());
             $to->increment('balance_fils', $amount->fils());
 
@@ -45,6 +46,16 @@ final class CoreFinancialEngine
                 ],
             ]);
         });
+
+        event(new TransferCompleted(
+            entry: $entry,
+            fromUserId: $fromUserId ?? $from->user_id,
+            toUserId: $toUserId ?? $to->user_id,
+            amount: $amount,
+            requestId: $referenceId,
+        ));
+
+        return $entry;
     }
 
     private function assertSameCurrency(Wallet $a, Wallet $b): void

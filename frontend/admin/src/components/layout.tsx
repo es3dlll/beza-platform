@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/auth-store';
 
 export function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
@@ -40,16 +41,31 @@ export function DashboardLayout() {
             <h2 style={{ margin: '0 0 24 0', fontSize: 22 }}>بيزا</h2>
 
             <nav style={{ flex: 1 }}>
-              <div style={{ marginBottom: 8, padding: '8px 12px', borderRadius: 6, background: '#16213e' }}>
+              <div
+                onClick={() => navigate('/')}
+                style={{
+                  marginBottom: 8, padding: '8px 12px', borderRadius: 6, cursor: 'pointer',
+                  background: location.pathname === '/' ? '#16213e' : 'transparent',
+                }}
+              >
                 لوحة التحكم
               </div>
-              <div style={{ marginBottom: 8, padding: '8px 12px', borderRadius: 6 }}>
-                المعاملات
+              <div
+                onClick={() => navigate('/transfer')}
+                style={{
+                  marginBottom: 8, padding: '8px 12px', borderRadius: 6, cursor: 'pointer',
+                  background: location.pathname === '/transfer' ? '#16213e' : 'transparent',
+                }}
+              >
+                تحويل
               </div>
-              <div style={{ marginBottom: 8, padding: '8px 12px', borderRadius: 6 }}>
-                المحفظة
-              </div>
-              <div style={{ marginBottom: 8, padding: '8px 12px', borderRadius: 6 }}>
+              <div
+                onClick={() => navigate('/audit-log')}
+                style={{
+                  marginBottom: 8, padding: '8px 12px', borderRadius: 6, cursor: 'pointer',
+                  background: location.pathname === '/audit-log' ? '#16213e' : 'transparent',
+                }}
+              >
                 سجل التدقيق
               </div>
             </nav>

@@ -6,6 +6,8 @@ export const ApiRoutes = {
   login: '/v1/auth/login',
   walletBalance: '/v1/wallet/balance',
   walletTransfer: '/v1/wallet/transfer',
+  userLookup: '/v1/users/lookup',
+  auditLogs: '/v1/admin/audit-logs',
 } as const;
 
 export const AppConstants = {

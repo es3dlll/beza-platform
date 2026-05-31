@@ -4,6 +4,8 @@ import { DashboardLayout } from './components/layout';
 import { ToastContainer } from './components/toast';
 import { LoginPage } from './pages/login-page';
 import { DashboardPage } from './pages/dashboard-page';
+import { TransferPage } from './pages/transfer-page';
+import { AuditLogPage } from './pages/audit-log-page';
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
           }
         >
           <Route index element={<DashboardPage />} />
+          <Route path="/transfer" element={<TransferPage />} />
+          <Route path="/audit-log" element={<AuditLogPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
