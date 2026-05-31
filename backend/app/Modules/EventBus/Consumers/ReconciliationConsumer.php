@@ -7,6 +7,8 @@ namespace App\Modules\EventBus\Consumers;
 use App\Modules\EventBus\Contracts\EventConsumer;
 use App\Modules\EventBus\Models\EventDeliveryLog;
 use App\Modules\Ledger\Events\ReconciliationCompleted;
+use App\Modules\Ledger\Services\CBSAutoSyncService;
+use App\Modules\Ledger\Services\CBSReportGenerator;
 use App\Modules\Ledger\Services\CBSReportingService;
 use App\Modules\Ledger\Jobs\RetryCBSReportSubmission;
 use App\Modules\Ledger\Services\NotificationService;
@@ -62,6 +64,13 @@ final class ReconciliationConsumer implements EventConsumer
                     ]);
                     dispatch(new RetryCBSReportSubmission($report->id))
                         ->delay(now()->addMinutes(5));
+                }
+            }
+
+            if (!empty($report->summary['signature']) && in_array($report->report_type, CBSReportGenerator::CBS_REPORT_TYPES, true)) {
+                $syncResult = app(CBSAutoSyncService::class)->submitReport($report);
+                if ($syncResult['status'] === 'success') {
+                    $report->update(['cbs_report_code' => $syncResult['cbs_reference']]);
                 }
             }
 

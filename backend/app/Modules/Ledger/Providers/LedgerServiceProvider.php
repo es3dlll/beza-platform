@@ -9,6 +9,8 @@ use App\Modules\Ledger\Console\Commands\LedgerReconcile;
 use App\Modules\Ledger\Database\Seeders\LedgerSeeder;
 use App\Modules\Ledger\Jobs\RetryCBSReportSubmission;
 use App\Modules\Ledger\Services\AccountService;
+use App\Modules\Ledger\Services\AlertingService;
+use App\Modules\Ledger\Services\CBSAutoSyncService;
 use App\Modules\Ledger\Services\CBSReportGenerator;
 use App\Modules\Ledger\Services\CBSReportingService;
 use App\Modules\Ledger\Services\HashChainService;
@@ -28,8 +30,16 @@ final class LedgerServiceProvider extends ServiceProvider
         $this->app->singleton(CBSReportGenerator::class);
         $this->app->singleton(ReconciliationService::class);
         $this->app->singleton(CBSReportingService::class);
+        $this->app->singleton(AlertingService::class);
         $this->app->singleton(NotificationService::class);
         $this->app->singleton(LedgerHealthCheck::class);
+        $this->app->singleton(CBSAutoSyncService::class, function ($app) {
+            return new CBSAutoSyncService(
+                cbsApiBaseUrl: config('ledger.cbs_api_base_url'),
+                cbsApiToken: config('ledger.cbs_api_token'),
+                timeoutSeconds: config('ledger.cbs_api_timeout', 30),
+            );
+        });
     }
 
     public function boot(): void

@@ -10,6 +10,7 @@ use App\Modules\Ledger\Models\JournalLine;
 use App\Modules\Ledger\Models\LedgerAccount;
 use App\Modules\Ledger\Models\ReconciliationDiscrepancy;
 use App\Modules\Ledger\Models\ReconciliationReport;
+use App\Modules\Ledger\Services\AlertingService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -384,6 +385,15 @@ final class ReconciliationService
             'resolution_steps' => $this->generateResolutionSteps($account, $result),
             'requires_cbs_notification' => $severity === ReconciliationDiscrepancy::SEVERITY_CRITICAL,
         ]);
+
+        if ($severity === ReconciliationDiscrepancy::SEVERITY_CRITICAL) {
+            app(AlertingService::class)->alertCriticalDiscrepancy([
+                'account_code' => $account->code,
+                'difference_formatted' => number_format($result['difference']),
+                'discrepancy_type' => ReconciliationDiscrepancy::TYPE_BALANCE_MISMATCH,
+                'report_url' => '#',
+            ]);
+        }
     }
 
     private function determineSeverity(int $difference, string $accountType): string
