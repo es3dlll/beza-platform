@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Feedback;
 use App\Modules\Ledger\Console\Commands\GenerateOpenApi;
 use App\Modules\Ledger\Console\Commands\LedgerReconcile;
 use App\Modules\Ledger\Jobs\RetryCBSReportSubmission;
@@ -62,3 +63,19 @@ Schedule::call(function () {
         }
     }
 })->everySixHours()->description('Ledger health check');
+
+Schedule::call(function () {
+    $newFeedback = Feedback::query()
+        ->where('module', 'ledger')
+        ->where('status', 'new')
+        ->where('created_at', '>=', now()->subWeek())
+        ->get();
+
+    if ($newFeedback->isNotEmpty()) {
+        Log::channel('audit')->info('WEEKLY_FEEDBACK_SUMMARY', [
+            'count' => $newFeedback->count(),
+            'categories' => $newFeedback->groupBy('category')->map->count()->toArray(),
+            'high_priority' => $newFeedback->where('severity', 'high')->count(),
+        ]);
+    }
+})->weeklyOn(1, '09:00')->timezone('Asia/Damascus')->description('Review ledger user feedback');

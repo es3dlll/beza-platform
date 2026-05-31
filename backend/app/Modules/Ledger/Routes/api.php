@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Modules\Ledger\Http\Controllers\CBSReportController;
+use App\Modules\Ledger\Http\Controllers\ExecutiveDashboardController;
+use App\Modules\Ledger\Http\Controllers\FeedbackController;
 use App\Modules\Ledger\Http\Controllers\ReconciliationController;
 use App\Modules\Ledger\Models\JournalEntry;
 use App\Modules\Ledger\Services\AccountService;
@@ -54,4 +56,12 @@ Route::prefix('v1/ledger')->group(function () {
         Route::post('/reconciliations/run', [ReconciliationController::class, 'run']);
         Route::get('/cbs-reports/{id}', [CBSReportController::class, 'show']);
     });
+
+    Route::middleware(['auth', 'throttle:60,1'])->prefix('v1/executive')->group(function () {
+        Route::get('/dashboard/summary', [ExecutiveDashboardController::class, 'summary']);
+    });
+});
+
+Route::middleware('throttle:20,1')->prefix('v1/feedback')->group(function () {
+    Route::post('/ledger', [FeedbackController::class, 'store']);
 });

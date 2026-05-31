@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Ledger\Providers;
 
 use App\Modules\Ledger\Console\Commands\GenerateOpenApi;
+use App\Modules\Ledger\Console\Commands\GenerateWeeklyLedgerReport;
 use App\Modules\Ledger\Console\Commands\LedgerReconcile;
 use App\Modules\Ledger\Database\Seeders\LedgerSeeder;
 use App\Modules\Ledger\Jobs\RetryCBSReportSubmission;
@@ -16,6 +17,7 @@ use App\Modules\Ledger\Services\CBSReportingService;
 use App\Modules\Ledger\Services\HashChainService;
 use App\Modules\Ledger\Services\JournalService;
 use App\Modules\Ledger\Services\LedgerHealthCheck;
+use App\Modules\Ledger\Services\LedgerMetrics;
 use App\Modules\Ledger\Services\NotificationService;
 use App\Modules\Ledger\Services\ReconciliationService;
 use Illuminate\Support\ServiceProvider;
@@ -33,6 +35,7 @@ final class LedgerServiceProvider extends ServiceProvider
         $this->app->singleton(AlertingService::class);
         $this->app->singleton(NotificationService::class);
         $this->app->singleton(LedgerHealthCheck::class);
+        $this->app->singleton(LedgerMetrics::class);
         $this->app->singleton(CBSAutoSyncService::class, function ($app) {
             return new CBSAutoSyncService(
                 cbsApiBaseUrl: config('ledger.cbs_api_base_url'),
@@ -59,6 +62,7 @@ final class LedgerServiceProvider extends ServiceProvider
             $this->commands([
                 LedgerReconcile::class,
                 GenerateOpenApi::class,
+                GenerateWeeklyLedgerReport::class,
             ]);
         }
     }
