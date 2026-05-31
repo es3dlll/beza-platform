@@ -1,8 +1,0 @@
-name: beza_api_test
-description: Standalone API test for Beza backend.
-publish_to: none
-
-environment:
-  sdk: ^3.11.5
-dependencies:
-  http: ^1.6.0

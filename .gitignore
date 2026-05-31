@@ -52,3 +52,5 @@ plan.md
 *.swp
 *.swo
 *~
+# Stubborn empty directory  
+frontend/  
