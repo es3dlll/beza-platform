@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Modules\Agent\Providers\ModuleServiceProvider as AgentProvider;
+use App\Modules\Analytics\Providers\ModuleServiceProvider as AnalyticsProvider;
 use App\Modules\AuditLog\Providers\ModuleServiceProvider as AuditLogProvider;
 use App\Modules\BillProvider\Providers\ModuleServiceProvider as BillProviderProvider;
 use App\Modules\Bills\Providers\ModuleServiceProvider as BillsProvider;
@@ -12,6 +13,7 @@ use App\Modules\Marketplace\Providers\ModuleServiceProvider as MarketplaceProvid
 use App\Modules\Fraud\Providers\ModuleServiceProvider as FraudProvider;
 use App\Modules\FX\Providers\ModuleServiceProvider as FXProvider;
 use App\Modules\Identity\Providers\ModuleServiceProvider as IdentityProvider;
+use App\Modules\Notification\Providers\ModuleServiceProvider as NotificationProvider;
 use App\Modules\Ledger\Providers\ModuleServiceProvider as LedgerProvider;
 use App\Modules\Remittance\Providers\ModuleServiceProvider as RemittanceProvider;
 use App\Modules\Wallet\Providers\ModuleServiceProvider as WalletProvider;
@@ -32,4 +34,6 @@ return [
     BillsProvider::class,
     MarketplaceProvider::class,
     EscrowProvider::class,
+    NotificationProvider::class,
+    AnalyticsProvider::class,
 ];
