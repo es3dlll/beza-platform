@@ -1,9 +1,19 @@
 <?php
 
-use App\Modules\Core\Providers\ModuleServiceProvider;
+declare(strict_types=1);
+
+use App\Modules\AuditLog\Providers\ModuleServiceProvider as AuditLogProvider;
+use App\Modules\Core\Providers\ModuleServiceProvider as CoreProvider;
+use App\Modules\Identity\Providers\ModuleServiceProvider as IdentityProvider;
+use App\Modules\Ledger\Providers\ModuleServiceProvider as LedgerProvider;
+use App\Modules\Wallet\Providers\ModuleServiceProvider as WalletProvider;
 use App\Providers\AppServiceProvider;
 
 return [
     AppServiceProvider::class,
-    ModuleServiceProvider::class,
+    CoreProvider::class,
+    IdentityProvider::class,
+    WalletProvider::class,
+    LedgerProvider::class,
+    AuditLogProvider::class,
 ];
