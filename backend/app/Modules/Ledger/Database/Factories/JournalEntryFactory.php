@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Modules\Ledger\Database\Factories;
+namespace App\Modules\Ledger\Database\Factories;
 
+use App\Modules\Ledger\Models\JournalEntry;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
-use Modules\Ledger\Models\JournalEntry;
 
 final class JournalEntryFactory extends Factory
 {
@@ -15,21 +15,11 @@ final class JournalEntryFactory extends Factory
     public function definition(): array
     {
         return [
-            'id' => (string) Str::ulid(),
-            'journal_id' => (string) Str::ulid(),
-            'entry_date' => now(),
-            'description' => $this->faker->sentence,
-            'reference_type' => $this->faker->randomElement(['transaction', 'settlement', 'fee', 'reversal']),
-            'reference_id' => (string) Str::ulid(),
-            'total_amount' => $this->faker->numberBetween(100, 10000000),
-            'currency' => 'SYP',
-            'metadata' => null,
-            'posted_at' => null,
+            'id' => Str::ulid()->toBase32(),
+            'transaction_id' => Str::ulid()->toBase32(),
+            'description' => fake()->sentence(),
+            'description_ar' => fake()->sentence(),
+            'hash' => hash('sha256', Str::random(40)),
         ];
-    }
-
-    public function posted(): static
-    {
-        return $this->state(fn() => ['posted_at' => now()]);
     }
 }

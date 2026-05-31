@@ -2,34 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Modules\Identity\Providers;
+namespace App\Modules\Identity\Providers;
 
+use App\Modules\Identity\Services\WalletService;
 use Illuminate\Support\ServiceProvider;
-use Modules\Identity\Repositories\DeviceRepository;
-use Modules\Identity\Repositories\OtpRepository;
-use Modules\Identity\Repositories\UserRepository;
-use Modules\Identity\Services\IdentityService;
-use Modules\Identity\Services\OtpService;
 
 final class IdentityServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton(UserRepository::class);
-        $this->app->singleton(OtpRepository::class);
-        $this->app->singleton(DeviceRepository::class);
-        $this->app->singleton(OtpService::class);
-        $this->app->singleton(IdentityService::class);
+        $this->app->singleton(WalletService::class);
     }
 
     public function boot(): void
     {
-        $this->loadRoutesFrom(__DIR__ . '/../Routes/api.php');
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
-        $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'identity');
-
-        $this->publishes([
-            __DIR__ . '/../Database/Migrations' => database_path('migrations'),
-        ], 'identity-migrations');
     }
 }

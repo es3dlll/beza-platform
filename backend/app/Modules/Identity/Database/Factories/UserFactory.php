@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Modules\Identity\Database\Factories;
+namespace App\Modules\Identity\Database\Factories;
 
+use App\Modules\Identity\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
-use Modules\Identity\Models\User;
 
 final class UserFactory extends Factory
 {
@@ -15,37 +15,16 @@ final class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'id' => (string) Str::ulid(),
-            'phone' => $this->faker->numerify('9627########'),
-            'phone_country_code' => '962',
-            'status' => 'pending',
-            'kyc_tier' => 'tier_1_basic',
-            'locale' => 'ar',
-            'failed_attempts' => 0,
-        ];
-    }
-
-    public function verified(): static
-    {
-        return $this->state(fn(array $attributes) => [
-            'phone_verified_at' => now(),
+            'id' => Str::ulid()->toBase32(),
+            'phone' => '9639' . fake()->numerify('#######'),
+            'name' => fake()->name(),
+            'name_ar' => fake()->name(),
+            'email' => fake()->unique()->safeEmail(),
+            'password' => bcrypt('password'),
+            'pin_hash' => bcrypt('1234'),
             'status' => 'active',
-        ]);
-    }
-
-    public function withPin(string $pin = '123456'): static
-    {
-        return $this->state(fn(array $attributes) => [
-            'pin_hash' => bcrypt($pin),
-            'pin_updated_at' => now(),
-        ]);
-    }
-
-    public function locked(): static
-    {
-        return $this->state(fn(array $attributes) => [
-            'locked_until' => now()->addMinutes(30),
-            'failed_attempts' => 5,
-        ]);
+            'kyc_tier' => 't1',
+            'device_id' => Str::ulid()->toBase32(),
+        ];
     }
 }

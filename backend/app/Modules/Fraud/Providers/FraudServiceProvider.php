@@ -2,33 +2,27 @@
 
 declare(strict_types=1);
 
-namespace Modules\Fraud\Providers;
+namespace App\Modules\Fraud\Providers;
 
+use App\Modules\Fraud\Services\DeviceFingerprintService;
+use App\Modules\Fraud\Services\FraudGuard;
+use App\Modules\Fraud\Services\ScoringPipeline;
+use App\Modules\Fraud\Services\VelocityService;
 use Illuminate\Support\ServiceProvider;
-use Modules\Fraud\Services\FraudEngine;
-use Modules\Fraud\Services\VelocityCheckService;
-use Modules\Fraud\Services\GeolocationAnomalyService;
-use Modules\Fraud\Services\DeviceFingerprintService;
-use Modules\Fraud\Services\SanctionsScreeningService;
-use Modules\Fraud\Repositories\FraudRuleRepository;
-use Modules\Fraud\Repositories\FraudEventRepository;
-use Modules\Fraud\Repositories\FraudCaseRepository;
-use Modules\Fraud\Repositories\FraudBlacklistRepository;
 
 final class FraudServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton(FraudRuleRepository::class);
-        $this->app->singleton(FraudEventRepository::class);
-        $this->app->singleton(FraudCaseRepository::class);
-        $this->app->singleton(FraudBlacklistRepository::class);
-
-        $this->app->singleton(VelocityCheckService::class);
-        $this->app->singleton(GeolocationAnomalyService::class);
+        $this->app->singleton(VelocityService::class);
         $this->app->singleton(DeviceFingerprintService::class);
-        $this->app->singleton(SanctionsScreeningService::class);
+        $this->app->singleton(ScoringPipeline::class);
+        $this->app->singleton(FraudGuard::class);
+    }
 
-        $this->app->singleton(FraudEngine::class);
+    public function boot(): void
+    {
+        $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+        $this->loadRoutesFrom(__DIR__ . '/../Routes/api.php');
     }
 }

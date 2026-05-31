@@ -2,161 +2,98 @@
 
 declare(strict_types=1);
 
-namespace Modules\Fraud\Controllers;
+namespace App\Modules\Fraud\Controllers;
 
-use App\Support\ApiResponse;
+use App\Modules\Fraud\Models\FraudDecision;
+use App\Modules\Fraud\Models\FraudRule;
+use App\Modules\Fraud\Services\FraudGuard;
+use App\Modules\Fraud\Services\ScoringPipeline;
+use App\Modules\Fraud\Services\VelocityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Modules\Fraud\DTOs\FraudCheckDto;
-use Modules\Fraud\DTOs\FraudRuleDto;
-use Modules\Fraud\Http\Requests\FraudCheckRequest;
-use Modules\Fraud\Http\Requests\CreateFraudRuleRequest;
-use Illuminate\Support\Str;
-use Modules\Fraud\Http\Requests\ReviewFraudCaseRequest;
-use Modules\Fraud\Services\FraudEngine;
-use Modules\Fraud\Repositories\FraudRuleRepository;
-use Modules\Fraud\Repositories\FraudCaseRepository;
-use Modules\Fraud\Repositories\FraudBlacklistRepository;
-use Modules\Fraud\Exceptions\FraudTransactionBlockedException;
-use Modules\Fraud\Exceptions\FraudReviewRequiredException;
 
 final class FraudController extends Controller
 {
-    use ApiResponse;
-
     public function __construct(
-        private readonly FraudEngine $fraudEngine,
-        private readonly FraudRuleRepository $ruleRepository,
-        private readonly FraudCaseRepository $caseRepository,
-        private readonly FraudBlacklistRepository $blacklistRepository,
+        private readonly FraudGuard $fraudGuard,
+        private readonly VelocityService $velocityService,
+        private readonly ScoringPipeline $scoringPipeline,
     ) {}
 
-    public function check(FraudCheckRequest $request): JsonResponse
+    public function check(Request $request): JsonResponse
     {
-        $dto = new FraudCheckDto(
-            eventType: $request->input('event_type'),
-            actorId: $request->user()->id,
-            actorType: 'user',
-            ipAddress: $request->input('ip_address', $request->ip()),
-            deviceId: $request->input('device_id'),
-            userAgent: $request->input('user_agent', $request->userAgent()),
-            latitude: $request->float('latitude'),
-            longitude: $request->float('longitude'),
-            amount: $request->integer('amount'),
-            iban: $request->input('iban'),
-            phone: $request->input('phone'),
-            email: $request->input('email'),
-            fullName: $request->input('full_name'),
+        $validated = $request->validate([
+            'wallet_id' => 'required|string',
+            'amount' => 'required|integer|min:1',
+            'device_data' => 'sometimes|array',
+            'kyc_tier' => 'sometimes|string|in:t0,t1,t2,t3',
+        ]);
+
+        $decision = $this->fraudGuard->preCheck(
+            walletId: $validated['wallet_id'],
+            amount: (int) $validated['amount'],
+            deviceData: $validated['device_data'] ?? [],
+            kycTier: $validated['kyc_tier'] ?? 't0',
         );
 
-        try {
-            $event = $this->fraudEngine->evaluate($dto);
-        } catch (FraudTransactionBlockedException $e) {
-            return $this->respondForbidden($e->getMessage());
-        } catch (FraudReviewRequiredException $e) {
-            return $this->respondForbidden($e->getMessage());
-        }
-
-        return $this->respond($event, null, 200, ['risk_score' => $event->risk_score]);
+        return response()->json(['data' => $decision]);
     }
 
-    public function rules(Request $request): JsonResponse
+    public function monitor(Request $request): JsonResponse
     {
-        $rules = $this->ruleRepository->findAllActive();
-        return $this->respond($rules);
-    }
-
-    public function createRule(CreateFraudRuleRequest $request): JsonResponse
-    {
-        $rule = $this->ruleRepository->create([
-            'id' => (string) Str::ulid(),
-            'name' => $request->input('name'),
-            'rule_type' => $request->input('rule_type'),
-            'description' => $request->input('description'),
-            'parameters' => $request->input('parameters'),
-            'risk_score' => (int) $request->input('risk_score'),
-            'severity' => $request->input('severity', 'medium'),
+        $validated = $request->validate([
+            'wallet_id' => 'required|string',
+            'transaction_id' => 'required|string',
+            'amount' => 'required|integer|min:1',
+            'device_data' => 'sometimes|array',
+            'kyc_tier' => 'sometimes|string|in:t0,t1,t2,t3',
         ]);
 
-        return $this->respondCreated($rule);
-    }
-
-    public function updateRule(Request $request, string $id): JsonResponse
-    {
-        $rule = $this->ruleRepository->update($id, $request->only([
-            'name', 'rule_type', 'description', 'parameters', 'risk_score', 'is_active', 'severity',
-        ]));
-
-        return $this->respond($rule);
-    }
-
-    public function cases(Request $request): JsonResponse
-    {
-        $cases = $this->caseRepository->paginate(
-            (int) $request->input('per_page', 15),
-            $request->input('status'),
+        $this->fraudGuard->postMonitor(
+            walletId: $validated['wallet_id'],
+            transactionId: $validated['transaction_id'],
+            amount: (int) $validated['amount'],
+            deviceData: $validated['device_data'] ?? [],
+            kycTier: $validated['kyc_tier'] ?? 't0',
         );
 
-        return $this->respond($cases);
+        return response()->json(['message' => 'ok']);
     }
 
-    public function showCase(string $id): JsonResponse
+    public function decisions(Request $request): JsonResponse
     {
-        $case = $this->caseRepository->findById($id);
-        if (!$case) {
-            return $this->respondNotFound('Fraud case');
-        }
-        return $this->respond($case);
-    }
-
-    public function reviewCase(ReviewFraudCaseRequest $request, string $id): JsonResponse
-    {
-        $case = $this->caseRepository->update($id, [
-            'status' => $request->input('decision'),
-            'review_notes' => $request->input('review_notes'),
-            'reviewed_by' => $request->user()->id,
-            'reviewed_at' => now(),
+        $validated = $request->validate([
+            'wallet_id' => 'required|string',
+            'per_page' => 'sometimes|integer|min:1|max:100',
         ]);
 
-        return $this->respond($case);
+        $decisions = FraudDecision::where('wallet_id', $validated['wallet_id'])
+            ->orderBy('created_at', 'desc')
+            ->paginate((int) ($validated['per_page'] ?? 15));
+
+        return response()->json(['data' => $decisions]);
     }
 
-    public function blacklist(Request $request): JsonResponse
+    public function rules(): JsonResponse
     {
-        $entries = $this->blacklistRepository->paginate(
-            (int) $request->input('per_page', 15),
-            $request->input('type'),
-        );
-
-        return $this->respond($entries);
+        return response()->json(['data' => FraudRule::where('is_active', true)->orderBy('priority', 'desc')->get()]);
     }
 
-    public function addBlacklist(Request $request): JsonResponse
+    public function resolve(Request $request, string $id): JsonResponse
     {
-        $request->validate([
-            'type' => 'required|string|in:ip,device,phone,email,iban',
-            'value' => 'required|string|max:255',
-            'reason' => 'sometimes|nullable|string|max:500',
-            'expires_at' => 'sometimes|nullable|date',
+        $validated = $request->validate([
+            'resolution' => 'required|string|in:confirmed_fraud,false_positive,overridden',
+            'resolved_by' => 'required|string',
         ]);
 
-        $entry = $this->blacklistRepository->add([
-            'id' => (string) Str::ulid(),
-            'type' => $request->input('type'),
-            'value' => $request->input('value'),
-            'reason' => $request->input('reason'),
-            'source' => $request->input('source', 'manual'),
-            'added_by' => $request->user()->id,
-            'expires_at' => $request->input('expires_at'),
+        $decision = FraudDecision::findOrFail($id);
+        $decision->update([
+            'resolution' => $validated['resolution'],
+            'resolved_by' => $validated['resolved_by'],
+            'resolved_at' => now(),
         ]);
 
-        return $this->respondCreated($entry);
-    }
-
-    public function removeBlacklist(string $id): JsonResponse
-    {
-        $this->blacklistRepository->remove($id);
-        return $this->respondDeleted();
+        return response()->json(['data' => $decision]);
     }
 }

@@ -1,17 +1,64 @@
 <?php
 
-declare(strict_types=1);
-
+use App\Modules\Ledger\Console\Commands\GenerateOpenApi;
+use App\Modules\Ledger\Console\Commands\LedgerReconcile;
+use App\Modules\Ledger\Jobs\RetryCBSReportSubmission;
+use App\Modules\Ledger\Services\LedgerHealthCheck;
+use Illuminate\Foundation\Inspiring;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schedule;
 
-Schedule::command('ledger:close-daily')->dailyAt('23:55');
-Schedule::command('settlement:process-daily')->dailyAt('23:50');
-Schedule::command('savings:distribute-profits')->lastDayOfMonth('23:00');
-Schedule::command('savings:auto-sweep')->hourly();
-Schedule::command('fraud:refresh-cache')->hourly();
-Schedule::command('agent:refresh-liquidity')->everySixHours();
-Schedule::command('cleanup:expired-otps')->everyFiveMinutes();
-Schedule::command('cleanup:expired-sessions')->hourly();
-Schedule::command('fx:clean-expired-quotes')->everyFiveMinutes();
-Schedule::command('cleanup:expired-holds')->everyTenMinutes();
-Schedule::command('loyalty:recalculate-tiers')->daily();
+Artisan::command('inspire', function () {
+    $this->comment(Inspiring::quote());
+})->purpose('Display an inspiring quote');
+
+Schedule::command(LedgerReconcile::class, ['--type=reconciliation', '--scope=full', '--initiated-by=scheduler'])
+    ->dailyAt('00:30')
+    ->timezone('Asia/Damascus')
+    ->onSuccess(function () {
+        Log::channel('cfe')->info('Scheduled reconciliation completed successfully');
+    })
+    ->onFailure(function () {
+        Log::channel('cfe')->error('Scheduled reconciliation FAILED');
+    })
+    ->withoutOverlapping(60)
+    ->description('Daily ledger reconciliation');
+
+Schedule::command(LedgerReconcile::class, ['--type=cbs_trial_balance', '--scope=full', '--initiated-by=scheduler'])
+    ->dailyAt('01:00')
+    ->timezone('Asia/Damascus')
+    ->withoutOverlapping(30)
+    ->description('Daily CBS trial balance report');
+
+Schedule::command(LedgerReconcile::class, ['--type=cbs_balance_sheet', '--scope=full', '--initiated-by=scheduler'])
+    ->dailyAt('01:30')
+    ->timezone('Asia/Damascus')
+    ->withoutOverlapping(30)
+    ->description('Daily CBS balance sheet report');
+
+Schedule::command(LedgerReconcile::class, ['--type=cbs_income_statement', '--scope=full', '--initiated-by=scheduler'])
+    ->dailyAt('02:00')
+    ->timezone('Asia/Damascus')
+    ->withoutOverlapping(30)
+    ->description('Daily CBS income statement report');
+
+Schedule::call(function () {
+    $healthCheck = app(LedgerHealthCheck::class);
+    $result = $healthCheck->check();
+
+    if ($result['status'] !== 'healthy') {
+        Log::channel('cfe')->warning('Ledger health check degraded', [
+            'status' => $result['status'],
+            'summary' => $result['summary'],
+        ]);
+
+        $criticalDisc = $result['summary']['critical_discrepancies'] ?? 0;
+        if ($criticalDisc > 0) {
+            $notificationService = app(\App\Modules\Ledger\Services\NotificationService::class);
+            $notificationService->alertOpsTeam('Critical ledger discrepancies detected by health check', [
+                'critical_count' => $criticalDisc,
+            ]);
+        }
+    }
+})->everySixHours()->description('Ledger health check');

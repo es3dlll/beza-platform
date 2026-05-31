@@ -2,27 +2,27 @@
 
 declare(strict_types=1);
 
-namespace Modules\FX\Providers;
+namespace App\Modules\Fx\Providers;
 
-use Modules\FX\Repositories\FxRateRepository;
-use Modules\FX\Repositories\FxQuoteRepository;
-use Modules\FX\Repositories\FxConversionRepository;
-use Modules\FX\Services\FxRateService;
-use Modules\FX\Services\FxQuoteService;
-use Modules\FX\Services\FxConversionService;
+use App\Modules\Fx\Services\ConversionService;
+use App\Modules\Fx\Services\RateLockService;
+use App\Modules\Fx\Services\RateSyncService;
+use App\Modules\Fx\Services\SpreadService;
 use Illuminate\Support\ServiceProvider;
 
 final class FxServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton(FxRateRepository::class);
-        $this->app->singleton(FxQuoteRepository::class);
-        $this->app->singleton(FxConversionRepository::class);
-        $this->app->singleton(FxRateService::class);
-        $this->app->singleton(FxQuoteService::class);
-        $this->app->singleton(FxConversionService::class);
+        $this->app->singleton(RateLockService::class);
+        $this->app->singleton(SpreadService::class);
+        $this->app->singleton(RateSyncService::class);
+        $this->app->singleton(ConversionService::class);
     }
 
-    public function boot(): void {}
+    public function boot(): void
+    {
+        $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+        $this->loadRoutesFrom(__DIR__ . '/../Routes/api.php');
+    }
 }

@@ -4,46 +4,38 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Modules\FinancialCore\Models\IdempotencyKey;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 final class IdempotencyMiddleware
 {
-    private const TTL = 86400;
-
     public function handle(Request $request, Closure $next): mixed
     {
         if (!$request->isMethod('post') && !$request->isMethod('patch') && !$request->isMethod('put')) {
             return $next($request);
         }
 
-        $key = $request->header('Idempotency-Key') ?? $request->header('idempotency-key');
+        $key = $request->header('X-Idempotency-Key') ?? $request->input('idempotency_key');
 
-        if (!$key) {
+        if ($key === null) {
             return $next($request);
         }
 
-        $cacheKey = "idempotency:{$key}";
+        $existing = IdempotencyKey::where('key', $key)->first();
 
-        if (Cache::has($cacheKey)) {
-            $cached = Cache::get($cacheKey);
-            return response()->json(
-                $cached['response'],
-                $cached['status']
-            );
+        if ($existing !== null && $existing->response !== null) {
+            return new JsonResponse(['data' => $existing->response], 200);
         }
 
-        $response = $next($request);
-
-        if ($response->isSuccessful()) {
-            Cache::put($cacheKey, [
-                'response' => json_decode($response->getContent(), true),
-                'status' => $response->getStatusCode(),
-            ], self::TTL);
+        if ($existing === null) {
+            IdempotencyKey::create([
+                'key' => $key,
+                'expires_at' => now()->addHours(24),
+            ]);
         }
 
-        return $response;
+        return $next($request);
     }
 }

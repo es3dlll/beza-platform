@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Modules\Ledger\Database\Factories;
+namespace App\Modules\Ledger\Database\Factories;
 
+use App\Modules\Ledger\Models\LedgerAccount;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
-use Modules\Ledger\Models\LedgerAccount;
 
 final class LedgerAccountFactory extends Factory
 {
@@ -15,33 +15,14 @@ final class LedgerAccountFactory extends Factory
     public function definition(): array
     {
         return [
-            'id' => (string) Str::ulid(),
-            'account_number' => $this->faker->unique()->numerify('####-####'),
-            'name' => $this->faker->company,
-            'type' => $this->faker->randomElement(['asset', 'liability', 'equity', 'income', 'expense']),
-            'currency' => 'SYP',
+            'id' => Str::ulid()->toBase32(),
+            'code' => '9999',
+            'name' => fake()->company(),
+            'name_ar' => fake()->company(),
+            'type' => 'asset',
             'balance' => 0,
-            'available_balance' => 0,
-            'status' => 'active',
-            'metadata' => null,
+            'currency' => 'SYP',
+            'is_system' => false,
         ];
-    }
-
-    public function asset(): static
-    {
-        return $this->state(fn() => ['type' => 'asset']);
-    }
-
-    public function liability(): static
-    {
-        return $this->state(fn() => ['type' => 'liability']);
-    }
-
-    public function withBalance(int $amount): static
-    {
-        return $this->state(fn() => [
-            'balance' => $amount,
-            'available_balance' => $amount,
-        ]);
     }
 }

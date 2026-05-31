@@ -2,129 +2,110 @@
 
 declare(strict_types=1);
 
-namespace Modules\FX\Controllers;
+namespace App\Modules\Fx\Controllers;
 
-use App\Support\ApiResponse;
-use Modules\FX\DTOs\CreateFxRateDto;
-use Modules\FX\DTOs\GetQuoteDto;
-use Modules\FX\DTOs\ExecuteConversionDto;
-use Modules\FX\Http\Requests\CreateRateRequest;
-use Modules\FX\Http\Requests\GetQuoteRequest;
-use Modules\FX\Http\Requests\ExecuteConversionRequest;
-use Modules\FX\Services\FxRateService;
-use Modules\FX\Services\FxQuoteService;
-use Modules\FX\Services\FxConversionService;
+use App\Modules\Fx\Services\ConversionService;
+use App\Modules\Fx\Services\RateSyncService;
+use App\Modules\Fx\Services\SpreadService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 
-final class FxController
+final class FxController extends Controller
 {
-    use ApiResponse;
-
     public function __construct(
-        private readonly FxRateService $rates,
-        private readonly FxQuoteService $quotes,
-        private readonly FxConversionService $conversions,
+        private readonly ConversionService $conversionService,
+        private readonly RateSyncService $rateSyncService,
+        private readonly SpreadService $spreadService,
     ) {}
 
-    public function rates(): JsonResponse
+    public function convert(Request $request): JsonResponse
     {
-        return $this->respond($this->rates->getAllActive());
-    }
+        $validated = $request->validate([
+            'wallet_id' => 'required|string',
+            'amount' => 'required|integer|min:100',
+            'from_currency' => 'required|string|in:SYP,USD',
+            'to_currency' => 'required|string|in:SYP,USD|different:from_currency',
+            'kyc_tier' => 'sometimes|string|in:t0,t1,t2,t3',
+            'idempotency_key' => 'sometimes|string',
+            'description' => 'sometimes|string',
+            'description_ar' => 'sometimes|string',
+        ]);
 
-    public function rateHistory(string $base, string $quote): JsonResponse
-    {
-        try {
-            return $this->respond($this->rates->getRateHistory($base, $quote));
-        } catch (\Modules\FX\Exceptions\FxInvalidPairException $e) {
-            return $this->respondError('FX_INVALID_PAIR', $e->getMessage(), null, 400);
-        }
-    }
-
-    public function createRate(CreateRateRequest $request): JsonResponse
-    {
-        $dto = new CreateFxRateDto(
-            baseCurrency: $request->input('base_currency'),
-            quoteCurrency: $request->input('quote_currency'),
-            midRate: (float) $request->input('mid_rate'),
-            rateType: $request->input('rate_type'),
-            source: $request->input('source'),
-            spreadPct: $request->input('spread_pct') ? (float) $request->input('spread_pct') : null,
-            bidRate: $request->input('bid_rate') ? (float) $request->input('bid_rate') : null,
-            askRate: $request->input('ask_rate') ? (float) $request->input('ask_rate') : null,
-            validTo: $request->input('valid_to'),
+        $result = $this->conversionService->convert(
+            walletId: $validated['wallet_id'],
+            amount: (int) $validated['amount'],
+            fromCurrency: $validated['from_currency'],
+            toCurrency: $validated['to_currency'],
+            kycTier: $validated['kyc_tier'] ?? 't0',
+            idempotencyKey: $validated['idempotency_key'] ?? null,
+            description: $validated['description'] ?? null,
+            descriptionAr: $validated['description_ar'] ?? null,
         );
 
-        try {
-            $rate = $this->rates->create($dto);
-            return $this->respondCreated($rate, __('fx::messages.rate_created'));
-        } catch (\Modules\FX\Exceptions\FxInvalidPairException $e) {
-            return $this->respondError('FX_INVALID_PAIR', $e->getMessage(), null, 400);
-        }
+        return response()->json(['data' => $result], 201);
     }
 
-    public function getQuote(GetQuoteRequest $request): JsonResponse
+    public function rate(Request $request): JsonResponse
     {
-        $dto = new GetQuoteDto(
-            requestorId: $request->user()->id,
-            requestorType: 'wallet',
-            baseCurrency: $request->input('base_currency'),
-            quoteCurrency: $request->input('quote_currency'),
-            amount: (int) $request->input('amount'),
-            rateType: $request->input('rate_type', 'cbs_official'),
-            ttlSeconds: $request->input('ttl_seconds') ? (int) $request->input('ttl_seconds') : 60,
+        $validated = $request->validate([
+            'from_currency' => 'required|string|in:SYP,USD',
+            'to_currency' => 'required|string|in:SYP,USD',
+        ]);
+
+        $rate = $this->conversionService->getRate($validated['from_currency'], $validated['to_currency']);
+        return response()->json(['data' => $rate]);
+    }
+
+    public function updateRate(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'from_currency' => 'required|string|in:SYP,USD',
+            'to_currency' => 'required|string|in:SYP,USD',
+            'buy_rate' => 'required|integer|min:1',
+            'sell_rate' => 'required|integer|min:1',
+            'spread_bps' => 'sometimes|integer|min:0',
+            'ttl_minutes' => 'sometimes|integer|min:1|max:1440',
+        ]);
+
+        $rate = $this->rateSyncService->setManualRate(
+            baseCurrency: $validated['from_currency'],
+            quoteCurrency: $validated['to_currency'],
+            buyRate: (int) $validated['buy_rate'],
+            sellRate: (int) $validated['sell_rate'],
+            spreadBps: (int) ($validated['spread_bps'] ?? 0),
         );
 
-        try {
-            $quote = $this->quotes->generate($dto);
-            return $this->respond($quote, __('fx::messages.quote_generated'));
-        } catch (\Modules\FX\Exceptions\FxInvalidPairException $e) {
-            return $this->respondError('FX_INVALID_PAIR', $e->getMessage(), null, 400);
-        } catch (\Modules\FX\Exceptions\FxAmountBelowMinimumException $e) {
-            return $this->respondError('FX_AMOUNT_BELOW_MINIMUM', $e->getMessage(), null, 422);
-        } catch (\Modules\FX\Exceptions\FxRateUnavailableException $e) {
-            return $this->respondError('FX_RATE_UNAVAILABLE', $e->getMessage(), null, 503);
-        } catch (\Modules\FX\Exceptions\FxRateStaleException $e) {
-            return $this->respondError('FX_RATE_STALE', $e->getMessage(), null, 503);
-        }
+        return response()->json(['data' => $rate], 201);
     }
 
-    public function executeConversion(ExecuteConversionRequest $request): JsonResponse
+    public function spread(Request $request): JsonResponse
     {
-        $dto = new ExecuteConversionDto(
-            quoteId: $request->input('quote_id'),
-            fromWalletId: $request->input('from_wallet_id'),
-            toWalletId: $request->input('to_wallet_id'),
+        $validated = $request->validate([
+            'amount' => 'required|integer|min:1',
+            'kyc_tier' => 'sometimes|string|in:t0,t1,t2,t3',
+        ]);
+
+        $bps = $this->spreadService->calculateSpreadBps(
+            amount: (int) $validated['amount'],
+            kycTier: $validated['kyc_tier'] ?? 't0',
         );
 
-        try {
-            $conversion = $this->conversions->execute($dto);
-            return $this->respond($conversion, __('fx::messages.conversion_completed'));
-        } catch (\Modules\FX\Exceptions\FxRateExpiredException $e) {
-            return $this->respondError('FX_RATE_EXPIRED', $e->getMessage(), null, 422);
-        } catch (\Modules\FX\Exceptions\FxRateLockContentionException $e) {
-            return $this->respondError('FX_RATE_LOCK_CONTENTION', $e->getMessage(), null, 409);
-        } catch (\Modules\FX\Exceptions\FxAmountExceedsLimitException $e) {
-            return $this->respondError('FX_AMOUNT_EXCEEDS_LIMIT', $e->getMessage(), null, 422);
-        }
+        return response()->json(['data' => ['spread_bps' => $bps]]);
     }
 
-    public function quoteHistory(): JsonResponse
+    public function history(Request $request): JsonResponse
     {
-        $history = $this->quotes->getHistory(request()->user()->id, 'wallet');
-        return $this->respond($history);
-    }
+        $validated = $request->validate([
+            'wallet_id' => 'required|string',
+            'per_page' => 'sometimes|integer|min:1|max:100',
+        ]);
 
-    public function conversionHistory(string $walletId): JsonResponse
-    {
-        return $this->respond($this->conversions->getWalletConversions($walletId));
-    }
-
-    public function showConversion(string $id): JsonResponse
-    {
-        $conversion = $this->conversions->getConversion($id);
-        if (!$conversion) {
-            return $this->respondError('FX_NOT_FOUND', 'Conversion not found', null, 404);
-        }
-        return $this->respond($conversion);
+        return response()->json([
+            'data' => $this->conversionService->getHistory(
+                $validated['wallet_id'],
+                (int) ($validated['per_page'] ?? 15),
+            ),
+        ]);
     }
 }

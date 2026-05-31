@@ -1,14 +1,19 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Modules\Ledger\Exceptions;
+namespace App\Modules\Ledger\Exceptions;
 
-use Exception;
-
-final class AccountNotFoundException extends Exception
+final class AccountNotFoundException extends LedgerException
 {
-    public function __construct(string $accountId)
+    public function __construct(string $identifier, ?\Throwable $previous = null)
     {
-        parent::__construct("Ledger account not found: $accountId");
+        parent::__construct(
+            message: "Account not found: {$identifier}",
+            code: self::LEDGER_ACCOUNT_NOT_FOUND,
+            previous: $previous,
+        );
     }
+
+    public const LEDGER_ACCOUNT_NOT_FOUND = 1001;
 }

@@ -2,54 +2,97 @@
 
 declare(strict_types=1);
 
-namespace Modules\Agent\Models;
+namespace App\Modules\Agent\Models;
 
+use App\Modules\Agent\Database\Factories\AgentFactory;
+use App\Modules\Identity\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 final class Agent extends Model
 {
-    protected $table = 'agents';
+    use HasFactory, SoftDeletes;
+
+    protected $attributes = [
+        'kyc_tier' => 't0',
+        'status' => 'pending',
+        'is_verified' => false,
+    ];
 
     protected $fillable = [
-        'id', 'user_id', 'business_name', 'trade_license', 'agent_type',
-        'status', 'governorate', 'city', 'area', 'address',
-        'latitude', 'longitude',
-        'daily_cash_in_limit', 'daily_cash_out_limit',
-        'max_commission_per_txn', 'commission_rate',
-        'wallet_id', 'phone', 'alt_phone', 'metadata',
-        'coverage_radius', 'liquidity_score',
-        'approved_at', 'approved_by',
+        'user_id', 'phone', 'name', 'name_ar', 'kyc_tier', 'status',
+        'id_type', 'id_number', 'is_verified', 'verified_at',
+        'gps_lat', 'gps_lng', 'address', 'address_ar',
     ];
 
     protected $casts = [
-        'latitude' => 'float',
-        'longitude' => 'float',
-        'daily_cash_in_limit' => 'integer',
-        'daily_cash_out_limit' => 'integer',
-        'max_commission_per_txn' => 'integer',
-        'commission_rate' => 'float',
-        'coverage_radius' => 'integer',
-        'liquidity_score' => 'integer',
-        'approved_at' => 'datetime',
-        'metadata' => 'json',
+        'is_verified' => 'boolean',
+        'verified_at' => 'datetime',
+        'gps_lat' => 'decimal:7',
+        'gps_lng' => 'decimal:7',
     ];
 
     public $incrementing = false;
     protected $keyType = 'string';
 
-    public function transactions(): HasMany
+    protected static function boot(): void
+    {
+        parent::boot();
+        static::creating(static function (self $model): void {
+            if (empty($model->id)) {
+                $model->id = Str::ulid()->toBase32();
+            }
+        });
+    }
+
+    protected static function newFactory(): AgentFactory
+    {
+        return AgentFactory::new();
+    }
+
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function wallet(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(AgentWallet::class, 'agent_id');
+    }
+
+    public function wallets(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(AgentWallet::class, 'agent_id');
+    }
+
+    public function transactions(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(AgentTransaction::class, 'agent_id');
     }
 
-    public function isApproved(): bool
+    public function settlements(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->status === 'approved';
+        return $this->hasMany(Settlement::class, 'agent_id');
     }
 
     public function isActive(): bool
     {
-        return in_array($this->status, ['approved', 'active'], true);
+        return $this->status === 'active';
+    }
+
+    public function canTransact(): bool
+    {
+        return in_array($this->status, ['active'], true) && $this->is_verified;
+    }
+
+    public function dailyLimitRemaining(): int
+    {
+        $wallet = $this->wallet;
+        if ($wallet === null) {
+            return 0;
+        }
+        return $wallet->daily_limit - $wallet->daily_used;
     }
 }

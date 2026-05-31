@@ -2,33 +2,66 @@
 
 declare(strict_types=1);
 
-namespace Modules\Agent\Models;
+namespace App\Modules\Agent\Models;
 
+use App\Modules\Agent\Database\Factories\AgentTransactionFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 final class AgentTransaction extends Model
 {
+    use HasFactory;
+
     protected $table = 'agent_transactions';
 
     protected $fillable = [
-        'id', 'agent_id', 'user_wallet_id', 'type', 'amount',
-        'fee', 'commission', 'currency', 'cfe_transaction_id',
-        'status', 'reference_id', 'idempotency_key', 'metadata',
+        'agent_id', 'type', 'status', 'customer_wallet_id', 'customer_phone',
+        'customer_name', 'amount', 'currency', 'fee', 'commission_amount',
+        'commission_rate_bps', 'settlement_date', 'idempotency_key',
+        'transaction_id', 'description', 'description_ar', 'location_lat', 'location_lng',
     ];
 
     protected $casts = [
         'amount' => 'integer',
         'fee' => 'integer',
-        'commission' => 'integer',
-        'metadata' => 'json',
+        'commission_amount' => 'integer',
+        'commission_rate_bps' => 'integer',
+        'location_lat' => 'decimal:7',
+        'location_lng' => 'decimal:7',
+        'settlement_date' => 'date',
     ];
 
     public $incrementing = false;
     protected $keyType = 'string';
 
-    public function agent(): BelongsTo
+    protected static function boot(): void
     {
-        return $this->belongsTo(Agent::class, 'agent_id');
+        parent::boot();
+        static::creating(static function (self $model): void {
+            if (empty($model->id)) {
+                $model->id = Str::ulid()->toBase32();
+            }
+        });
+    }
+
+    protected static function newFactory(): AgentTransactionFactory
+    {
+        return AgentTransactionFactory::new();
+    }
+
+    public function agent(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Agent::class);
+    }
+
+    public function isCashIn(): bool
+    {
+        return $this->type === 'cash_in';
+    }
+
+    public function isCashOut(): bool
+    {
+        return $this->type === 'cash_out';
     }
 }

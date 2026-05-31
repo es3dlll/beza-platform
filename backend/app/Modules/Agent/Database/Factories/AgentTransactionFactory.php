@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Modules\Agent\Database\Factories;
+namespace App\Modules\Agent\Database\Factories;
 
+use App\Modules\Agent\Models\AgentTransaction;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
-use Modules\Agent\Models\AgentTransaction;
 
 final class AgentTransactionFactory extends Factory
 {
@@ -15,17 +15,16 @@ final class AgentTransactionFactory extends Factory
     public function definition(): array
     {
         return [
-            'id' => (string) Str::ulid(),
-            'agent_id' => (string) Str::ulid(),
-            'wallet_id' => (string) Str::ulid(),
-            'type' => $this->faker->randomElement(['cash_in', 'cash_out', 'commission']),
-            'amount' => $this->faker->numberBetween(1000, 5000000),
-            'currency' => 'SYP',
-            'fee' => 0,
-            'reference' => (string) Str::ulid(),
-            'description' => $this->faker->sentence,
+            'id' => Str::ulid()->toBase32(),
+            'agent_id' => Str::ulid()->toBase32(),
+            'type' => 'cash_in',
             'status' => 'completed',
-            'metadata' => null,
+            'customer_wallet_id' => Str::ulid()->toBase32(),
+            'customer_phone' => '9639' . fake()->numerify('#######'),
+            'amount' => 100000,
+            'currency' => 'SYP',
+            'commission_amount' => 1000,
+            'commission_rate_bps' => 100,
         ];
     }
 }

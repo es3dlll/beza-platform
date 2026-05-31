@@ -1,94 +1,88 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Modules\Ledger\Services;
+namespace App\Modules\Ledger\Services;
 
-use App\Domain\ValueObjects\Money;
-use Modules\Ledger\DTOs\CreateAccountDto;
-use Modules\Ledger\Events\AccountBalanceChanged;
-use Modules\Ledger\Exceptions\AccountAlreadyExistsException;
-use Modules\Ledger\Exceptions\AccountNotFoundException;
-use Modules\Ledger\Models\LedgerAccount;
-use Modules\Ledger\Repositories\LedgerAccountRepository;
-use Modules\Ledger\Repositories\LedgerHoldRepository;
+use App\Modules\Ledger\Events\AccountBalanceChanged;
+use App\Modules\Ledger\Exceptions\AccountNotFoundException;
+use App\Modules\Ledger\Models\LedgerAccount;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 
-final class AccountService implements \Modules\Ledger\Contracts\AccountServiceInterface
+final class AccountService
 {
-    public function __construct(
-        private readonly LedgerAccountRepository $accounts,
-        private readonly LedgerHoldRepository $holds,
-    ) {}
+    public function createAccount(
+        string $code,
+        string $name,
+        string $nameAr,
+        string $type,
+        string $currency = 'SYP',
+        bool $isSystem = false,
+    ): LedgerAccount {
+        return LedgerAccount::create([
+            'id' => Str::ulid()->toBase32(),
+            'code' => $code,
+            'name' => $name,
+            'name_ar' => $nameAr,
+            'type' => $type,
+            'balance' => 0,
+            'currency' => $currency,
+            'is_system' => $isSystem,
+        ]);
+    }
 
-    public function create(CreateAccountDto $dto): LedgerAccount
+    public function getAccount(string $id): LedgerAccount
     {
-        if ($this->accounts->findByAccountNumber($dto->accountNumber)) {
-            throw new AccountAlreadyExistsException($dto->accountNumber);
+        return LedgerAccount::find($id) ?? throw new AccountNotFoundException($id);
+    }
+
+    public function getAccountByCode(string $code): LedgerAccount
+    {
+        return LedgerAccount::where('code', $code)->first() ?? throw new AccountNotFoundException($code);
+    }
+
+    public function listAccounts(?string $type = null): Collection
+    {
+        $query = LedgerAccount::orderBy('code');
+
+        if ($type !== null) {
+            $query->where('type', $type);
         }
 
-        $account = new LedgerAccount();
-        $account->id = Str::ulid()->toBase32();
-        $account->account_number = $dto->accountNumber;
-        $account->name = $dto->name;
-        $account->type = $dto->type;
-        $account->currency = $dto->currency;
-        $account->parent_id = $dto->parentId;
-        $account->metadata = $dto->metadata;
-        $account->balance = 0;
-        $account->available_balance = 0;
-
-        return $this->accounts->save($account);
+        return $query->get();
     }
 
-    public function getBalance(string $accountId): Money
+    public function getChartOfAccounts(): Collection
     {
-        $account = $this->findOrFail($accountId);
-        return Money::fromInt($account->balance, \App\Domain\ValueObjects\Currency::fromCode($account->currency));
+        return LedgerAccount::orderBy('code')->get();
     }
 
-    public function getAvailableBalance(string $accountId): Money
+    public function updateBalance(string $accountId, int $delta, string $direction, string $transactionId = ''): void
     {
-        $account = $this->findOrFail($accountId);
-        $activeHolds = $this->holds->totalHeldAmount($accountId);
-        $available = $account->balance - $activeHolds;
-        return Money::fromInt(max(0, $available), \App\Domain\ValueObjects\Currency::fromCode($account->currency));
-    }
-
-    public function adjustBalance(string $accountId, int $amount, string $direction, string $journalEntryId): LedgerAccount
-    {
-        $account = $this->findOrFail($accountId);
+        $account = $this->getAccount($accountId);
         $previousBalance = $account->balance;
 
-        if ($direction === 'debit') {
-            $account->debit($amount);
-        } else {
-            $account->credit($amount);
-        }
-        $account->refresh();
+        $increaseTypes = match ($direction) {
+            'debit' => ['asset', 'expense'],
+            'credit' => ['liability', 'equity', 'revenue'],
+        };
 
-        $account->available_balance = max(0, $account->balance - $this->holds->totalHeldAmount($accountId));
-        $this->accounts->save($account);
+        $isIncrease = in_array($account->type, $increaseTypes, true);
+
+        $newBalance = $isIncrease
+            ? $account->balance + $delta
+            : $account->balance - $delta;
+
+        $account->update(['balance' => $newBalance]);
 
         event(new AccountBalanceChanged(
             accountId: $accountId,
-            accountNumber: $account->account_number,
             previousBalance: $previousBalance,
-            newBalance: $account->balance,
-            change: $amount,
+            newBalance: $newBalance,
+            delta: $delta,
             direction: $direction,
-            currency: $account->currency,
-            journalEntryId: $journalEntryId,
+            transactionId: $transactionId,
         ));
-
-        return $account;
-    }
-
-    private function findOrFail(string $accountId): LedgerAccount
-    {
-        $account = $this->accounts->findById($accountId);
-        if (!$account) {
-            throw new AccountNotFoundException($accountId);
-        }
-        return $account;
     }
 }

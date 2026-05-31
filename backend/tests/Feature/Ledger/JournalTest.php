@@ -4,132 +4,120 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Ledger;
 
+use App\Modules\Ledger\Exceptions\ImbalancedJournalException;
+use App\Modules\Ledger\Models\LedgerAccount;
+use App\Modules\Ledger\Services\AccountService;
+use App\Modules\Ledger\Services\JournalService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Modules\Ledger\Models\LedgerAccount;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 final class JournalTest extends TestCase
 {
     use RefreshDatabase;
 
-    private string $assetId;
-    private string $liabilityId;
-    private string $incomeId;
+    private JournalService $journal;
+    private LedgerAccount $assetAccount;
+    private LedgerAccount $revenueAccount;
+    private LedgerAccount $liabilityAccount;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->authenticateUser();
+        $this->journal = $this->app->make(JournalService::class);
+        $accounts = $this->app->make(AccountService::class);
 
-        $this->assetId = LedgerAccount::create([
-            'id' => '01AR123456789012345678a1',
-            'account_number' => '1000-TEST',
-            'name' => 'Test Asset',
-            'type' => 'asset',
-            'currency' => 'SYP',
-            'balance' => 1000000,
-            'available_balance' => 1000000,
-        ])->id;
-
-        $this->liabilityId = LedgerAccount::create([
-            'id' => '01AR123456789012345678a2',
-            'account_number' => '2000-TEST',
-            'name' => 'Test Liability',
-            'type' => 'liability',
-            'currency' => 'SYP',
-            'balance' => 0,
-            'available_balance' => 0,
-        ])->id;
-
-        $this->incomeId = LedgerAccount::create([
-            'id' => '01AR123456789012345678a3',
-            'account_number' => '4000-TEST',
-            'name' => 'Test Income',
-            'type' => 'income',
-            'currency' => 'SYP',
-            'balance' => 0,
-            'available_balance' => 0,
-        ])->id;
+        $this->assetAccount = $accounts->createAccount('1100', 'Cash', 'نقد', 'asset');
+        $this->revenueAccount = $accounts->createAccount('4100', 'Revenue', 'إيراد', 'revenue');
+        $this->liabilityAccount = $accounts->createAccount('2100', 'Payable', 'مستحق', 'liability');
     }
 
-    public function test_can_post_balanced_journal_entry(): void
+    public function test_can_post_entry(): void
     {
-        $response = $this->postJson('/api/v1/ledger/journal/entries', [
-            'reference_type' => 'test',
-            'reference_id' => 'txn-001',
-            'description' => 'Test entry',
-            'lines' => [
-                [
-                    'account_id' => $this->assetId,
-                    'amount' => 50000,
-                    'type' => 'debit',
-                    'description' => 'Dr test',
-                ],
-                [
-                    'account_id' => $this->liabilityId,
-                    'amount' => 50000,
-                    'type' => 'credit',
-                    'description' => 'Cr test',
-                ],
+        $entry = $this->journal->postEntry(
+            transactionId: Str::ulid()->toBase32(),
+            debits: [
+                ['account_id' => $this->assetAccount->id, 'amount' => 50000],
             ],
-        ]);
+            credits: [
+                ['account_id' => $this->revenueAccount->id, 'amount' => 50000],
+            ],
+            description: 'Test transaction',
+            descriptionAr: 'عملية تجريبية',
+        );
 
-        $response->assertStatus(201)
-            ->assertJsonPath('data.total_amount', 50000);
+        $this->assertNotNull($entry->id);
+        $this->assertNotNull($entry->hash);
+        $this->assertCount(2, $entry->lines);
+
+        $this->assertEquals(50000, $this->assetAccount->fresh()->balance);
+        $this->assertEquals(50000, $this->revenueAccount->fresh()->balance);
     }
 
-    public function test_rejects_unbalanced_entry(): void
+    public function test_rejects_imbalanced_entry(): void
     {
-        $response = $this->postJson('/api/v1/ledger/journal/entries', [
-            'reference_type' => 'test',
-            'reference_id' => 'txn-002',
-            'description' => 'Unbalanced entry',
-            'lines' => [
-                [
-                    'account_id' => $this->assetId,
-                    'amount' => 50000,
-                    'type' => 'debit',
-                ],
-            ],
-        ]);
+        $this->expectException(ImbalancedJournalException::class);
 
-        $response->assertStatus(422);
+        $this->journal->postEntry(
+            transactionId: Str::ulid()->toBase32(),
+            debits: [
+                ['account_id' => $this->assetAccount->id, 'amount' => 50000],
+            ],
+            credits: [
+                ['account_id' => $this->revenueAccount->id, 'amount' => 30000],
+            ],
+        );
     }
 
-    public function test_updates_account_balances_after_posting(): void
+    public function test_can_get_entry(): void
     {
-        $this->postJson('/api/v1/ledger/journal/entries', [
-            'reference_type' => 'test',
-            'reference_id' => 'txn-003',
-            'description' => 'Balance update test',
-            'lines' => [
-                ['account_id' => $this->assetId, 'amount' => 20000, 'type' => 'debit'],
-                ['account_id' => $this->liabilityId, 'amount' => 20000, 'type' => 'credit'],
+        $entry = $this->journal->postEntry(
+            transactionId: Str::ulid()->toBase32(),
+            debits: [
+                ['account_id' => $this->assetAccount->id, 'amount' => 10000],
             ],
-        ]);
+            credits: [
+                ['account_id' => $this->revenueAccount->id, 'amount' => 10000],
+            ],
+        );
 
-        $asset = LedgerAccount::find($this->assetId);
-        $liability = LedgerAccount::find($this->liabilityId);
-
-        $this->assertEquals(1020000, $asset->balance);
-        $this->assertEquals(20000, $liability->balance);
+        $fetched = $this->journal->getEntry($entry->id);
+        $this->assertEquals($entry->id, $fetched->id);
+        $this->assertCount(2, $fetched->lines);
     }
 
-    public function test_can_lookup_entry_by_reference(): void
+    public function test_can_get_account_balance(): void
     {
-        $this->postJson('/api/v1/ledger/journal/entries', [
-            'reference_type' => 'test',
-            'reference_id' => 'txn-ref-001',
-            'description' => 'Reference lookup test',
-            'lines' => [
-                ['account_id' => $this->assetId, 'amount' => 10000, 'type' => 'debit'],
-                ['account_id' => $this->liabilityId, 'amount' => 10000, 'type' => 'credit'],
+        $this->journal->postEntry(
+            transactionId: Str::ulid()->toBase32(),
+            debits: [
+                ['account_id' => $this->assetAccount->id, 'amount' => 25000],
             ],
-        ]);
+            credits: [
+                ['account_id' => $this->liabilityAccount->id, 'amount' => 25000],
+            ],
+        );
 
-        $response = $this->getJson('/api/v1/ledger/journal/reference/test/txn-ref-001');
+        $this->assertEquals(25000, $this->journal->getAccountBalance($this->assetAccount->id));
+        $this->assertEquals(25000, $this->journal->getAccountBalance($this->liabilityAccount->id));
+    }
 
-        $response->assertStatus(200)
-            ->assertJsonCount(1, 'data');
+    public function test_multi_line_entry(): void
+    {
+        $entry = $this->journal->postEntry(
+            transactionId: Str::ulid()->toBase32(),
+            debits: [
+                ['account_id' => $this->assetAccount->id, 'amount' => 75000],
+            ],
+            credits: [
+                ['account_id' => $this->revenueAccount->id, 'amount' => 50000],
+                ['account_id' => $this->liabilityAccount->id, 'amount' => 25000],
+            ],
+        );
+
+        $this->assertCount(3, $entry->lines);
+        $this->assertEquals(75000, $this->assetAccount->fresh()->balance);
+        $this->assertEquals(50000, $this->revenueAccount->fresh()->balance);
+        $this->assertEquals(25000, $this->liabilityAccount->fresh()->balance);
     }
 }

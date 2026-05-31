@@ -2,14 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Modules\Agent\Exceptions;
+namespace App\Modules\Agent\Exceptions;
 
-use Exception;
-
-final class AgentNotFoundException extends Exception
+final class AgentNotFoundException extends AgentException
 {
-    public function __construct(string $agentId)
+    public function __construct(string $message = 'Agent not found', int $code = 4001)
     {
-        parent::__construct("Agent not found: $agentId");
+        parent::__construct($message, $code);
     }
 }

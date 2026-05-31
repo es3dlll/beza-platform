@@ -1,21 +1,22 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Modules\Ledger\Events;
+namespace App\Modules\Ledger\Events;
 
+use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
-final class JournalEntryPosted
+final class JournalEntryPosted implements ShouldDispatchAfterCommit
 {
-    use Dispatchable, SerializesModels;
+    use Dispatchable;
 
     public function __construct(
-        public readonly string $journalEntryId,
-        public readonly string $referenceType,
-        public readonly string $referenceId,
-        public readonly int $totalAmount,
-        public readonly string $currency,
-        public readonly \DateTimeInterface $postedAt,
+        public string $entryId,
+        public string $transactionId,
+        public array $lines,
+        public int $totalDebit,
+        public int $totalCredit,
+        public string $hash,
     ) {}
 }

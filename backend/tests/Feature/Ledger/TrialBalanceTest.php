@@ -4,67 +4,97 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Ledger;
 
+use App\Modules\Ledger\Models\LedgerAccount;
+use App\Modules\Ledger\Services\AccountService;
+use App\Modules\Ledger\Services\JournalService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Modules\Ledger\Models\LedgerAccount;
-use Modules\Ledger\Services\TrialBalanceService;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 final class TrialBalanceTest extends TestCase
 {
     use RefreshDatabase;
 
+    private JournalService $journal;
+    private AccountService $accounts;
+    private LedgerAccount $cash;
+    private LedgerAccount $receivable;
+    private LedgerAccount $payable;
+    private LedgerAccount $revenue;
+    private LedgerAccount $expense;
+
     protected function setUp(): void
     {
         parent::setUp();
-        $this->authenticateUser();
+        $this->journal = $this->app->make(JournalService::class);
+        $this->accounts = $this->app->make(AccountService::class);
 
-        LedgerAccount::create([
-            'id' => '01AR123456789012345678t1',
-            'account_number' => '1000-TB',
-            'name' => 'TB Asset',
-            'type' => 'asset',
-            'currency' => 'SYP',
-            'balance' => 100000,
-            'available_balance' => 100000,
-        ]);
-
-        LedgerAccount::create([
-            'id' => '01AR123456789012345678t2',
-            'account_number' => '2000-TB',
-            'name' => 'TB Liability',
-            'type' => 'liability',
-            'currency' => 'SYP',
-            'balance' => 100000,
-            'available_balance' => 100000,
-        ]);
-
-        LedgerAccount::create([
-            'id' => '01AR123456789012345678t3',
-            'account_number' => '3000-TB',
-            'name' => 'TB Equity',
-            'type' => 'equity',
-            'currency' => 'SYP',
-            'balance' => 0,
-            'available_balance' => 0,
-        ]);
+        $this->cash = $this->accounts->createAccount('1100', 'Cash', 'نقد', 'asset');
+        $this->receivable = $this->accounts->createAccount('1200', 'Receivable', 'ذمم مدينة', 'asset');
+        $this->payable = $this->accounts->createAccount('2100', 'Payable', 'مستحق', 'liability');
+        $this->revenue = $this->accounts->createAccount('4100', 'Revenue', 'إيراد', 'revenue');
+        $this->expense = $this->accounts->createAccount('5100', 'Expense', 'مصروف', 'expense');
     }
 
-    public function test_trial_balance_generates_correctly(): void
+    public function test_trial_balance_returns_correct_balances(): void
     {
-        $service = $this->app->make(TrialBalanceService::class);
-        $result = $service->generate();
+        $this->journal->postEntry(
+            transactionId: Str::ulid()->toBase32(),
+            debits: [
+                ['account_id' => $this->cash->id, 'amount' => 100000],
+            ],
+            credits: [
+                ['account_id' => $this->revenue->id, 'amount' => 100000],
+            ],
+        );
 
-        $this->assertCount(3, $result['rows']);
-        $this->assertTrue($result['totals']['balanced']);
-        $this->assertEquals(100000, $result['totals']['debit']);
-        $this->assertEquals(100000, $result['totals']['credit']);
+        $this->journal->postEntry(
+            transactionId: Str::ulid()->toBase32(),
+            debits: [
+                ['account_id' => $this->expense->id, 'amount' => 30000],
+            ],
+            credits: [
+                ['account_id' => $this->cash->id, 'amount' => 30000],
+            ],
+        );
+
+        $trialBalance = $this->journal->getTrialBalance();
+
+        $this->assertEquals(70000, $trialBalance->firstWhere('code', '1100')['balance']);
+        $this->assertEquals(0, $trialBalance->firstWhere('code', '1200')['balance']);
+        $this->assertEquals(0, $trialBalance->firstWhere('code', '2100')['balance']);
+        $this->assertEquals(100000, $trialBalance->firstWhere('code', '4100')['balance']);
+        $this->assertEquals(30000, $trialBalance->firstWhere('code', '5100')['balance']);
     }
 
-    public function test_trial_balance_api_returns_data(): void
+    public function test_trial_balance_normal_balance_direction(): void
     {
-        $response = $this->getJson('/api/v1/ledger/trial-balance');
+        $trialBalance = $this->journal->getTrialBalance();
 
-        $response->assertStatus(200)
-            ->assertJsonStructure(['data' => ['rows', 'totals', 'generated_at']]);
+        $this->assertEquals('debit', $trialBalance->firstWhere('code', '1100')['normal_balance']);
+        $this->assertEquals('credit', $trialBalance->firstWhere('code', '2100')['normal_balance']);
+        $this->assertEquals('credit', $trialBalance->firstWhere('code', '4100')['normal_balance']);
+        $this->assertEquals('debit', $trialBalance->firstWhere('code', '5100')['normal_balance']);
+    }
+
+    public function test_trial_balance_total_debits_equals_total_credits(): void
+    {
+        $this->journal->postEntry(
+            transactionId: Str::ulid()->toBase32(),
+            debits: [
+                ['account_id' => $this->cash->id, 'amount' => 50000],
+                ['account_id' => $this->expense->id, 'amount' => 20000],
+            ],
+            credits: [
+                ['account_id' => $this->revenue->id, 'amount' => 70000],
+            ],
+        );
+
+        $tb = $this->journal->getTrialBalance();
+
+        $normalDebitSum = collect($tb)->where('normal_balance', 'debit')->sum('balance');
+        $normalCreditSum = collect($tb)->where('normal_balance', 'credit')->sum('balance');
+
+        $this->assertEquals($normalCreditSum, $normalDebitSum);
     }
 }

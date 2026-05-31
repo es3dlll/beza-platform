@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\FX\Events;
+namespace App\Modules\Fx\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
 
@@ -11,10 +11,11 @@ final class FxRateUpdated
     use Dispatchable;
 
     public function __construct(
-        public readonly string $rateId,
+        public readonly string $rateSourceId,
         public readonly string $baseCurrency,
         public readonly string $quoteCurrency,
-        public readonly float $midRate,
-        public readonly string $rateType,
+        public readonly int $buyRate,
+        public readonly int $sellRate,
+        public readonly int $spreadBps,
     ) {}
 }

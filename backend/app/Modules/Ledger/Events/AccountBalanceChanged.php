@@ -1,23 +1,22 @@
 <?php
+
 declare(strict_types=1);
 
-namespace Modules\Ledger\Events;
+namespace App\Modules\Ledger\Events;
 
+use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
-final class AccountBalanceChanged
+final class AccountBalanceChanged implements ShouldDispatchAfterCommit
 {
-    use Dispatchable, SerializesModels;
+    use Dispatchable;
 
     public function __construct(
-        public readonly string $accountId,
-        public readonly string $accountNumber,
-        public readonly int $previousBalance,
-        public readonly int $newBalance,
-        public readonly int $change,
-        public readonly string $direction,
-        public readonly string $currency,
-        public readonly string $journalEntryId,
+        public string $accountId,
+        public int $previousBalance,
+        public int $newBalance,
+        public int $delta,
+        public string $direction,
+        public string $transactionId,
     ) {}
 }

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Modules\Ledger\Database\Factories;
+namespace App\Modules\Ledger\Database\Factories;
 
+use App\Modules\Ledger\Models\JournalLine;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
-use Modules\Ledger\Models\JournalLine;
 
 final class JournalLineFactory extends Factory
 {
@@ -15,13 +15,10 @@ final class JournalLineFactory extends Factory
     public function definition(): array
     {
         return [
-            'id' => (string) Str::ulid(),
-            'journal_entry_id' => (string) Str::ulid(),
-            'account_id' => (string) Str::ulid(),
-            'amount' => $this->faker->numberBetween(100, 10000000),
-            'type' => $this->faker->randomElement(['debit', 'credit']),
+            'id' => Str::ulid()->toBase32(),
+            'type' => fake()->randomElement(['debit', 'credit']),
+            'amount' => fake()->numberBetween(100, 100000),
             'currency' => 'SYP',
-            'description' => $this->faker->sentence,
         ];
     }
 }
