@@ -9,6 +9,9 @@
 /backend/bootstrap/cache/*
 /backend/var/
 
+# Beta env
+/backend/.env.beta
+
 # Laravel Logs
 *.log
 

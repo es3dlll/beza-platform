@@ -1,0 +1,134 @@
+.fc-fab {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #1a56db;
+  color: #fff;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  z-index: 999;
+  transition: transform 0.2s;
+}
+.fc-fab:hover { transform: scale(1.1); }
+
+.fc-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.fc-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  direction: rtl;
+  font-family: system-ui, sans-serif;
+}
+
+.fc-close {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
+
+.fc-card h3 { margin-top: 0; color: #1a1a1a; }
+
+.fc-card label {
+  display: block;
+  margin-top: 12px;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.fc-card select,
+.fc-card textarea,
+.fc-card input[type="file"] {
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.fc-card textarea { resize: vertical; }
+
+.fc-card small {
+  display: block;
+  text-align: left;
+  color: #999;
+  font-size: 12px;
+}
+
+.fc-stars {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.fc-stars span {
+  font-size: 28px;
+  color: #ddd;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.fc-stars .fc-star-active { color: #f59e0b; }
+
+.fc-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400 !important;
+}
+.fc-checkbox input { width: auto; }
+
+.fc-btn {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px;
+  background: #1a56db;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+.fc-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.fc-error {
+  margin-top: 8px;
+  padding: 8px;
+  background: #fef2f2;
+  color: #dc2626;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.fc-thanks { text-align: center; }
+.fc-thanks-icon {
+  font-size: 48px;
+  color: #16a34a;
+  margin-bottom: 8px;
+}

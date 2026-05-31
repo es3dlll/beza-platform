@@ -65,6 +65,19 @@ Schedule::call(function () {
 })->everySixHours()->description('Ledger health check');
 
 Schedule::call(function () {
+    $orchestrator = app(\App\Modules\Core\Services\CacheOrchestrator::class);
+    $dashboardData = $orchestrator->cacheAside('dashboard', 'summary', 300, function () {
+        return [];
+    });
+    $alerting = app(\App\Modules\Ledger\Services\AlertingService::class);
+})->everySixHours()->description('Beta monitoring check (placeholder)');
+
+Schedule::command(\App\Modules\Core\Console\Commands\GenerateBetaWeeklyReport::class)
+    ->weeklyOn(1, '09:00')
+    ->timezone('Asia/Damascus')
+    ->description('Generate weekly beta feedback report');
+
+Schedule::call(function () {
     $newFeedback = Feedback::query()
         ->where('module', 'ledger')
         ->where('status', 'new')
