@@ -8,6 +8,7 @@
 | `releases/DEPLOYMENT_PRODUCTION_v1.0.0.md` | دليل النشر للإنتاج v1.0.0 |
 | `releases/PUBLIC_RELEASE_PLAN_v1.1.0.md` | خطة الإطلاق العامة v1.1.0 |
 | `releases/BETA_RELEASE_CHECKLIST_v1.1.0.md` | قائمة تدقيق الإصدار التجريبي |
+| `releases/RELEASE_NOTES_v1.1.0-beta.md` | ملاحظات الإطلاق التجريبي — الميزات، التغييرات، متطلبات الترقية |
 
 ## كتيبات الطوارئ (Runbooks)
 
@@ -18,6 +19,8 @@
 | `runbooks/03-settlement-failure.md` | فشل التسوية اليومية |
 | `runbooks/04-ledger-incident.md` | حوادث دفتر الأستاذ المالي |
 | `runbooks/05-aml-backlog.md` | تراكم طابور فحص AML |
+| `RUNBOOK.md` | دليل التشغيل التشغيلي الشامل — مراقبة، نسخ، طوارئ، صيانة |
+| `FEEDBACK_FORM.md` | نموذج جمع الملاحظات للمستخدمين الأوائل |
 
 ## رحلات المستخدم (User Journeys)
 
@@ -60,10 +63,13 @@ docs/operations/
 ├── README.md                       ← نظرة عامة
 ├── QUICK_REFERENCE_OPERATORS.md    ← دليل المشغلين السريع
 ├── BETA_RETROSPECTIVE_v1.1.0.md    ← ملخص النسخة التجريبية
+├── RUNBOOK.md                      ← دليل التشغيل التشغيلي الشامل
+├── FEEDBACK_FORM.md                ← نموذج جمع الملاحظات
 ├── releases/                       ← سجل التغييرات وأدلة النشر
 │   ├── CHANGELOG.md
 │   ├── DEPLOYMENT_PRODUCTION_v1.0.0.md
 │   ├── PUBLIC_RELEASE_PLAN_v1.1.0.md
+│   ├── RELEASE_NOTES_v1.1.0-beta.md
 │   └── BETA_RELEASE_CHECKLIST_v1.1.0.md
 ├── runbooks/                       ← كتيبات الاستجابة للحوادث
 │   ├── 01-agent-cash.md
