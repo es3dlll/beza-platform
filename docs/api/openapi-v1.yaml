@@ -1,0 +1,191 @@
+openapi: 3.1.0
+info:
+  title: Beza Platform API
+  description: نظام التشغيل المالي الرقمي للجمهورية العربية السورية
+  version: 1.0.0
+  contact:
+    name: Beza Platform
+    url: https://beza.sy
+
+servers:
+  - url: https://api.beza.sy/v1
+    description: الإنتاج
+  - url: https://staging.api.beza.sy/v1
+    description: التجريب
+
+paths:
+  # --- Core: Identity ---
+  /auth/register:
+    post:
+      summary: تسجيل مستخدم جديد
+      description: إنشاء حساب جديد برقم الهاتف
+      tags: [Identity]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                  pattern: "^09\\d{8}$"
+                  example: "0912345678"
+                device_fingerprint:
+                  type: string
+      responses:
+        '201':
+          description: تم التسجيل بنجاح
+        '422':
+          description: خطأ في التحقق من البيانات
+
+  /auth/verify-otp:
+    post:
+      summary: التحقق من OTP
+      tags: [Identity]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                otp:
+                  type: string
+                  pattern: "^\\d{6}$"
+      responses:
+        '200':
+          description: تم التحقق بنجاح
+
+  /auth/login:
+    post:
+      summary: تسجيل الدخول
+      tags: [Identity]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                pin:
+                  type: string
+                device_fingerprint:
+                  type: string
+      responses:
+        '200':
+          description: تم الدخول بنجاح
+
+  # --- Core: Wallet ---
+  /wallets:
+    post:
+      summary: إنشاء محفظة
+      tags: [Wallet]
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: تم إنشاء المحفظة
+
+  # --- Core: CFE ---
+  /cfe/transfer:
+    post:
+      summary: تنفيذ تحويل مالي
+      tags: [CoreFinancialEngine]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                from_wallet_id:
+                  type: string
+                  format: ulid
+                to_wallet_id:
+                  type: string
+                  format: ulid
+                amount:
+                  type: integer
+                  description: المبلغ بفلس (SYP)
+                description:
+                  type: string
+      responses:
+        '200':
+          description: تم التحويل بنجاح
+
+  # --- Financial: Remittance ---
+  /remittances:
+    post:
+      summary: إنشاء حوالة
+      tags: [Remittance]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sender_name:
+                  type: string
+                receiver_phone:
+                  type: string
+                amount_usd:
+                  type: number
+                source_country:
+                  type: string
+      responses:
+        '201':
+          description: تم إنشاء الحوالة
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    deviceAuth:
+      type: apiKey
+      in: header
+      name: X-Device-Fingerprint
+
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          nullable: true
+        errors:
+          type: object
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+        request_id:
+          type: string
+
+    Money:
+      type: object
+      properties:
+        amount:
+          type: integer
+          description: المبلغ بوحدات صغرى (فلس)
+        currency:
+          type: string
+          enum: [SYP, USD, EUR]
+        formatted:
+          type: string
+          description: المبلغ منسق مع رمز العملة

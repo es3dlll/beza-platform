@@ -42,6 +42,6 @@ monitoring: Prometheus + Grafana
 ## العلاقة مع الأقسام الأخرى
 
 - **العمارة** (`../architecture/`): الهيكل المعماري المطلوب تشغيله
-- **الأمان** (`../security/`): أمان الخادم، TLS، UFW، Fail2Ban
-- **المعايير المشتركة/المراقبة** (`../shared/observability/`): تنبيهات ومقاييس
+- **الأمان** (`../compliance/security-policies/`): أمان الخادم، TLS، UFW، Fail2Ban
+- **المراقبة** (`../operations/observability/`): تنبيهات ومقاييس
 - **العمليات** (`../operations/`): Runbooks للاستجابة لحوادث البنية التحتية

@@ -1,0 +1,87 @@
+# Auto detect text files and perform LF normalization
+* text=auto eol=lf
+
+# Source code
+*.php text diff=php
+*.blade.php text
+*.dart text
+*.ts text diff=typescript
+*.tsx text diff=typescript
+*.js text diff=javascript
+*.jsx text diff=javascript
+*.css text
+*.scss text diff=css
+*.html text diff=html
+
+# Config and build files
+*.json text
+*.xml text
+*.yml text
+*.yaml text
+*.toml text
+*.env text
+*.env.example text
+
+# Shell scripts
+*.sh text eol=lf
+*.bash text eol=lf
+*.ps1 text
+
+# Makefile
+Makefile text
+makefile text
+GNUmakefile text
+
+# Lock files — binary diff
+composer.lock binary
+package-lock.json binary
+
+# Images
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg text
+*.webp binary
+
+# Fonts
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+
+# Archives
+*.zip binary
+*.tar.gz binary
+*.gz binary
+
+# Docs
+*.md text
+*.pdf binary
+
+# Generated / Build
+*.min.js binary
+*.min.css binary
+dist/ binary
+build/ binary
+*.map binary
+
+# Secrets — never diff
+.env binary
+*.key binary
+*.pem binary
+*.cert binary
+*.p12 binary
+
+# Linguist overrides (repository language stats)
+*.php linguist-language=PHP
+*.dart linguist-language=Dart
+*.ts linguist-language=TypeScript
+*.tsx linguist-language=TypeScript
+*.js linguist-language=JavaScript
+*.jsx linguist-language=JavaScript
+
+# GitHub detected languages
+docs/ linguist-documentation
+*.md linguist-documentation

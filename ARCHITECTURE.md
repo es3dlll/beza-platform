@@ -15,12 +15,11 @@
 5. [Backend - Laravel 13](docs/backend/OVERVIEW.md)
 6. [Frontend Admin - React 19](docs/frontend/ADMIN.md)
 7. [Mobile App - Flutter 3.29](docs/frontend/MOBILE.md)
-8. [الأمان (Zero Trust)](docs/security/OVERVIEW.md)
-9. [الامتثال (AML/KYC/CBS)](docs/compliance/OVERVIEW.md)
-10. [الاختبارات والجودة](docs/architecture/QUALITY.md)
-11. [النشر والبنية التحتية](docs/infrastructure/DEPLOYMENT.md)
-12. [دليل التطوير السريع](docs/architecture/QUICKSTART.md)
-13. [فهرس التوثيق الكامل](docs/README.md)
+  8. [الأمان والامتثال (Zero Trust + AML/KYC/CBS)](docs/compliance/README.md)
+  9. [الاختبارات والجودة](docs/architecture/QUALITY.md)
+  10. [النشر والبنية التحتية](docs/infrastructure/DEPLOYMENT.md)
+  11. [دليل التطوير السريع](docs/architecture/QUICKSTART.md)
+  12. [فهرس التوثيق الكامل](docs/README.md)
 
 ---
 
@@ -232,28 +231,30 @@ beza-platform/
 │   │   ├── MODULES.md
 │   │   ├── COMMUNICATION.md
 │   │   ├── QUALITY.md
-│   │   └── QUICKSTART.md
+│   │   ├── QUICKSTART.md
+│   │   ├── ADRs/                  # قرارات معمارية
+│   │   ├── testing/               # أنماط الاختبار
+│   │   └── prd/                   # متطلبات المنتج
 │   ├── backend/                   # Laravel 13 API
 │   ├── frontend/                  # React 19 + Flutter 3.29
-│   ├── security/                  # Zero Trust، JWT، تشفير
-│   ├── compliance/                # AML، KYC، متطلبات CBS
+│   │   └── design-system/         # العلامة التجارية والمكونات
+│   ├── compliance/                # الأمان والامتثال (موحد)
+│   │   ├── security-policies/     # JWT، تشفير، تفويض
+│   │   ├── aml-kyc/               # AML، KYC، شريعة
+│   │   ├── data-protection/       # تصنيف، احتفاظ، ملكية
+│   │   └── cbs-regulations/       # متطلبات المصرف المركزي
+│   ├── api/                       # OpenAPI 3.1، مصفوفة النقاط
 │   ├── infrastructure/            # Docker، نشر، نسخ احتياطي
-│   ├── prd/                       # متطلبات المنتج
-│   ├── planning/                  # خارطة طريق، تخطيط
-│   ├── operations/                # عمليات، Runbooks، إصدارات
-│   │   ├── releases/
-│   │   ├── runbooks/
-│   │   └── archive/
-│   ├── journeys/                  # رحلات المستخدم
-│   ├── marketing/                 # حملة الإطلاق
-│   └── shared/                    # معايير مشتركة (7 مجالات)
-│       ├── compliance/
-│       ├── data-governance/
-│       ├── design-system/
-│       ├── notifications/
-│       ├── observability/
-│       ├── security/
-│       └── testing/
+│   └── operations/                # عمليات، Runbooks، إصدارات
+│       ├── releases/
+│       ├── runbooks/
+│       │   └── user-journeys/     # رحلات المستخدم
+│       ├── notifications/         # Push، SMS، Email
+│       ├── observability/         # تسجيل، مقاييس، تنبيهات
+│       └── archive/
+│           ├── planning/
+│           ├── marketing/
+│           └── engineering/
 │
 ├── .github/
 │   ├── workflows/
@@ -276,5 +277,10 @@ beza-platform/
 ├── .gitattributes
 ├── Makefile                       # أوامر التطوير الموحدة
 ├── README.md
-└── ARCHITECTURE.md                # هذه الوثيقة
+└── ARCHITECTURE.md                # المرجع المعماري الوحيد
 ```
+
+> **بزة — المالية للجميع. Beza — Financial Inclusion for Everyone.**
+> سوريا، 2026
+> [`docs/README.md`](docs/README.md) ← فهرس التوثيق الكامل  
+> [`ARCHITECTURE.md`](ARCHITECTURE.md) ← المرجع المعماري الوحيد
