@@ -36,7 +36,7 @@ return new class extends Migration
             $table->string('cbs_case_reference')->nullable();
             $table->timestamps();
 
-            $table->index(['report_id', 'severity', 'resolution_status']);
+            $table->index(['report_id', 'severity', 'resolution_status'], 'rec_disc_rpt_sev_res_idx');
         });
     }
 
