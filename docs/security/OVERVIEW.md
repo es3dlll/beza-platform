@@ -48,6 +48,7 @@ Refresh Token: 7 أيام (دوران تلقائي)
 ## الرجوع للمزيد
 
 - [معايير التشفير](STANDARDS.md) - Encryption, Auth, Authorization details
-- [سياسة AML/CFT](../compliance/AML.md) - Anti-Money Laundering
-- [متطلبات KYC](../compliance/KYC.md) - Know Your Customer
-- [التكامل مع المصرف المركزي](../compliance/CBS.md)
+- [إطار AML/CFT](../shared/compliance/01-aml.md) - Anti-Money Laundering (تفصيلي)
+- [إطار KYC](../shared/compliance/02-kyc.md) - Know Your Customer (تفصيلي)
+- [نظرة عامة على الامتثال](../compliance/OVERVIEW.md) - AML, KYC, CBS
+- [المعايير المشتركة للامتثال](../shared/compliance/README.md) - فهرس معايير الامتثال

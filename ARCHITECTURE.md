@@ -10,14 +10,17 @@
 
 1. [الرؤية والمبادئ](docs/architecture/PRINCIPLES.md)
 2. [الهيكلية العامة للمشروع](#project-structure)
-3. [Backend - Laravel 13](docs/backend/OVERVIEW.md)
-4. [Frontend Admin - React 19](docs/frontend/ADMIN.md)
-5. [Mobile App - Flutter](docs/frontend/MOBILE.md)
-6. [التواصل بين الوحدات](docs/architecture/COMMUNICATION.md)
-7. [الأمان والامتثال](docs/security/OVERVIEW.md)
-8. [الاختبارات والجودة](docs/architecture/QUALITY.md)
-9. [النشر والبنية التحتية](docs/infrastructure/DEPLOYMENT.md)
-10. [دليل التطوير السريع](docs/architecture/QUICKSTART.md)
+3. [دليل الوحدات النمطية](docs/architecture/MODULES.md)
+4. [التواصل بين الوحدات](docs/architecture/COMMUNICATION.md)
+5. [Backend - Laravel 13](docs/backend/OVERVIEW.md)
+6. [Frontend Admin - React 19](docs/frontend/ADMIN.md)
+7. [Mobile App - Flutter 3.29](docs/frontend/MOBILE.md)
+8. [الأمان (Zero Trust)](docs/security/OVERVIEW.md)
+9. [الامتثال (AML/KYC/CBS)](docs/compliance/OVERVIEW.md)
+10. [الاختبارات والجودة](docs/architecture/QUALITY.md)
+11. [النشر والبنية التحتية](docs/infrastructure/DEPLOYMENT.md)
+12. [دليل التطوير السريع](docs/architecture/QUICKSTART.md)
+13. [فهرس التوثيق الكامل](docs/README.md)
 
 ---
 
@@ -223,23 +226,34 @@ beza-platform/
 │       ├── grafana/
 │       └── alerts/
 │
-├── docs/                          # التوثيق المركزي
-│   ├── architecture/
-│   │   ├── ADRs/                  # Architecture Decision Records
-│   │   ├── diagrams/              # Mermaid/PlantUML diagrams
-│   │   └── CHARTER.md             # الميثاق المعماري
-│   ├── api/
-│   │   ├── openapi.yaml           # OpenAPI 3.1 spec
-│   │   └── postman/               # Postman collection
-│   ├── compliance/
-│   │   ├── AML-policy.md
-│   │   ├── KYC-requirements.md
-│   │   └── CBS-integration.md
-│   ├── operations/
-│   │   ├── runbooks/              # Incident response
-│   │   ├── deployment.md
-│   │   └── monitoring.md
-│   └── README.md
+├── docs/                          # التوثيق المركزي (انظر docs/README.md)
+│   ├── architecture/              # المبادئ، الوحدات، التواصل، الجودة
+│   │   ├── PRINCIPLES.md
+│   │   ├── MODULES.md
+│   │   ├── COMMUNICATION.md
+│   │   ├── QUALITY.md
+│   │   └── QUICKSTART.md
+│   ├── backend/                   # Laravel 13 API
+│   ├── frontend/                  # React 19 + Flutter 3.29
+│   ├── security/                  # Zero Trust، JWT، تشفير
+│   ├── compliance/                # AML، KYC، متطلبات CBS
+│   ├── infrastructure/            # Docker، نشر، نسخ احتياطي
+│   ├── prd/                       # متطلبات المنتج
+│   ├── planning/                  # خارطة طريق، تخطيط
+│   ├── operations/                # عمليات، Runbooks، إصدارات
+│   │   ├── releases/
+│   │   ├── runbooks/
+│   │   └── archive/
+│   ├── journeys/                  # رحلات المستخدم
+│   ├── marketing/                 # حملة الإطلاق
+│   └── shared/                    # معايير مشتركة (7 مجالات)
+│       ├── compliance/
+│       ├── data-governance/
+│       ├── design-system/
+│       ├── notifications/
+│       ├── observability/
+│       ├── security/
+│       └── testing/
 │
 ├── .github/
 │   ├── workflows/
