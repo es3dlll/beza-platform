@@ -6,6 +6,7 @@ namespace App\Modules\Agent\Services;
 
 use App\Domain\Enums\Currency;
 use App\Domain\ValueObjects\Money;
+use App\Modules\Agent\Events\AgentTransactionCompleted;
 use App\Modules\Agent\Events\CashInCompleted;
 use App\Modules\Agent\Events\CashOutCompleted;
 use App\Modules\Agent\Exceptions\DailyLimitExceededException;
@@ -104,6 +105,16 @@ final class CashInOutService
             transactionId: $result['posting']['transaction']->id,
         ));
 
+        event(new AgentTransactionCompleted(
+            agentTransactionId: $result['transaction']->id,
+            agentId: $agentId,
+            type: 'cash_in',
+            amount: $amount,
+            currency: $currency,
+            commissionAmount: $commission->amount(),
+            timestamp: now()->getTimestamp(),
+        ));
+
         return $result;
     }
 
@@ -186,6 +197,16 @@ final class CashInOutService
             amount: $amount,
             commissionAmount: $commission->amount(),
             transactionId: $result['posting']['transaction']->id,
+        ));
+
+        event(new AgentTransactionCompleted(
+            agentTransactionId: $result['transaction']->id,
+            agentId: $agentId,
+            type: 'cash_out',
+            amount: $amount,
+            currency: $currency,
+            commissionAmount: $commission->amount(),
+            timestamp: now()->getTimestamp(),
         ));
 
         return $result;

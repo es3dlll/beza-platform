@@ -46,13 +46,15 @@ final class AgentService
     public function activateWallet(string $agentId, string $currency = 'SYP'): AgentWallet
     {
         $agent = $this->getAgent($agentId);
-        return AgentWallet::create([
-            'agent_id' => $agent->id,
-            'currency' => $currency,
-            'balance' => 0,
-            'float_balance' => 0,
-            'status' => 'active',
-        ]);
+        $wallet = new AgentWallet();
+        $wallet->id = \Illuminate\Support\Str::ulid()->toBase32();
+        $wallet->agent_id = $agent->id;
+        $wallet->currency = $currency;
+        $wallet->balance = 0;
+        $wallet->float_balance = 0;
+        $wallet->status = 'active';
+        $wallet->save();
+        return $wallet;
     }
 
     public function assertCanTransact(string $agentId): void

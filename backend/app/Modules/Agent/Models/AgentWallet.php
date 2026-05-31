@@ -16,7 +16,7 @@ final class AgentWallet extends Model
     protected $table = 'agent_wallets';
 
     protected $fillable = [
-        'agent_id', 'currency', 'balance', 'float_balance',
+        'id', 'agent_id', 'currency', 'balance', 'float_balance',
         'daily_limit', 'daily_used', 'monthly_limit', 'monthly_used', 'status',
     ];
 

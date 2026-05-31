@@ -22,9 +22,10 @@ final class Agent extends Model
     ];
 
     protected $fillable = [
-        'user_id', 'phone', 'name', 'name_ar', 'kyc_tier', 'status',
+        'id', 'user_id', 'phone', 'name', 'name_ar', 'kyc_tier', 'status',
         'id_type', 'id_number', 'is_verified', 'verified_at',
         'gps_lat', 'gps_lng', 'address', 'address_ar',
+        'commission_tier', 'minimum_float', 'max_txn_limit', 'service_point_status',
     ];
 
     protected $casts = [

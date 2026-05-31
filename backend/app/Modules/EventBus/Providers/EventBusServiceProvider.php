@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\EventBus\Providers;
 
 use App\Modules\EventBus\Consumers\AuditLogConsumer;
+use App\Modules\EventBus\Consumers\ComplianceConsumer;
 use App\Modules\EventBus\Consumers\ReconciliationConsumer;
 use App\Modules\EventBus\Consumers\VelocityUpdateConsumer;
 use App\Modules\EventBus\Services\ConsumerRegistry;
@@ -43,6 +44,12 @@ final class EventBusServiceProvider extends ServiceProvider
                 'reconciliation',
                 $app->make(ReconciliationConsumer::class),
                 ['ledger.#', 'financial_core.#'],
+            );
+
+            $registry->register(
+                'compliance_monitor',
+                $app->make(ComplianceConsumer::class),
+                ['financial_core.#', 'financial.fraud.#', 'ledger.#', 'remittance.#', 'merchant.#', 'wallet.#'],
             );
 
             return $registry;

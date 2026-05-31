@@ -10,4 +10,8 @@ return [
     App\Modules\Fx\Providers\FxServiceProvider::class,
     App\Modules\Fraud\Providers\FraudServiceProvider::class,
     App\Modules\EventBus\Providers\EventBusServiceProvider::class,
+    App\Modules\Wallet\Providers\ModuleServiceProvider::class,
+    App\Modules\Remittance\Providers\ModuleServiceProvider::class,
+    App\Modules\Merchant\Providers\MerchantServiceProvider::class,
+    App\Modules\Compliance\Providers\ComplianceServiceProvider::class,
 ];

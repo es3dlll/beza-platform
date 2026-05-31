@@ -10,13 +10,13 @@ servers:
   - url: 'http://localhost:8000/api'
     description: 'Local Development'
 paths:
-  v1/agents/register:
+  v1/agents/onboard:
     post:
       tags:
         - Agent
-      summary: 'Register a new agent'
-      description: 'تسجيل وكيل جديد — requires admin authorization'
-      operationId: registerAgent
+      summary: 'Onboard a new agent'
+      description: 'تسجيل وكيل جديد مع تفعيل المحفظة وتحديد مستوى العمولة'
+      operationId: onboardAgent
       requestBody:
         required: true
         content:
@@ -25,10 +25,7 @@ paths:
               $ref: '#/components/schemas/AgentRegisterRequest'
       responses:
         201:
-          description: 'Agent registered'
-          content:
-            application/json:
-              schema: { type: object, properties: { data: { $ref: '#/components/schemas/Agent' } } }
+          description: 'Agent onboarded'
         401:
           $ref: '#/components/responses/UnauthorizedError'
         422:
@@ -51,11 +48,88 @@ paths:
       responses:
         200:
           description: 'Agent details'
-          content:
-            application/json:
-              schema: { type: object, properties: { data: { $ref: '#/components/schemas/Agent' } } }
         404:
           $ref: '#/components/responses/NotFoundError'
+  'v1/agents/{id}/float':
+    get:
+      tags:
+        - Agent
+      summary: 'Get agent float balance'
+      description: 'عرض السيولة الحالية والمعلقة والحد الأدنى'
+      operationId: getAgentFloat
+      parameters:
+        -
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: 'Agent ULID'
+      responses:
+        200:
+          description: 'Float balance details'
+        404:
+          $ref: '#/components/responses/NotFoundError'
+  v1/agents/float/adjust:
+    post:
+      tags:
+        - Agent
+      summary: 'Adjust agent float balance'
+      description: 'طلب تعديل حد السيولة مع سبب إجباري وسجل تدقيق'
+      operationId: adjustAgentFloat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdjustFloatRequest'
+      responses:
+        200:
+          description: 'Float adjusted'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        422:
+          $ref: '#/components/responses/UnprocessableEntity'
+  v1/agents/commissions:
+    get:
+      tags:
+        - Agent
+      summary: 'List agent commissions'
+      description: 'عرض تاريخ العمولات المحققة والنسبة المطبقة'
+      operationId: listAgentCommissions
+      parameters:
+        -
+          in: query
+          name: agent_id
+          required: true
+          schema:
+            type: string
+          description: 'Agent ULID'
+      responses:
+        200:
+          description: 'Commission details'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+  v1/agents/settle:
+    post:
+      tags:
+        - Agent
+      summary: 'Trigger manual settlement'
+      description: 'طلب تسوية يدوية عاجلة للوكلاء المعتمدين'
+      operationId: settleAgent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SettleRequest'
+      responses:
+        200:
+          description: 'Settlements processed'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        422:
+          $ref: '#/components/responses/UnprocessableEntity'
   'v1/agents/{id}/verify':
     post:
       tags:
@@ -74,9 +148,6 @@ paths:
       responses:
         200:
           description: 'Agent verified'
-          content:
-            application/json:
-              schema: { type: object, properties: { message: { type: string, example: 'Agent verified' } } }
         404:
           $ref: '#/components/responses/NotFoundError'
   v1/agents/cash-in:
@@ -95,9 +166,6 @@ paths:
       responses:
         201:
           description: 'Cash-in transaction created'
-          content:
-            application/json:
-              schema: { type: object, properties: { data: { $ref: '#/components/schemas/AgentTransaction' } } }
         401:
           $ref: '#/components/responses/UnauthorizedError'
         422:
@@ -118,9 +186,6 @@ paths:
       responses:
         201:
           description: 'Cash-out transaction created'
-          content:
-            application/json:
-              schema: { type: object, properties: { data: { $ref: '#/components/schemas/AgentTransaction' } } }
         401:
           $ref: '#/components/responses/UnauthorizedError'
         422:
@@ -143,9 +208,6 @@ paths:
       responses:
         200:
           description: 'Paginated agent transactions'
-          content:
-            application/json:
-              schema: { type: object, properties: { data: { type: array, items: { $ref: '#/components/schemas/AgentTransaction' } }, meta: { $ref: '#/components/schemas/PaginationMeta' } } }
   v1/agents/settlements:
     get:
       tags:
@@ -164,9 +226,6 @@ paths:
       responses:
         200:
           description: 'Paginated settlements'
-          content:
-            application/json:
-              schema: { type: object, properties: { data: { type: array, items: { $ref: '#/components/schemas/Settlement' } }, meta: { $ref: '#/components/schemas/PaginationMeta' } } }
   v1/financial/transfer:
     post:
       tags:
@@ -735,6 +794,442 @@ paths:
               schema: { type: object, properties: { message: { type: string, example: 'Dead letter event queued for retry' } } }
         404:
           $ref: '#/components/responses/NotFoundError'
+  v1/wallet/limits:
+    get:
+      tags:
+        - Wallet
+      summary: 'Get wallet limits'
+      description: 'الحدود الحالية للمحفظة — اليومية والشهرية والفردية'
+      operationId: getWalletLimits
+      parameters:
+        -
+          in: query
+          name: tier
+          schema:
+            type: string
+            enum:
+              - T1
+              - T2
+              - T3
+            default: T1
+          description: 'KYC tier'
+      responses:
+        200:
+          description: 'Wallet limits'
+          content:
+            application/json:
+              schema: { type: object, properties: { data: { $ref: '#/components/schemas/WalletLimit' } } }
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+  v1/wallet/limits/request-increase:
+    post:
+      tags:
+        - Wallet
+      summary: 'Request limit increase'
+      description: 'طلب زيادة حد المحفظة — يتطلب مراجعة إدارية'
+      operationId: requestLimitIncrease
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LimitIncreaseRequest'
+      responses:
+        202:
+          description: 'Request submitted for review'
+          content:
+            application/json:
+              schema: { type: object, properties: { message: { type: string, example: 'تم استلام طلب زيادة الحد وهو قيد المراجعة' } } }
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        422:
+          $ref: '#/components/responses/UnprocessableEntity'
+  v1/wallet/balance:
+    get:
+      tags:
+        - Wallet
+      summary: 'Get wallet balance'
+      description: 'رصيد المحفظة — المستقر والمعلق والمتاح'
+      operationId: getWalletBalance
+      responses:
+        200:
+          description: 'Wallet balance snapshot'
+          content:
+            application/json:
+              schema: { type: object, properties: { data: { $ref: '#/components/schemas/BalanceSnapshot' } } }
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+  v1/remittance/quote:
+    post:
+      tags:
+        - Remittance
+      summary: 'Get remittance quote'
+      description: 'حساب سعر الصرف والرسوم مقدماً دون حجز رصيد'
+      operationId: getRemittanceQuote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemittanceQuoteRequest'
+      responses:
+        200:
+          description: 'Quote calculated'
+          content:
+            application/json:
+              schema: { type: object, properties: { data: { $ref: '#/components/schemas/RemittanceQuote' } } }
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        422:
+          $ref: '#/components/responses/UnprocessableEntity'
+  v1/remittance/initiate:
+    post:
+      tags:
+        - Remittance
+      summary: 'Initiate remittance transfer'
+      description: 'بدء تحويل دولي مع مفتاح التفرد Idempotency-Key'
+      operationId: initiateRemittance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitiateRemittanceRequest'
+      responses:
+        201:
+          description: 'Remittance initiated'
+          content:
+            application/json:
+              schema: { type: object, properties: { data: { $ref: '#/components/schemas/RemittanceResponse' } } }
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        422:
+          $ref: '#/components/responses/UnprocessableEntity'
+  'v1/remittance/{id}/status':
+    get:
+      tags:
+        - Remittance
+      summary: 'Get remittance status'
+      description: 'تتبع لحظي لحالة التحويل والمراحل المنجزة'
+      operationId: getRemittanceStatus
+      parameters:
+        -
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: 'Remittance ID (REM-...)'
+      responses:
+        200:
+          description: 'Remittance status'
+          content:
+            application/json:
+              schema: { type: object, properties: { data: { $ref: '#/components/schemas/RemittanceStatusResponse' } } }
+        404:
+          $ref: '#/components/responses/NotFoundError'
+  'v1/remittance/{id}/cancel':
+    post:
+      tags:
+        - Remittance
+      summary: 'Cancel remittance transfer'
+      description: 'إلغاء التحويل قبل بدء المعالجة — يعيد الأموال تلقائياً'
+      operationId: cancelRemittance
+      parameters:
+        -
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: 'Remittance ID (REM-...)'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelRemittanceRequest'
+      responses:
+        200:
+          description: 'Transfer cancelled'
+          content:
+            application/json:
+              schema: { type: object, properties: { message: { type: string }, data: { type: object, properties: { remittance_id: { type: string }, status: { type: string, example: CANCELLED } } } } }
+        422:
+          $ref: '#/components/responses/UnprocessableEntity'
+  v1/merchants/onboard:
+    post:
+      tags:
+        - Merchant
+      summary: 'Onboard a new merchant'
+      description: 'تسجيل تاجر جديد مع رفع المستندات الأساسية'
+      operationId: onboardMerchant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardMerchantRequest'
+      responses:
+        201:
+          description: 'Merchant registered'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        422:
+          $ref: '#/components/responses/UnprocessableEntity'
+  v1/merchants/invoices:
+    post:
+      tags:
+        - Merchant
+      summary: 'Create invoice'
+      description: 'إنشاء فاتورة جديدة مع رمز QR ديناميكي'
+      operationId: createInvoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvoiceRequest'
+      responses:
+        201:
+          description: 'Invoice created with QR token'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        422:
+          $ref: '#/components/responses/UnprocessableEntity'
+  'v1/merchants/invoices/{id}/qr':
+    get:
+      tags:
+        - Merchant
+      summary: 'Get invoice QR code'
+      description: 'استرجاع رمز QR صالح أو توليد جديد إذا منتهي'
+      operationId: getInvoiceQR
+      parameters:
+        -
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: 'Invoice ID (INV-...)'
+      responses:
+        200:
+          description: 'QR token'
+        404:
+          $ref: '#/components/responses/NotFoundError'
+  'v1/merchants/invoices/{id}/pay':
+    post:
+      tags:
+        - Merchant
+      summary: 'Pay invoice'
+      description: 'تأكيد دفع فاتورة بواسطة رمز QR'
+      operationId: payInvoice
+      parameters:
+        -
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: 'Invoice ID (INV-...)'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayInvoiceRequest'
+      responses:
+        200:
+          description: 'Payment initiated'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        422:
+          $ref: '#/components/responses/UnprocessableEntity'
+  v1/merchants/settlements:
+    get:
+      tags:
+        - Merchant
+      summary: 'List merchant settlements'
+      description: 'عرض تاريخ التسويات والعمولات والصافي'
+      operationId: listMerchantSettlements
+      parameters:
+        -
+          in: query
+          name: merchant_id
+          required: true
+          schema:
+            type: string
+          description: 'Merchant ID (MER-...)'
+      responses:
+        200:
+          description: 'Settlement history'
+  'v1/merchants/invoices/{id}/refund':
+    post:
+      tags:
+        - Merchant
+      summary: 'Refund invoice'
+      description: 'طلب استرداد مع سبب إجباري'
+      operationId: refundInvoice
+      parameters:
+        -
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: 'Invoice ID (INV-...)'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundRequest'
+      responses:
+        200:
+          description: 'Refund processed'
+        422:
+          $ref: '#/components/responses/UnprocessableEntity'
+  v1/compliance/alerts:
+    get:
+      tags:
+        - Compliance
+      summary: 'List active alerts'
+      description: 'عرض التنبيهات النشطة مع فلترة حسب الخطورة والتاريخ ونوع القاعدة'
+      operationId: listComplianceAlerts
+      parameters:
+        -
+          in: query
+          name: severity
+          schema:
+            type: string
+            enum:
+              - INFO
+              - WARNING
+              - HIGH
+              - CRITICAL
+          description: 'فلترة حسب الخطورة'
+        -
+          in: query
+          name: rule_id
+          schema:
+            type: string
+          description: 'فلترة حسب القاعدة'
+        -
+          in: query
+          name: status
+          schema:
+            type: string
+          description: 'فلترة حسب الحالة'
+        -
+          in: query
+          name: from
+          schema:
+            type: string
+            format: date-time
+          description: 'بداية التاريخ'
+        -
+          in: query
+          name: to
+          schema:
+            type: string
+            format: date-time
+          description: 'نهاية التاريخ'
+        -
+          in: query
+          name: per_page
+          schema:
+            type: integer
+            default: 15
+          description: 'عدد النتائج لكل صفحة'
+      responses:
+        200:
+          description: 'Alerts list (paginated)'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+  'v1/compliance/cases/{id}':
+    get:
+      tags:
+        - Compliance
+      summary: 'Get compliance case details'
+      description: 'عرض تفاصيل حالة رقابية مع سجل التقييمات والإجراءات'
+      operationId: getComplianceCase
+      parameters:
+        -
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: 'Case ID (CASE-...)'
+      responses:
+        200:
+          description: 'Case details with audit trail and alerts'
+        404:
+          $ref: '#/components/responses/NotFoundError'
+  'v1/compliance/cases/{id}/review':
+    post:
+      tags:
+        - Compliance
+      summary: 'Review compliance case'
+      description: 'تسجيل قرار المراجعة مع سبب إجباري وتغيير حالة الحالة'
+      operationId: reviewComplianceCase
+      parameters:
+        -
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: 'Case ID (CASE-...)'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewCaseRequest'
+      responses:
+        200:
+          description: 'Case reviewed'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        422:
+          $ref: '#/components/responses/UnprocessableEntity'
+  v1/compliance/rules/evaluate:
+    post:
+      tags:
+        - Compliance
+      summary: 'Evaluate rule (manual test)'
+      description: 'محاكاة تقييم قاعدة على معاملة وهمية قبل تفعيلها في الإنتاج'
+      operationId: evaluateRule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluateRuleRequest'
+      responses:
+        200:
+          description: 'Rule evaluation result'
+        422:
+          $ref: '#/components/responses/UnprocessableEntity'
+  v1/compliance/sanctions/check:
+    post:
+      tags:
+        - Compliance
+      summary: 'Check sanctions list'
+      description: 'فحص سريع لاسم أو رقم هاتف أو جهاز ضد القائمة المحظورة'
+      operationId: checkSanctions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SanctionsCheckRequest'
+      responses:
+        200:
+          description: 'Sanctions check result'
+        422:
+          $ref: '#/components/responses/UnprocessableEntity'
 components:
   securitySchemes:
     bearerAuth:
@@ -1037,6 +1532,53 @@ components:
         updated_at:
           type: string
           format: date-time
+    AdjustFloatRequest:
+      type: object
+      required:
+        - agent_id
+        - adjustment
+        - reason
+      properties:
+        agent_id:
+          type: string
+          description: 'Agent ULID'
+        adjustment:
+          type: integer
+          description: 'قيمة التعديل (سالب/موجب)'
+        reason:
+          type: string
+          maxLength: 500
+          description: 'سبب التعديل (إجباري)'
+    SettleRequest:
+      type: object
+      required:
+        - agent_id
+      properties:
+        agent_id:
+          type: string
+          description: 'Agent ULID'
+        settlement_date:
+          type: string
+          format: date
+          description: 'تاريخ التسوية (اختياري، الافتراضي اليوم)'
+    FloatBalance:
+      type: object
+      properties:
+        available:
+          type: integer
+          description: 'السيولة المتاحة'
+        pending:
+          type: integer
+          description: 'السيولة المعلقة'
+        minimum_required:
+          type: integer
+          description: 'الحد الأدنى الإلزامي'
+        daily_limit:
+          type: integer
+        daily_used:
+          type: integer
+        below_minimum:
+          type: boolean
     Transaction:
       type: object
       properties:
@@ -1764,6 +2306,455 @@ components:
         updated_at:
           type: string
           format: date-time
+    WalletLimit:
+      type: object
+      properties:
+        daily_max_syp:
+          type: number
+          format: float
+          description: 'الحد اليومي بالليرة السورية'
+        monthly_max_syp:
+          type: number
+          format: float
+          description: 'الحد الشهري بالليرة السورية'
+        single_max_syp:
+          type: number
+          format: float
+          description: 'الحد الأقصى للمعاملة الواحدة'
+        daily_remaining:
+          type: integer
+          description: 'المتبقي من الحد اليومي'
+        monthly_remaining:
+          type: integer
+          description: 'المتبقي من الحد الشهري'
+        daily_used:
+          type: integer
+          description: 'المستخدم من الحد اليومي'
+        monthly_used:
+          type: integer
+          description: 'المستخدم من الحد الشهري'
+    BalanceSnapshot:
+      type: object
+      properties:
+        currency:
+          type: string
+          enum:
+            - SYP
+            - USD
+          description: العملة
+        settled:
+          type: number
+          format: float
+          description: 'الرصيد المستقر'
+        pending:
+          type: number
+          format: float
+          description: 'الرصيد المعلق'
+        available:
+          type: number
+          format: float
+          description: 'الرصيد المتاح'
+        has_sufficient_funds:
+          type: boolean
+    LimitIncreaseRequest:
+      type: object
+      required:
+        - user_id
+        - new_daily_limit
+        - reason
+      properties:
+        user_id:
+          type: string
+          description: 'ULID المستخدم'
+        new_daily_limit:
+          type: integer
+          minimum: 1000000
+          description: 'الحد اليومي الجديد بوحدات صغرى'
+        reason:
+          type: string
+          maxLength: 500
+          description: 'سبب طلب الزيادة'
+    RemittanceQuoteRequest:
+      type: object
+      required:
+        - from_currency
+        - to_currency
+        - amount
+      properties:
+        from_currency:
+          type: string
+          enum:
+            - SYP
+            - USD
+            - EUR
+            - SAR
+            - AED
+          description: 'عملة المصدر'
+        to_currency:
+          type: string
+          enum:
+            - SYP
+            - USD
+            - EUR
+            - SAR
+            - AED
+          description: 'عملة الوجهة'
+        amount:
+          type: integer
+          minimum: 100000
+          description: 'المبلغ بوحدات صغرى'
+    RemittanceQuote:
+      type: object
+      properties:
+        from_currency:
+          type: string
+        to_currency:
+          type: string
+        source_amount:
+          type: integer
+        destination_amount:
+          type: integer
+        buy_rate:
+          type: integer
+        spread_bps:
+          type: integer
+        fee_amount:
+          type: integer
+        total_charge:
+          type: integer
+        quote_expires_in:
+          type: integer
+    InitiateRemittanceRequest:
+      type: object
+      required:
+        - idempotency_key
+        - sender_id
+        - recipient_name
+        - recipient_phone
+        - recipient_country
+        - from_currency
+        - to_currency
+        - source_amount
+      properties:
+        idempotency_key:
+          type: string
+          maxLength: 64
+          description: 'مفتاح التفرد لمنع التكرار'
+        sender_id:
+          type: string
+          description: 'ULID المرسل'
+        recipient_name:
+          type: string
+          maxLength: 255
+          description: 'اسم المستلم'
+        recipient_phone:
+          type: string
+          description: 'هاتف المستلم'
+        recipient_country:
+          type: string
+          minLength: 2
+          maxLength: 2
+          description: 'دولة المستلم (ISO 3166-1 alpha-2)'
+        from_currency:
+          type: string
+          enum:
+            - SYP
+            - USD
+            - EUR
+            - SAR
+            - AED
+        to_currency:
+          type: string
+          enum:
+            - SYP
+            - USD
+            - EUR
+            - SAR
+            - AED
+        source_amount:
+          type: integer
+          minimum: 100000
+    RemittanceResponse:
+      type: object
+      properties:
+        remittance_id:
+          type: string
+        status:
+          type: string
+          enum:
+            - PENDING
+            - FX_LOCKED
+            - COMPLIANCE_CHECK
+            - PROCESSING
+            - SETTLED
+            - REJECTED
+            - CANCELLED
+            - EXPIRED
+        destination_amount:
+          type: integer
+        fee_amount:
+          type: integer
+        total_charge:
+          type: integer
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+    RemittanceStatusResponse:
+      type: object
+      properties:
+        remittance_id:
+          type: string
+        status:
+          type: string
+        audit_trail:
+          type: array
+          items:
+            type: object
+            properties:
+              status: { type: string }
+              at: { type: string, format: date-time }
+        cancellation_reason:
+          type: string
+          nullable: true
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+    CancelRemittanceRequest:
+      type: object
+      required:
+        - reason
+      properties:
+        reason:
+          type: string
+          maxLength: 500
+          description: 'سبب الإلغاء'
+    OnboardMerchantRequest:
+      type: object
+      required:
+        - business_name
+        - owner_id
+        - phone
+      properties:
+        business_name:
+          type: string
+          maxLength: 255
+          description: 'الاسم التجاري'
+        owner_id:
+          type: string
+          description: 'ULID مالك التاجر'
+        phone:
+          type: string
+          description: 'هاتف التاجر'
+        category:
+          type: string
+          enum:
+            - goods_food
+            - goods_general
+            - goods_luxury
+            - services_general
+            - services_digital
+            - services_financial
+        settlement_cycle:
+          type: string
+          enum:
+            - DAILY
+            - WEEKLY
+            - INSTANT
+    CreateInvoiceRequest:
+      type: object
+      required:
+        - merchant_id
+        - amount
+        - description
+      properties:
+        merchant_id:
+          type: string
+          description: MER-...
+        amount:
+          type: integer
+          minimum: 1000
+          description: 'المبلغ بوحدات صغرى'
+        description:
+          type: string
+          maxLength: 500
+          description: 'وصف الفاتورة'
+        category:
+          type: string
+          description: 'فئة السلعة أو الخدمة'
+    PayInvoiceRequest:
+      type: object
+      required:
+        - qr_token
+        - payee_id
+      properties:
+        qr_token:
+          type: string
+          description: 'رمز QR من الفاتورة'
+        payee_id:
+          type: string
+          description: 'ULID الدافع'
+    RefundRequest:
+      type: object
+      required:
+        - reason
+      properties:
+        reason:
+          type: string
+          maxLength: 500
+          description: 'سبب الاسترداد'
+    ReviewCaseRequest:
+      type: object
+      required:
+        - resolution
+        - reason
+      properties:
+        resolution:
+          type: string
+          enum:
+            - RESOLVED_FALSE_POSITIVE
+            - RESOLVED_TRUE_POSITIVE
+            - ESCALATED
+            - CLOSED
+          description: 'قرار المراجعة'
+        reason:
+          type: string
+          minLength: 10
+          maxLength: 2000
+          description: 'سبب القرار (إجباري)'
+    EvaluateRuleRequest:
+      type: object
+      required:
+        - transaction_id
+        - account_id
+        - recipient_id
+        - amount
+        - currency
+      properties:
+        transaction_id:
+          type: string
+          description: 'ULID المعاملة'
+        account_id:
+          type: string
+          description: 'ULID الحساب'
+        recipient_id:
+          type: string
+          description: 'ULID المستلم'
+        amount:
+          type: integer
+          description: 'المبلغ بوحدات صغرى'
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          description: 'رمز العملة ISO 4217'
+        device_fingerprint:
+          type: string
+          description: 'بصمة الجهاز'
+        country:
+          type: string
+          minLength: 2
+          maxLength: 2
+          description: 'رمز الدولة ISO 3166-1 alpha-2'
+        daily_transaction_count:
+          type: integer
+          description: 'عدد المعاملات اليومية'
+    SanctionsCheckRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: 'الاسم المراد فحصه'
+        phone:
+          type: string
+          description: 'رقم الهاتف'
+        device_fingerprint:
+          type: string
+          description: 'بصمة الجهاز'
+    RiskAssessment:
+      type: object
+      properties:
+        risk_score:
+          type: object
+          properties:
+            score:
+              type: integer
+              description: 'درجة المخاطرة 0-100'
+            level:
+              type: string
+              enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        rule_details:
+          type: array
+          items:
+            type: object
+            properties:
+              rule_id: { type: string }
+              score: { type: integer }
+              action: { type: string }
+        requires_action:
+          type: boolean
+        requires_block:
+          type: boolean
+    CaseLifecycle:
+      type: object
+      properties:
+        case_id:
+          type: string
+        transaction_id:
+          type: string
+          nullable: true
+        account_id:
+          type: string
+          nullable: true
+        risk_score:
+          type: integer
+        status:
+          type: string
+          enum:
+            - OPEN
+            - UNDER_REVIEW
+            - ESCALATED
+            - RESOLVED_FALSE_POSITIVE
+            - RESOLVED_TRUE_POSITIVE
+            - CLOSED
+        severity:
+          type: string
+        triggered_rules:
+          type: array
+          items:
+            type: object
+        context:
+          type: object
+        reviewer_id:
+          type: string
+          nullable: true
+        reviewed_at:
+          type: string
+          format: date-time
+          nullable: true
+        resolution:
+          type: string
+          nullable: true
+        resolution_reason:
+          type: string
+          nullable: true
+        escalated_at:
+          type: string
+          format: date-time
+          nullable: true
+        closed_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
   parameters:
     IdempotencyKeyHeader:
       in: header
@@ -1844,3 +2835,9 @@ tags:
     description: 'General ledger — دفتر الأستاذ العام والتسوية'
   - name: 'Event Bus'
     description: 'Async event bus health and management — حالة ناقل الأحداث'
+  - name: Wallet
+    description: 'Digital wallet management — المحفظة الرقمية والحدود'
+  - name: Remittance
+    description: 'International remittances — التحويلات الدولية والامتثال العابر للحدود'
+  - name: Merchant
+    description: 'Merchant & POS — نقاط البيع والفواتير والتسوية التجارية'

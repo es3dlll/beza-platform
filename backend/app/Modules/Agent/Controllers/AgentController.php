@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Agent\Controllers;
 
 use App\Modules\Agent\Models\Agent;
+use App\Modules\Agent\Models\AgentTransaction;
+use App\Modules\Agent\Services\AgentLiquidityEngine;
 use App\Modules\Agent\Services\AgentService;
 use App\Modules\Agent\Services\CashInOutService;
 use App\Modules\Agent\Services\SettlementService;
+use App\Modules\Agent\ValueObjects\CommissionTier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -18,9 +21,10 @@ final class AgentController extends Controller
         private readonly AgentService $agentService,
         private readonly CashInOutService $cashInOutService,
         private readonly SettlementService $settlementService,
+        private readonly AgentLiquidityEngine $engine,
     ) {}
 
-    public function register(Request $request): JsonResponse
+    public function onboard(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'user_id' => 'required|string',
@@ -35,13 +39,99 @@ final class AgentController extends Controller
             'address_ar' => 'sometimes|string',
         ]);
 
-        $agent = $this->agentService->register($validated);
+        $agent = $this->engine->onboard($validated);
         return response()->json(['data' => $agent], 201);
     }
 
     public function show(string $id): JsonResponse
     {
         return response()->json(['data' => $this->agentService->getAgent($id)]);
+    }
+
+    public function showFloat(string $id): JsonResponse
+    {
+        $float = $this->engine->getFloatStatus($id);
+        return response()->json(['data' => $float]);
+    }
+
+    public function adjustFloat(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'agent_id' => 'required|string|exists:agents,id',
+            'adjustment' => 'required|integer',
+            'reason' => 'required|string|max:500',
+        ]);
+
+        $wallet = $this->agentService->getWallet($validated['agent_id']);
+        $newBalance = $wallet->float_balance + $validated['adjustment'];
+
+        if ($newBalance < 0) {
+            return response()->json(['error' => 'Adjustment would result in negative balance'], 422);
+        }
+
+        $wallet->update(['float_balance' => $newBalance]);
+
+        $this->engine->processTransactionCompletion(
+            agentId: $validated['agent_id'],
+            type: 'FLOAT_TRANSFER',
+            amount: abs($validated['adjustment']),
+        );
+
+        return response()->json([
+            'data' => [
+                'previous_balance' => $wallet->float_balance - $validated['adjustment'],
+                'new_balance' => $newBalance,
+                'adjustment' => $validated['adjustment'],
+                'reason' => $validated['reason'],
+            ],
+        ]);
+    }
+
+    public function commissions(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'agent_id' => 'required|string|exists:agents,id',
+        ]);
+
+        $agent = $this->agentService->getAgent($validated['agent_id']);
+        $tier = CommissionTier::fromString($agent->commission_tier ?? 'Bronze');
+
+        $transactions = AgentTransaction::where('agent_id', $validated['agent_id'])
+            ->where('commission_amount', '>', 0)
+            ->orderBy('created_at', 'desc')
+            ->paginate($request->get('per_page', 15));
+
+        $totalCommissions = AgentTransaction::where('agent_id', $validated['agent_id'])
+            ->sum('commission_amount');
+
+        return response()->json([
+            'data' => [
+                'tier' => $tier->tier(),
+                'rates' => [
+                    'cash_in_bps' => $tier->cashInBps(),
+                    'cash_out_bps' => $tier->cashOutBps(),
+                    'transfer_bps' => $tier->transferBps(),
+                    'daily_cap' => $tier->dailyCap(),
+                ],
+                'total_commissions' => $totalCommissions,
+                'history' => $transactions,
+            ],
+        ]);
+    }
+
+    public function settle(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'agent_id' => 'required|string|exists:agents,id',
+            'settlement_date' => 'sometimes|date',
+        ]);
+
+        $date = $validated['settlement_date'] ?? now()->toDateString();
+        $this->engine->triggerSettlement($validated['agent_id'], $date);
+
+        $settlements = $this->settlementService->getSettlements($validated['agent_id']);
+
+        return response()->json(['data' => $settlements]);
     }
 
     public function cashIn(Request $request): JsonResponse
@@ -123,7 +213,7 @@ final class AgentController extends Controller
         ]);
     }
 
-    public function settlements(Request $request): JsonResponse
+    public function settlementsList(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'agent_id' => 'required|string',

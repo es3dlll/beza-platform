@@ -40,7 +40,7 @@ final class OpenApiSpecTest extends TestCase
         $this->assertSame('3.0.3', $this->spec['openapi']);
     }
 
-    public function test_covers_all_32_endpoints_across_6_tags(): void
+    public function test_covers_all_54_endpoints_across_10_tags(): void
     {
         $endpointCount = 0;
         $tags = [];
@@ -52,20 +52,28 @@ final class OpenApiSpecTest extends TestCase
             }
         }
 
-        $this->assertSame(32, $endpointCount);
+        $this->assertSame(54, $endpointCount);
         $this->assertArrayHasKey('Agent', $tags);
         $this->assertArrayHasKey('Financial Core', $tags);
         $this->assertArrayHasKey('Fraud', $tags);
         $this->assertArrayHasKey('FX', $tags);
         $this->assertArrayHasKey('Ledger', $tags);
         $this->assertArrayHasKey('Event Bus', $tags);
+        $this->assertArrayHasKey('Wallet', $tags);
+        $this->assertArrayHasKey('Remittance', $tags);
+        $this->assertArrayHasKey('Merchant', $tags);
+        $this->assertArrayHasKey('Compliance', $tags);
 
-        $this->assertSame(7, $tags['Agent']);
+        $this->assertSame(11, $tags['Agent']);
         $this->assertSame(6, $tags['Financial Core']);
         $this->assertSame(5, $tags['Fraud']);
         $this->assertSame(5, $tags['FX']);
         $this->assertSame(6, $tags['Ledger']);
         $this->assertSame(3, $tags['Event Bus']);
+        $this->assertSame(3, $tags['Wallet']);
+        $this->assertSame(4, $tags['Remittance']);
+        $this->assertSame(6, $tags['Merchant']);
+        $this->assertSame(5, $tags['Compliance']);
     }
 
     public function test_has_security_schemes(): void
@@ -90,6 +98,11 @@ final class OpenApiSpecTest extends TestCase
             'ResolveFraudRequest',
             'FxConvertRequest',
             'UpdateRateRequest',
+            'ReviewCaseRequest',
+            'EvaluateRuleRequest',
+            'SanctionsCheckRequest',
+            'AdjustFloatRequest',
+            'SettleRequest',
         ];
         foreach ($required as $name) {
             $this->assertArrayHasKey($name, $schemas, "Missing schema: {$name}");
@@ -116,6 +129,9 @@ final class OpenApiSpecTest extends TestCase
             'ErrorResponse',
             'ValidationErrorResponse',
             'PaginationMeta',
+            'RiskAssessment',
+            'CaseLifecycle',
+            'FloatBalance',
         ];
         foreach ($required as $name) {
             $this->assertArrayHasKey($name, $schemas, "Missing schema: {$name}");
