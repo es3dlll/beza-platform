@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Modules\Agent\Providers\ModuleServiceProvider as AgentProvider;
 use App\Modules\AuditLog\Providers\ModuleServiceProvider as AuditLogProvider;
+use App\Modules\BillProvider\Providers\ModuleServiceProvider as BillProviderProvider;
+use App\Modules\Bills\Providers\ModuleServiceProvider as BillsProvider;
 use App\Modules\Core\Providers\ModuleServiceProvider as CoreProvider;
 use App\Modules\Fraud\Providers\ModuleServiceProvider as FraudProvider;
 use App\Modules\FX\Providers\ModuleServiceProvider as FXProvider;
@@ -24,4 +26,6 @@ return [
     FraudProvider::class,
     FXProvider::class,
     RemittanceProvider::class,
+    BillProviderProvider::class,
+    BillsProvider::class,
 ];
