@@ -1,5 +1,7 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios from 'axios';
+import type { AxiosInstance, AxiosRequestConfig } from 'axios';
 import type { ApiResponse } from './api-response';
+import { API_BASE_URL } from './constants';
 
 export class ApiClient {
   private readonly client: AxiosInstance;
@@ -51,3 +53,5 @@ export class ApiClient {
     return `BEZA-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   }
 }
+
+export const apiClient = new ApiClient(API_BASE_URL);
