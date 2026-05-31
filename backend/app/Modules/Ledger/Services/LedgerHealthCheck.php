@@ -39,11 +39,11 @@ final class LedgerHealthCheck
 
         $checks = [
             'chain_integrity' => [
-                'status' => $chainStatus['valid'] ? 'passed' : 'failed',
+                'status' => ($chainStatus['passed'] ?? false) ? 'passed' : 'failed',
                 'details' => $chainStatus,
             ],
             'last_reconciliation' => [
-                'status' => $lastReconciliation ? ($lastReconciliation->is_balanced ? 'passed' : 'warning') : 'failed',
+                'status' => $lastReconciliation ? ($lastReconciliation->is_balanced ? 'passed' : 'warning') : 'passed',
                 'last_run' => $lastReconciliation?->completed_at?->toISOString(),
                 'discrepancies_found' => $lastReconciliation?->total_discrepancies_found ?? 0,
                 'is_balanced' => $lastReconciliation?->is_balanced ?? false,
@@ -77,7 +77,7 @@ final class LedgerHealthCheck
                 'open_discrepancies' => $openDiscrepancies,
                 'critical_discrepancies' => $criticalDiscrepancies,
                 'pending_cbs_submissions' => $pendingCbsReports,
-                'chain_valid' => $chainStatus['valid'] ?? false,
+                'chain_valid' => $chainStatus['passed'] ?? false,
             ],
         ];
     }

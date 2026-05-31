@@ -16,10 +16,10 @@ final class LedgerAccountFactory extends Factory
     {
         return [
             'id' => Str::ulid()->toBase32(),
-            'code' => '9999',
+            'code' => fake()->unique()->numerify('1###'),
             'name' => fake()->company(),
             'name_ar' => fake()->company(),
-            'type' => 'asset',
+            'type' => fake()->randomElement(['asset', 'liability', 'equity', 'revenue', 'expense']),
             'balance' => 0,
             'currency' => 'SYP',
             'is_system' => false,
