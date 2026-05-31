@@ -82,6 +82,11 @@ final class LedgerHealthCheck
         ];
     }
 
+    public function run(): array
+    {
+        return $this->check();
+    }
+
     public function isHealthy(): bool
     {
         $result = $this->check();

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Modules\Ledger\Http\Controllers\CBSReportController;
+use App\Modules\Ledger\Http\Controllers\ReconciliationController;
 use App\Modules\Ledger\Models\JournalEntry;
 use App\Modules\Ledger\Services\AccountService;
 use App\Modules\Ledger\Services\JournalService;
@@ -39,7 +41,17 @@ Route::prefix('v1/ledger')->group(function () {
         return response()->json($service->verifyChain());
     });
 
-    Route::get('/health', function (LedgerHealthCheck $healthCheck) {
-        return response()->json($healthCheck->check());
+    Route::middleware(['auth', 'throttle:30,1'])->group(function () {
+        Route::get('/health', function (LedgerHealthCheck $healthCheck) {
+            $result = $healthCheck->check();
+            $statusCode = $result['status'] === 'degraded' ? 503 : 200;
+            return response()->json($result, $statusCode);
+        });
+    });
+
+    Route::middleware(['auth', 'throttle:10,1'])->group(function () {
+        Route::get('/reconciliations', [ReconciliationController::class, 'index']);
+        Route::post('/reconciliations/run', [ReconciliationController::class, 'run']);
+        Route::get('/cbs-reports/{id}', [CBSReportController::class, 'show']);
     });
 });

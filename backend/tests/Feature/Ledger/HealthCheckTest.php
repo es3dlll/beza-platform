@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Ledger;
 
+use App\Modules\Identity\Models\User as IdentityUser;
 use App\Modules\Ledger\Models\LedgerAccount;
 use App\Modules\Ledger\Models\ReconciliationDiscrepancy;
 use App\Modules\Ledger\Models\ReconciliationReport;
@@ -22,6 +23,9 @@ final class HealthCheckTest extends TestCase
     {
         parent::setUp();
         $this->healthCheck = app(LedgerHealthCheck::class);
+
+        $user = IdentityUser::factory()->create();
+        $this->actingAs($user);
     }
 
     public function test_health_check_returns_expected_structure(): void

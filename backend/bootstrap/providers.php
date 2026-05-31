@@ -2,6 +2,7 @@
 
 return [
     App\Providers\AppServiceProvider::class,
+    App\Providers\AuthServiceProvider::class,
     App\Modules\Identity\Providers\IdentityServiceProvider::class,
     App\Modules\Ledger\Providers\LedgerServiceProvider::class,
     App\Modules\FinancialCore\Providers\FinancialCoreServiceProvider::class,

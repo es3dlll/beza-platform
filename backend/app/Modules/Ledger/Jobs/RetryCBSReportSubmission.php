@@ -26,6 +26,7 @@ final class RetryCBSReportSubmission implements ShouldQueue
 
     public function handle(CBSReportingService $cbsReportingService): void
     {
+        /** @var ReconciliationReport|null $report */
         $report = ReconciliationReport::find($this->reportId);
 
         if (!$report) {
@@ -41,17 +42,28 @@ final class RetryCBSReportSubmission implements ShouldQueue
             return;
         }
 
+        if ($report->cbs_report_code !== null) {
+            Log::info('RetryCBSReportSubmission: already submitted, skipping', [
+                'report_id' => $this->reportId,
+                'cbs_report_code' => $report->cbs_report_code,
+            ]);
+            return;
+        }
+
         try {
             $cbsReportingService->submitToCBS($report);
-            Log::info('RetryCBSReportSubmission: submitted successfully', [
+            Log::channel('audit')->info('CBS report submitted successfully', [
                 'report_id' => $this->reportId,
-                'attempt' => $this->attempts(),
+                'user' => 'system',
+                'context' => 'RetryCBSReportSubmission',
             ]);
         } catch (\Throwable $e) {
-            Log::error('RetryCBSReportSubmission: failed', [
+            Log::channel('audit')->error('CBS report submission failed', [
                 'report_id' => $this->reportId,
-                'attempt' => $this->attempts(),
+                'user' => 'system',
+                'context' => 'RetryCBSReportSubmission',
                 'error' => $e->getMessage(),
+                'attempts_remaining' => $this->tries - $this->attempts(),
             ]);
 
             if ($this->attempts() >= $this->tries) {
@@ -66,9 +78,19 @@ final class RetryCBSReportSubmission implements ShouldQueue
 
     public function failed(\Throwable $e): void
     {
-        Log::critical('RetryCBSReportSubmission: permanently failed', [
+        Log::channel('audit')->critical('RetryCBSReportSubmission: permanently failed', [
             'report_id' => $this->reportId,
             'error' => $e->getMessage(),
         ]);
+    }
+
+    public function retryUntil(): \DateTimeImmutable
+    {
+        return now()->addHours(4)->toDateTimeImmutable();
+    }
+
+    public function maxExceptions(): int
+    {
+        return 2;
     }
 }
