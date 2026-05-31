@@ -6,6 +6,7 @@ import '../core/money.dart';
 import '../services/auth_service.dart';
 import '../services/secure_storage_service.dart';
 import 'login_screen.dart';
+import 'transfer_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final AuthService authService;
@@ -85,6 +86,18 @@ class _HomeScreenState extends State<HomeScreen> {
     } finally {
       client.close();
     }
+  }
+
+  Future<void> _navigateToTransfer() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TransferScreen(
+          baseUrl: widget.authService.baseUrl,
+        ),
+      ),
+    );
+    _fetchBalance();
   }
 
   Future<void> _logout() async {
@@ -173,6 +186,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: _navigateToTransfer,
+                  icon: const Icon(Icons.send),
+                  label: const Text('تحويل', style: TextStyle(fontSize: 16)),
+                ),
+              ),
             ],
           ),
         ),
@@ -180,3 +203,4 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'config/app_config.dart';
+import 'core/providers/transfer_provider.dart';
 import 'services/auth_service.dart';
 import 'services/crash_reporter.dart';
 import 'widgets/route_guard.dart';
@@ -12,10 +14,17 @@ void main() {
 
   final authService = AuthService(baseUrl: config.apiBaseUrl);
 
-  runApp(BezaApp(
-    authService: authService,
-    config: config,
-  ));
+  runApp(
+    ProviderScope(
+      overrides: [
+        appConfigProvider.overrideWithValue(config),
+      ],
+      child: BezaApp(
+        authService: authService,
+        config: config,
+      ),
+    ),
+  );
 }
 
 class BezaApp extends StatelessWidget {

@@ -9,7 +9,7 @@ void main() {
     test('development flavor uses localhost', () {
       final config = AppConfig.development();
       expect(config.flavor, AppFlavor.development);
-      expect(config.apiBaseUrl, 'http://localhost:8000/api');
+      expect(config.apiBaseUrl, 'http://10.0.2.2:8000');
       expect(config.enableDebugLogging, isTrue);
       expect(config.isDevelopment, isTrue);
     });

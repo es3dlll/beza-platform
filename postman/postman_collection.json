@@ -1,0 +1,1087 @@
+{
+	"info": {
+		"name": "منصة بيزا — Beza Platform API",
+		"description": "مجموعة كاملة لنقاط API لمنصة بيزا المالية الرقمية\nالإصدار: v1.1.0-beta\nاللغة: العربية (RTL)\nالعملة الأساسية: الليرة السورية (SYP) بوحدة الفلس",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "beza-platform"
+	},
+	"variable": [
+		{ "key": "base_url", "value": "http://localhost:8000", "type": "string" },
+		{ "key": "token", "value": "", "type": "string" },
+		{ "key": "admin_email", "value": "admin@beza.test", "type": "string" },
+		{ "key": "admin_password", "value": "admin123", "type": "string" },
+		{ "key": "user_email", "value": "user1@beza.test", "type": "string" },
+		{ "key": "user_password", "value": "12345678", "type": "string" },
+		{ "key": "wallet_id", "value": "", "type": "string" },
+		{ "key": "entry_id", "value": "", "type": "string" },
+		{ "key": "notification_id", "value": "", "type": "string" },
+		{ "key": "bill_id", "value": "", "type": "string" },
+		{ "key": "bill_provider_id", "value": "", "type": "string" },
+		{ "key": "escrow_id", "value": "", "type": "string" },
+		{ "key": "product_id", "value": "", "type": "string" },
+		{ "key": "seller_id", "value": "", "type": "string" },
+		{ "key": "remittance_id", "value": "", "type": "string" },
+		{ "key": "fraud_review_id", "value": "", "type": "string" },
+		{ "key": "schedule_id", "value": "", "type": "string" }
+	],
+	"item": [
+		{
+			"name": "01 — الفحص الصحي والمصادقة",
+			"description": "نقاط البداية: فحص صحة النظام وتسجيل الدخول",
+			"item": [
+				{
+					"name": "الفحص الصحي",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Accept", "value": "application/json"}],
+						"url": {"raw": "{{base_url}}/v1/core/health", "host": ["{{base_url}}"], "path": ["v1", "core", "health"]},
+						"description": "فحص حالة جميع مكونات النظام: قاعدة البيانات، الكاش، التخزين، الطابور"
+					},
+					"event": [{
+						"listen": "test",
+						"script": {
+							"exec": [
+								"pm.test('Status code is 200', () => { pm.response.to.have.status(200); });",
+								"pm.test('All components healthy', () => {",
+								"    var json = pm.response.json();",
+								"    pm.expect(json.success).to.be.true;",
+								"    pm.expect(json.data.status).to.eql('healthy');",
+								"    pm.expect(json.data.checks.database.status).to.eql('healthy');",
+								"    pm.expect(json.data.checks.cache.status).to.eql('healthy');",
+								"    pm.expect(json.data.checks.storage.status).to.eql('healthy');",
+								"});"
+							],
+							"type": "text/javascript"
+						}
+					}]
+				},
+				{
+					"name": "تسجيل الدخول — المسؤول",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"email\": \"{{admin_email}}\", \"password\": \"{{admin_password}}\", \"device_id\": \"postman-device-001\"}"
+						},
+						"url": {"raw": "{{base_url}}/v1/auth/login", "host": ["{{base_url}}"], "path": ["v1", "auth", "login"]},
+						"description": "تسجيل دخول المسؤول — يُعيد توكن JWT قصير العمر (15 دقيقة)"
+					},
+					"event": [{
+						"listen": "test",
+						"script": {
+							"exec": [
+								"pm.test('Login successful', () => {",
+								"    var json = pm.response.json();",
+								"    pm.expect(json.success).to.be.true;",
+								"    pm.expect(json.message).to.eql('تم تسجيل الدخول');",
+								"    pm.expect(json.data.token).to.not.be.empty;",
+								"    pm.collectionVariables.set('token', json.data.token);",
+								"    pm.collectionVariables.set('wallet_id', json.data.user?.id || '');",
+								"});"
+							],
+							"type": "text/javascript"
+						}
+					}]
+				},
+				{
+					"name": "تسجيل الدخول — المستخدم",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"email\": \"{{user_email}}\", \"password\": \"{{user_password}}\", \"device_id\": \"postman-device-002\"}"
+						},
+						"url": {"raw": "{{base_url}}/v1/auth/login", "host": ["{{base_url}}"], "path": ["v1", "auth", "login"]},
+						"description": "تسجيل دخول المستخدم التجريبي"
+					}
+				},
+				{
+					"name": "تسجيل مستخدم جديد",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\": \"مستخدم جديد\", \"email\": \"newuser@beza.test\", \"password\": \"password123\", \"device_id\": \"postman-device-003\"}"
+						},
+						"url": {"raw": "{{base_url}}/v1/auth/register", "host": ["{{base_url}}"], "path": ["v1", "auth", "register"]},
+						"description": "إنشاء حساب جديد — يُنشئ محفظة تلقائياً برصيد 0"
+					}
+				}
+			]
+		},
+		{
+			"name": "02 — المحفظة والتحويلات",
+			"description": "إدارة المحفظة المالية والتحويلات بين المستخدمين",
+			"item": [
+				{
+					"name": "الرصيد",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/wallet/balance", "host": ["{{base_url}}"], "path": ["v1", "wallet", "balance"]},
+						"description": "جلب رصيد المحفظة الحالية (بالفلس)"
+					},
+					"event": [{
+						"listen": "test",
+						"script": {
+							"exec": [
+								"pm.test('Balance retrieved', () => {",
+								"    var json = pm.response.json();",
+								"    pm.expect(json.success).to.be.true;",
+								"    pm.expect(json.data.balance_fils).to.be.a('number');",
+								"    pm.expect(json.data.currency).to.eql('SYP');",
+								"});"
+							],
+							"type": "text/javascript"
+						}
+					}]
+				},
+				{
+					"name": "تحويل مالي",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"to_wallet_id\": \"{{wallet_id}}\", \"amount_fils\": 500, \"currency\": \"SYP\"}"
+						},
+						"url": {"raw": "{{base_url}}/v1/wallet/transfer", "host": ["{{base_url}}"], "path": ["v1", "wallet", "transfer"]},
+						"description": "تحويل مبلغ مالي بين محفظتين — المبلغ بالفلس"
+					},
+					"event": [{
+						"listen": "test",
+						"script": {
+							"exec": [
+								"pm.test('Transfer successful', () => {",
+								"    var json = pm.response.json();",
+								"    pm.expect(json.success).to.be.true;",
+								"    pm.expect(json.message).to.eql('تم التحويل بنجاح');",
+								"    pm.expect(json.data.entry_id).to.not.be.empty;",
+								"    pm.expect(json.data.amount_fils).to.eql(500);",
+								"    pm.collectionVariables.set('entry_id', json.data.entry_id);",
+								"});"
+							],
+							"type": "text/javascript"
+						}
+					}]
+				}
+			]
+		},
+		{
+			"name": "03 — الوكيل",
+			"description": "نظام الوكلاء: التسجيل، الطلبات، العمولات",
+			"item": [
+				{
+					"name": "تسجيل وكيل",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {"mode": "raw", "raw": "{\"name\": \"وكيل تجريبي\", \"phone\": \"+963900000001\", \"location\": \"دمشق\"}"},
+						"url": {"raw": "{{base_url}}/v1/agent/register", "host": ["{{base_url}}"], "path": ["v1", "agent", "register"]}
+					}
+				},
+				{
+					"name": "طلب سيولة",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {"mode": "raw", "raw": "{\"amount_fils\": 1000000, \"currency\": \"SYP\", \"notes\": \"طلب سيولة تجريبي\"}"},
+						"url": {"raw": "{{base_url}}/v1/agent/liquidity/request", "host": ["{{base_url}}"], "path": ["v1", "agent", "liquidity", "request"]}
+					}
+				},
+				{
+					"name": "احتساب العمولة",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {"mode": "raw", "raw": "{\"amount_fils\": 500000, \"operation\": \"transfer\"}"},
+						"url": {"raw": "{{base_url}}/v1/agent/commission/calculate", "host": ["{{base_url}}"], "path": ["v1", "agent", "commission", "calculate"]}
+					}
+				},
+				{
+					"name": "معاينة العمولة",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {"mode": "raw", "raw": "{\"amount_fils\": 250000, \"operation\": \"transfer\"}"},
+						"url": {"raw": "{{base_url}}/v1/agent/commission/preview", "host": ["{{base_url}}"], "path": ["v1", "agent", "commission", "preview"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "04 — مكافحة الاحتيال",
+			"description": "نظام إدارة المخاطر وقواعد الاحتيال والمراجعات",
+			"item": [
+				{
+					"name": "لوحة المخاطر",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/fraud/dashboard", "host": ["{{base_url}}"], "path": ["v1", "fraud", "dashboard"]}
+					}
+				},
+				{
+					"name": "قائمة المراجعات المعلقة",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/fraud/pending-reviews", "host": ["{{base_url}}"], "path": ["v1", "fraud", "pending-reviews"]}
+					}
+				},
+				{
+					"name": "قرار مراجعة",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {"mode": "raw", "raw": "{\"decision\": \"approve\", \"notes\": \"موافق بعد التحقق\"}"},
+						"url": {"raw": "{{base_url}}/v1/fraud/pending-reviews/{{fraud_review_id}}/decision", "host": ["{{base_url}}"], "path": ["v1", "fraud", "pending-reviews", "{{fraud_review_id}}", "decision"]}
+					}
+				},
+				{
+					"name": "طلب مستندات",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {"mode": "raw", "raw": "{\"documents_required\": [\"id_card\", \"proof_of_address\"]}"},
+						"url": {"raw": "{{base_url}}/v1/fraud/pending-reviews/{{fraud_review_id}}/documents", "host": ["{{base_url}}"], "path": ["v1", "fraud", "pending-reviews", "{{fraud_review_id}}", "documents"]}
+					}
+				},
+				{
+					"name": "قواعد الاحتيال",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/fraud/rules", "host": ["{{base_url}}"], "path": ["v1", "fraud", "rules"]}
+					}
+				},
+				{
+					"name": "إنشاء قاعدة",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {"mode": "raw", "raw": "{\"key\": \"max_transfer_amount\", \"name\": \"الحد الأقصى للتحويل\", \"type\": \"threshold\", \"parameters\": {\"max_amount_fils\": 5000000}, \"is_active\": true}"},
+						"url": {"raw": "{{base_url}}/v1/fraud/rules", "host": ["{{base_url}}"], "path": ["v1", "fraud", "rules"]}
+					}
+				},
+				{
+					"name": "معاينة قاعدة",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {"mode": "raw", "raw": "{\"transaction\": {\"amount_fils\": 10000000, \"type\": \"transfer\"}}"},
+						"url": {"raw": "{{base_url}}/v1/fraud/rules/preview", "host": ["{{base_url}}"], "path": ["v1", "fraud", "rules", "preview"]}
+					}
+				},
+				{
+					"name": "تحديث قاعدة",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {"mode": "raw", "raw": "{\"parameters\": {\"max_amount_fils\": 10000000}}"},
+						"url": {"raw": "{{base_url}}/v1/fraud/rules/max_transfer_amount", "host": ["{{base_url}}"], "path": ["v1", "fraud", "rules", "max_transfer_amount"]}
+					}
+				},
+				{
+					"name": "تفعيل/تعطيل قاعدة",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/fraud/rules/max_transfer_amount/toggle", "host": ["{{base_url}}"], "path": ["v1", "fraud", "rules", "max_transfer_amount", "toggle"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "05 — الحوالات الدولية",
+			"description": "تحويل الأموال دولياً بأسعار صرف لحظية",
+			"item": [
+				{
+					"name": "معاينة الحوالة",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/remittance/preview?from_currency=SYP&to_currency=USD&amount_fils=1000000", "host": ["{{base_url}}"], "path": ["v1", "remittance", "preview"]}
+					}
+				},
+				{
+					"name": "إنشاء حوالة",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {"mode": "raw", "raw": "{\"from_currency\": \"SYP\", \"to_currency\": \"USD\", \"amount_fils\": 500000, \"recipient_name\": \"أحمد محمد\", \"recipient_phone\": \"+963900000002\", \"recipient_country\": \"TR\"}"},
+						"url": {"raw": "{{base_url}}/v1/remittance/initiate", "host": ["{{base_url}}"], "path": ["v1", "remittance", "initiate"]}
+					},
+					"event": [{
+						"listen": "test",
+						"script": {
+							"exec": [
+								"pm.test('Remittance initiated', () => {",
+								"    var json = pm.response.json();",
+								"    if (json.success) {",
+								"        pm.collectionVariables.set('remittance_id', json.data?.id || '');",
+								"    }",
+								"});"
+							],
+							"type": "text/javascript"
+						}
+					}]
+				},
+				{
+					"name": "قائمة الحوالات",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/remittance", "host": ["{{base_url}}"], "path": ["v1", "remittance"]}
+					}
+				},
+				{
+					"name": "تفاصيل حوالة",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/remittance/{{remittance_id}}", "host": ["{{base_url}}"], "path": ["v1", "remittance", "{{remittance_id}}"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "06 — مزودو الفواتير",
+			"description": "إدارة مزودي خدمة الفواتير (كهرباء، ماء، اتصالات...)",
+			"item": [
+				{
+					"name": "قائمة المزودين",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/bill-providers", "host": ["{{base_url}}"], "path": ["v1", "bill-providers"]}
+					}
+				},
+				{
+					"name": "إضافة مزود",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {"mode": "raw", "raw": "{\"name\": \"الكهرباء العامة\", \"code\": \"ELECTRIC\", \"category\": \"utility\", \"is_active\": true}"},
+						"url": {"raw": "{{base_url}}/v1/bill-providers", "host": ["{{base_url}}"], "path": ["v1", "bill-providers"]}
+					},
+					"event": [{
+						"listen": "test",
+						"script": {
+							"exec": [
+								"pm.test('Provider created', () => {",
+								"    var json = pm.response.json();",
+								"    if (json.success) pm.collectionVariables.set('bill_provider_id', json.data?.id || '');",
+								"});"
+							],
+							"type": "text/javascript"
+						}
+					}]
+				},
+				{
+					"name": "تفاصيل مزود",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/bill-providers/{{bill_provider_id}}", "host": ["{{base_url}}"], "path": ["v1", "bill-providers", "{{bill_provider_id}}"]}
+					}
+				},
+				{
+					"name": "تحديث مزود",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {"mode": "raw", "raw": "{\"name\": \"الكهرباء العامة - محدث\", \"is_active\": true}"},
+						"url": {"raw": "{{base_url}}/v1/bill-providers/{{bill_provider_id}}", "host": ["{{base_url}}"], "path": ["v1", "bill-providers", "{{bill_provider_id}}"]}
+					}
+				},
+				{
+					"name": "تفعيل/تعطيل مزود",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/bill-providers/{{bill_provider_id}}/toggle", "host": ["{{base_url}}"], "path": ["v1", "bill-providers", "{{bill_provider_id}}", "toggle"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "07 — الفواتير والمدفوعات المجدولة",
+			"description": "إدارة الفواتير ودفعها وجدولة المدفوعات الدورية",
+			"item": [
+				{
+					"name": "قائمة الفواتير",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/bills", "host": ["{{base_url}}"], "path": ["v1", "bills"]}
+					}
+				},
+				{
+					"name": "إحصائيات الفواتير",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/bills/stats", "host": ["{{base_url}}"], "path": ["v1", "bills", "stats"]}
+					}
+				},
+				{
+					"name": "إنشاء فاتورة",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {"mode": "raw", "raw": "{\"bill_provider_id\": \"{{bill_provider_id}}\", \"amount_fils\": 250000, \"currency\": \"SYP\", \"due_date\": \"2026-06-30\", \"reference\": \"BILL-001\"}"},
+						"url": {"raw": "{{base_url}}/v1/bills", "host": ["{{base_url}}"], "path": ["v1", "bills"]}
+					},
+					"event": [{
+						"listen": "test",
+						"script": {
+							"exec": [
+								"pm.test('Bill created', () => {",
+								"    var json = pm.response.json();",
+								"    if (json.success) pm.collectionVariables.set('bill_id', json.data?.id || '');",
+								"});"
+							],
+							"type": "text/javascript"
+						}
+					}]
+				},
+				{
+					"name": "تفاصيل فاتورة",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/bills/{{bill_id}}", "host": ["{{base_url}}"], "path": ["v1", "bills", "{{bill_id}}"]}
+					}
+				},
+				{
+					"name": "معاينة دفع فاتورة",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/bills/{{bill_id}}/preview", "host": ["{{base_url}}"], "path": ["v1", "bills", "{{bill_id}}", "preview"]}
+					}
+				},
+				{
+					"name": "دفع فاتورة",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/bills/{{bill_id}}/pay", "host": ["{{base_url}}"], "path": ["v1", "bills", "{{bill_id}}", "pay"]}
+					}
+				},
+				{
+					"name": "المدفوعات المجدولة",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/bills/schedules", "host": ["{{base_url}}"], "path": ["v1", "bills", "schedules"]}
+					}
+				},
+				{
+					"name": "إنشاء جدولة",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {"mode": "raw", "raw": "{\"bill_provider_id\": \"{{bill_provider_id}}\", \"amount_fils\": 250000, \"currency\": \"SYP\", \"frequency\": \"monthly\", \"day_of_month\": 15}"},
+						"url": {"raw": "{{base_url}}/v1/bills/schedules", "host": ["{{base_url}}"], "path": ["v1", "bills", "schedules"]}
+					},
+					"event": [{
+						"listen": "test",
+						"script": {
+							"exec": [
+								"pm.test('Schedule created', () => {",
+								"    var json = pm.response.json();",
+								"    if (json.success) pm.collectionVariables.set('schedule_id', json.data?.id || '');",
+								"});"
+							],
+							"type": "text/javascript"
+						}
+					}]
+				},
+				{
+					"name": "تفعيل/تعطيل جدولة",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/bills/schedules/{{schedule_id}}/toggle", "host": ["{{base_url}}"], "path": ["v1", "bills", "schedules", "{{schedule_id}}", "toggle"]}
+					}
+				},
+				{
+					"name": "معالجة الفواتير المستحقة",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/bills/process-due", "host": ["{{base_url}}"], "path": ["v1", "bills", "process-due"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "08 — السوق والضمان",
+			"description": "السوق الرقمي وحسابات الضمان (Escrow)",
+			"item": [
+				{
+					"name": "المنتجات",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/marketplace/products", "host": ["{{base_url}}"], "path": ["v1", "marketplace", "products"]}
+					}
+				},
+				{
+					"name": "تفاصيل منتج",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/marketplace/products/{{product_id}}", "host": ["{{base_url}}"], "path": ["v1", "marketplace", "products", "{{product_id}}"]}
+					}
+				},
+				{
+					"name": "البائعون",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/marketplace/sellers", "host": ["{{base_url}}"], "path": ["v1", "marketplace", "sellers"]}
+					}
+				},
+				{
+					"name": "تفاصيل بائع",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/marketplace/sellers/{{seller_id}}", "host": ["{{base_url}}"], "path": ["v1", "marketplace", "sellers", "{{seller_id}}"]}
+					}
+				},
+				{
+					"name": "إحصائيات السوق",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/marketplace/stats", "host": ["{{base_url}}"], "path": ["v1", "marketplace", "stats"]}
+					}
+				},
+				{
+					"name": "إدارة البائعين (إداري)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/marketplace/admin/sellers", "host": ["{{base_url}}"], "path": ["v1", "marketplace", "admin", "sellers"]}
+					}
+				},
+				{
+					"name": "الموافقة على بائع",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/marketplace/admin/sellers/{{seller_id}}/approve", "host": ["{{base_url}}"], "path": ["v1", "marketplace", "admin", "sellers", "{{seller_id}}", "approve"]}
+					}
+				},
+				{
+					"name": "تعليق بائع",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/marketplace/admin/sellers/{{seller_id}}/suspend", "host": ["{{base_url}}"], "path": ["v1", "marketplace", "admin", "sellers", "{{seller_id}}", "suspend"]}
+					}
+				},
+				{
+					"name": "قائمة الضمان",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/escrow", "host": ["{{base_url}}"], "path": ["v1", "escrow"]}
+					}
+				},
+				{
+					"name": "إحصائيات الضمان",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/escrow/stats", "host": ["{{base_url}}"], "path": ["v1", "escrow", "stats"]}
+					}
+				},
+				{
+					"name": "إنشاء ضمان",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {"mode": "raw", "raw": "{\"seller_wallet_id\": \"{{wallet_id}}\", \"amount_fils\": 500000, \"currency\": \"SYP\", \"description\": \"ضمان عملية بيع تجريبي\"}"},
+						"url": {"raw": "{{base_url}}/v1/escrow", "host": ["{{base_url}}"], "path": ["v1", "escrow"]}
+					},
+					"event": [{
+						"listen": "test",
+						"script": {
+							"exec": [
+								"pm.test('Escrow created', () => {",
+								"    var json = pm.response.json();",
+								"    if (json.success) pm.collectionVariables.set('escrow_id', json.data?.id || '');",
+								"});"
+							],
+							"type": "text/javascript"
+						}
+					}]
+				},
+				{
+					"name": "تفاصيل ضمان",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/escrow/{{escrow_id}}", "host": ["{{base_url}}"], "path": ["v1", "escrow", "{{escrow_id}}"]}
+					}
+				},
+				{
+					"name": "تمويل ضمان",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/escrow/{{escrow_id}}/fund", "host": ["{{base_url}}"], "path": ["v1", "escrow", "{{escrow_id}}", "fund"]}
+					}
+				},
+				{
+					"name": "إفراج ضمان",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/escrow/{{escrow_id}}/release", "host": ["{{base_url}}"], "path": ["v1", "escrow", "{{escrow_id}}", "release"]}
+					}
+				},
+				{
+					"name": "استرداد ضمان",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/escrow/{{escrow_id}}/refund", "host": ["{{base_url}}"], "path": ["v1", "escrow", "{{escrow_id}}", "refund"]}
+					}
+				},
+				{
+					"name": "نزاع ضمان",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {"mode": "raw", "raw": "{\"reason\": \"المنتج لم يطابق الوصف\", \"evidence\": [\"screenshot_1.png\"]}"},
+						"url": {"raw": "{{base_url}}/v1/escrow/{{escrow_id}}/dispute", "host": ["{{base_url}}"], "path": ["v1", "escrow", "{{escrow_id}}", "dispute"]}
+					}
+				},
+				{
+					"name": "قائمة النزاعات",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/escrow/disputes", "host": ["{{base_url}}"], "path": ["v1", "escrow", "disputes"]}
+					}
+				},
+				{
+					"name": "حل نزاع",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {"mode": "raw", "raw": "{\"decision\": \"refund_buyer\", \"notes\": \"تم التأكد من صحة شكوى المشتري\"}"},
+						"url": {"raw": "{{base_url}}/v1/escrow/disputes/{{escrow_id}}/resolve", "host": ["{{base_url}}"], "path": ["v1", "escrow", "disputes", "{{escrow_id}}", "resolve"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "09 — الإشعارات",
+			"description": "نظام الإشعارات متعدد القنوات (داخلي، إيميل، SMS)",
+			"item": [
+				{
+					"name": "قائمة الإشعارات",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/notifications", "host": ["{{base_url}}"], "path": ["v1", "notifications"]}
+					}
+				},
+				{
+					"name": "إحصائيات الإشعارات",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/notifications/stats", "host": ["{{base_url}}"], "path": ["v1", "notifications", "stats"]}
+					}
+				},
+				{
+					"name": "العدد غير المقروء",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/notifications/unread-count", "host": ["{{base_url}}"], "path": ["v1", "notifications", "unread-count"]}
+					}
+				},
+				{
+					"name": "تحديد كمقروء",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/notifications/mark-read/{{notification_id}}", "host": ["{{base_url}}"], "path": ["v1", "notifications", "mark-read", "{{notification_id}}"]}
+					}
+				},
+				{
+					"name": "تحديد الكل كمقروء",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/notifications/mark-all-read", "host": ["{{base_url}}"], "path": ["v1", "notifications", "mark-all-read"]}
+					}
+				},
+				{
+					"name": "حذف إشعار",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/notifications/{{notification_id}}", "host": ["{{base_url}}"], "path": ["v1", "notifications", "{{notification_id}}"]}
+					}
+				},
+				{
+					"name": "إرسال إشعار",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {"mode": "raw", "raw": "{\"user_id\": \"{{wallet_id}}\", \"title\": \"إشعار تجريبي\", \"body\": \"هذا إشعار اختبار من Postman\", \"type\": \"alert\", \"channels\": [\"in_app\", \"email\"]}"},
+						"url": {"raw": "{{base_url}}/v1/notifications/send", "host": ["{{base_url}}"], "path": ["v1", "notifications", "send"]}
+					}
+				},
+				{
+					"name": "إرسال إشعار جماعي",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"body": {"mode": "raw", "raw": "{\"user_ids\": [], \"title\": \"إشعار لجميع المستخدمين\", \"body\": \"تحديث جديد في المنصة\", \"type\": \"announcement\", \"channels\": [\"in_app\"]}"},
+						"url": {"raw": "{{base_url}}/v1/notifications/send-bulk", "host": ["{{base_url}}"], "path": ["v1", "notifications", "send-bulk"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "10 — التحليلات",
+			"description": "لوحات المعلومات والتقارير التحليلية التشغيلية والمالية",
+			"item": [
+				{
+					"name": "لوحة المعلومات",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/analytics/dashboard", "host": ["{{base_url}}"], "path": ["v1", "analytics", "dashboard"]}
+					}
+				},
+				{
+					"name": "لقطة تحليلات",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/analytics/snapshot", "host": ["{{base_url}}"], "path": ["v1", "analytics", "snapshot"]}
+					}
+				},
+				{
+					"name": "تجميع التحليلات",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/analytics/aggregate", "host": ["{{base_url}}"], "path": ["v1", "analytics", "aggregate"]}
+					}
+				},
+				{
+					"name": "تحليلات نطاق زمني",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/analytics/range?from=2026-05-01&to=2026-06-01", "host": ["{{base_url}}"], "path": ["v1", "analytics", "range"]}
+					}
+				},
+				{
+					"name": "تحديث التحليلات",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/analytics/refresh", "host": ["{{base_url}}"], "path": ["v1", "analytics", "refresh"]}
+					}
+				},
+				{
+					"name": "تصدير CSV",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "text/csv"}
+						],
+						"url": {"raw": "{{base_url}}/v1/analytics/export-csv?type=financial&from=2026-05-01&to=2026-06-01", "host": ["{{base_url}}"], "path": ["v1", "analytics", "export-csv"]}
+					}
+				},
+				{
+					"name": "ملخص تحليلي",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/analytics/summary", "host": ["{{base_url}}"], "path": ["v1", "analytics", "summary"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "11 — التدقيق والإدارة",
+			"description": "سجل التدقيق والإجراءات الإدارية",
+			"item": [
+				{
+					"name": "سجل التدقيق",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Accept", "value": "application/json"}
+						],
+						"url": {"raw": "{{base_url}}/v1/admin/audit-logs", "host": ["{{base_url}}"], "path": ["v1", "admin", "audit-logs"]}
+					}
+				}
+			]
+		},
+		{
+			"name": "12 — تقارير CSP",
+			"description": "تقارير انتهاك سياسة أمان المحتوى (CSP)",
+			"item": [
+				{
+					"name": "إبلاغ CSP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {"mode": "raw", "raw": "{\"csp-report\": {\"document-uri\": \"https://beza.app/\", \"violated-directive\": \"script-src\", \"blocked-uri\": \"https://evil.com/hack.js\"}}"},
+						"url": {"raw": "{{base_url}}/v1/core/csp-report", "host": ["{{base_url}}"], "path": ["v1", "core", "csp-report"]}
+					}
+				}
+			]
+		}
+	]
+}

@@ -23,7 +23,7 @@ class AppConfig {
 
   static AppConfig development() => const AppConfig(
         flavor: AppFlavor.development,
-        apiBaseUrl: 'http://localhost:8000/api',
+        apiBaseUrl: 'http://10.0.2.2:8000',
         enableDebugLogging: true,
         enableCrashReporting: false,
         enablePerformanceMonitoring: false,

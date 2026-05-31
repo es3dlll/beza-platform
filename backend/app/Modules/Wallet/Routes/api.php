@@ -30,7 +30,7 @@ Route::prefix('v1/wallet')->middleware('token.auth')->group(function (): void {
 
         $wallet = request()->user()->wallet;
         $toWallet = \App\Modules\Wallet\Models\Wallet::findOrFail($validated['to_wallet_id']);
-        $money = \App\Modules\Core\ValueObjects\Money::fromFils($validated['amount_fils'], \App\Modules\Core\ValueObjects\Currency::from($validated['currency']));
+        $money = \App\Modules\Core\ValueObjects\Money::fromFils($validated['amount_fils'], \App\Modules\Core\Enums\Currency::from($validated['currency']));
 
         $engine = app(\App\Modules\Ledger\Services\CoreFinancialEngine::class);
         $entry = $engine->transfer($money, $wallet, $toWallet, 'تحويل', 'transfer', request()->header('X-Request-Id'));
