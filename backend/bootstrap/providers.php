@@ -7,6 +7,8 @@ use App\Modules\AuditLog\Providers\ModuleServiceProvider as AuditLogProvider;
 use App\Modules\BillProvider\Providers\ModuleServiceProvider as BillProviderProvider;
 use App\Modules\Bills\Providers\ModuleServiceProvider as BillsProvider;
 use App\Modules\Core\Providers\ModuleServiceProvider as CoreProvider;
+use App\Modules\Escrow\Providers\ModuleServiceProvider as EscrowProvider;
+use App\Modules\Marketplace\Providers\ModuleServiceProvider as MarketplaceProvider;
 use App\Modules\Fraud\Providers\ModuleServiceProvider as FraudProvider;
 use App\Modules\FX\Providers\ModuleServiceProvider as FXProvider;
 use App\Modules\Identity\Providers\ModuleServiceProvider as IdentityProvider;
@@ -28,4 +30,6 @@ return [
     RemittanceProvider::class,
     BillProviderProvider::class,
     BillsProvider::class,
+    MarketplaceProvider::class,
+    EscrowProvider::class,
 ];
