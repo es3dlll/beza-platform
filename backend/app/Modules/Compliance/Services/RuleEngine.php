@@ -6,17 +6,22 @@ namespace App\Modules\Compliance\Services;
 
 use App\Modules\Compliance\Models\AuditTrail;
 use App\Modules\Compliance\ValueObjects\RiskScore;
-use Illuminate\Support\Facades\Cache;
+use App\Modules\Core\Services\CacheOrchestrator;
 use Illuminate\Support\Str;
 
 final class RuleEngine
 {
-    const CACHE_KEY = 'compliance_rules';
-    const CACHE_TTL = 300;
+    private const CACHE_NAMESPACE = 'compliance';
+    private const CACHE_KEY = 'rules';
+    private const CACHE_TTL = 300;
+
+    public function __construct(
+        private readonly CacheOrchestrator $cache,
+    ) {}
 
     public function loadRules(): array
     {
-        return Cache::remember(self::CACHE_KEY, self::CACHE_TTL, function () {
+        return $this->cache->cacheAside(self::CACHE_NAMESPACE, self::CACHE_KEY, self::CACHE_TTL, function () {
             return \App\Modules\Compliance\Models\ComplianceRuleConfig::where('active', true)->get()->map(
                 fn ($cfg) => new \App\Modules\Compliance\ValueObjects\ComplianceRule(
                     id: $cfg->rule_id,

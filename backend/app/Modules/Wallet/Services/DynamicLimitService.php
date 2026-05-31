@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Modules\Wallet\Services;
 
+use App\Modules\Core\Services\CacheOrchestrator;
 use App\Modules\Wallet\Events\LimitApproached;
 use App\Modules\Wallet\Events\LimitExceeded;
 use App\Modules\Wallet\ValueObjects\WalletLimit;
-use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Support\Facades\Event;
 
 final class DynamicLimitService
 {
+    private const CACHE_NAMESPACE = 'wallet_limits';
     private const CACHE_TTL = 300;
-    private const CACHE_KEY_PREFIX = 'wallet_limit_';
 
     private const TIER_LIMITS = [
         'T1' => ['daily' => 5000000, 'monthly' => 50000000, 'single' => 1000000],
@@ -24,14 +24,12 @@ final class DynamicLimitService
     private const TIER_THRESHOLD = 0.85;
 
     public function __construct(
-        private readonly Cache $cache,
+        private readonly CacheOrchestrator $cache,
     ) {}
 
     public function getLimits(string $userId, string $tier): WalletLimit
     {
-        $cacheKey = self::CACHE_KEY_PREFIX . $userId;
-
-        $cached = $this->cache->get($cacheKey);
+        $cached = $this->cache->get(self::CACHE_NAMESPACE, $userId);
         if ($cached instanceof WalletLimit) {
             return $cached;
         }
@@ -50,7 +48,7 @@ final class DynamicLimitService
         );
 
         $this->checkApproachThreshold($userId, $limit);
-        $this->cache->put($cacheKey, $limit, self::CACHE_TTL);
+        $this->cache->writeThrough(self::CACHE_NAMESPACE, $userId, $limit, self::CACHE_TTL);
 
         return $limit;
     }
@@ -69,7 +67,7 @@ final class DynamicLimitService
 
     public function invalidateCache(string $userId): void
     {
-        $this->cache->forget(self::CACHE_KEY_PREFIX . $userId);
+        $this->cache->invalidate(self::CACHE_NAMESPACE, $userId);
     }
 
     private function checkApproachThreshold(string $userId, WalletLimit $limit): void
@@ -84,11 +82,13 @@ final class DynamicLimitService
 
     private function getDailyUsage(string $userId): int
     {
-        return (int) $this->cache->get(self::CACHE_KEY_PREFIX . "daily_{$userId}", 0);
+        $value = $this->cache->get(self::CACHE_NAMESPACE, "daily_{$userId}");
+        return (int) ($value ?? 0);
     }
 
     private function getMonthlyUsage(string $userId): int
     {
-        return (int) $this->cache->get(self::CACHE_KEY_PREFIX . "monthly_{$userId}", 0);
+        $value = $this->cache->get(self::CACHE_NAMESPACE, "monthly_{$userId}");
+        return (int) ($value ?? 0);
     }
 }

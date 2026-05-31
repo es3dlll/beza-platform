@@ -4,25 +4,28 @@ declare(strict_types=1);
 
 namespace App\Modules\Ledger\Http\Controllers;
 
+use App\Modules\Core\Services\CacheOrchestrator;
 use App\Modules\Ledger\Models\LedgerAccount;
 use App\Modules\Ledger\Models\ReconciliationDiscrepancy;
 use App\Modules\Ledger\Models\ReconciliationReport;
 use App\Modules\Ledger\Services\LedgerMetrics;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 
 final class ExecutiveDashboardController
 {
+    private const CACHE_NAMESPACE = 'dashboard';
+
     public function __construct(
         private readonly LedgerMetrics $metrics,
+        private readonly CacheOrchestrator $cache,
     ) {}
 
     public function summary(): JsonResponse
     {
         Gate::authorize('view-executive-dashboard');
 
-        $data = Cache::remember('exec_dashboard_summary', 300, function () {
+        $data = $this->cache->cacheAside(self::CACHE_NAMESPACE, 'summary', 300, function () {
             return [
                 'timestamp' => now()->toISOString(),
                 'financial_health' => $this->calculateFinancialHealth(),
