@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Modules\Agent\Models\Agent;
 use App\Modules\Wallet\Models\Wallet;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -31,6 +32,11 @@ class User extends Authenticatable
     public function wallet(): HasOne
     {
         return $this->hasOne(Wallet::class);
+    }
+
+    public function agent(): HasOne
+    {
+        return $this->hasOne(Agent::class);
     }
 
     public function createApiToken(): string
