@@ -11,8 +11,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('beta_feedback', function (Blueprint $table) {
-            $table->id();
-            $table->string('feedback_id', 36)->unique();
+            $table->string('feedback_id', 36)->primary();
             $table->string('user_id', 36);
             $table->string('category');
             $table->text('description');
