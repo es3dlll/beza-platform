@@ -5,6 +5,14 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
   ],
+  server: {
+    proxy: {
+      '/v1': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
+  },
   build: {
     target: 'es2020',
     minify: 'esbuild',
