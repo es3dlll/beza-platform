@@ -1,9 +1,12 @@
 <?php
 
+use App\Http\Middleware\ApiWapAuth;
+use App\Http\Middleware\CheckWapRole;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -16,10 +19,16 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('api')
                 ->prefix('api')
                 ->group(base_path('app/Modules/Auth/routes/api.php'));
+
+            Route::middleware('api')
+                ->group(base_path('routes/api-wap.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'auth.wap' => ApiWapAuth::class,
+            'wap.role' => CheckWapRole::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

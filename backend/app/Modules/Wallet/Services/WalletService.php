@@ -25,4 +25,9 @@ class WalletService
             $this->createWallet($user, 'USD'),
         ];
     }
+
+    public function getUserWallets(int $userId): \Illuminate\Database\Eloquent\Collection
+    {
+        return Wallet::where('user_id', $userId)->get();
+    }
 }
