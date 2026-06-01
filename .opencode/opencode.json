@@ -1,0 +1,174 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "ceo": {
+      "description": "المدير الاستراتيجي للمشروع — CEO & Orchestrator",
+      "mode": "primary",
+      "model": "anthropic/claude-sonnet-4-20250514",
+      "temperature": 0.2,
+      "prompt": "{file:./agents/ceo/ceo.md}",
+      "color": "#FFD700",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "write": "allow",
+        "edit": "allow",
+        "bash": "allow",
+        "websearch": "allow",
+        "question": "allow",
+        "task": "allow",
+        "webfetch": "allow"
+      }
+    },
+    "lead": {
+      "description": "مهندس معماري وقائد فريق (Tech Lead)",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-20250514",
+      "temperature": 0.1,
+      "prompt": "{file:./agents/lead/lead.md}",
+      "color": "#9C27B0",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "write": "allow",
+        "edit": "allow",
+        "bash": "allow",
+        "websearch": "allow"
+      }
+    },
+    "backend": {
+      "description": "مطور الواجهات الخلفية (Backend Developer)",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-20250514",
+      "temperature": 0.2,
+      "prompt": "{file:./agents/backend/backend.md}",
+      "color": "#4CAF50",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "write": "allow",
+        "edit": "allow",
+        "bash": "allow",
+        "websearch": "ask"
+      }
+    },
+    "frontend": {
+      "description": "مطور الواجهات الأمامية (Frontend Developer)",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-20250514",
+      "temperature": 0.2,
+      "prompt": "{file:./agents/frontend/frontend.md}",
+      "color": "#2196F3",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "write": "allow",
+        "edit": "allow",
+        "bash": "allow"
+      }
+    },
+    "flutter": {
+      "description": "مطور تطبيقات الجوال (Flutter Developer)",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-20250514",
+      "temperature": 0.2,
+      "prompt": "{file:./agents/flutter/flutter.md}",
+      "color": "#00BCD4",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "write": "allow",
+        "edit": "allow",
+        "bash": "allow"
+      }
+    },
+    "uiux": {
+      "description": "مصمم تجربة المستخدم (UI/UX Designer)",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-20250514",
+      "temperature": 0.4,
+      "prompt": "{file:./agents/uiux/uiux.md}",
+      "color": "#FF5722",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "write": "allow",
+        "edit": "allow",
+        "websearch": "allow",
+        "bash": "deny"
+      }
+    },
+    "qa-ui": {
+      "description": "مختبر واجهات المستخدم (QA UI/UX Tester)",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-20250514",
+      "temperature": 0.1,
+      "prompt": "{file:./agents/qa-ui/qa-ui.md}",
+      "color": "#FF9800",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "write": "allow",
+        "edit": "ask",
+        "bash": "allow"
+      }
+    },
+    "qa-api": {
+      "description": "مختبر الواجهات الخلفية (QA API & Security Tester)",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-20250514",
+      "temperature": 0.1,
+      "prompt": "{file:./agents/qa-api/qa-api.md}",
+      "color": "#795548",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "write": "allow",
+        "edit": "ask",
+        "bash": "allow"
+      }
+    },
+    "pentest": {
+      "description": "مختبر اختراق وأمن المعلومات (Penetration Tester)",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-20250514",
+      "temperature": 0.1,
+      "prompt": "{file:./agents/pentest/pentest.md}",
+      "color": "#F44336",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "write": "allow",
+        "edit": "ask",
+        "bash": "allow",
+        "websearch": "allow",
+        "webfetch": "ask"
+      }
+    },
+    "doc": {
+      "description": "كاتب تقني وموثق (Technical Writer)",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-20250514",
+      "temperature": 0.3,
+      "prompt": "{file:./agents/doc/doc.md}",
+      "color": "#607D8B",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "write": "allow",
+        "edit": "allow",
+        "bash": "ask"
+      }
+    }
+  }
+}
