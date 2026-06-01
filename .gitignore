@@ -18,6 +18,7 @@
 # Frontend - Admin
 /frontend/admin/node_modules/
 /frontend/admin/dist/
+/frontend/admin/.next/
 
 # Frontend - Mobile (Flutter)
 /frontend/mobile/build/
@@ -52,8 +53,6 @@ plan.md
 *.swp
 *.swo
 *~
-# Stubborn empty directory  
-frontend/  
 
 # Python cache
 __pycache__/
