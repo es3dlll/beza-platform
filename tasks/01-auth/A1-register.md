@@ -88,8 +88,8 @@ id, user_id, currency, balance DECIMAL(18,4), blocked DECIMAL(18,4), status, cre
 
 ## معايير القبول
 
-- [ ] مستخدم جديد يُنشأ مع محفظتين تلقائياً
-- [ ] validation كامل لجميع الحقول
-- [ ] Rate limiting: 3 محاولات/ساعة
-- [ ] رسالة خطأ بالعربية
-- [ ] التوثيق: OpenAPI spec
+- [x] مستخدم جديد يُنشأ مع محفظتين تلقائياً
+- [x] validation كامل لجميع الحقول
+- [ ] Rate limiting: 3 محاولات/ساعة (مؤقت — يحتاج middleware مخصص)
+- [x] رسالة خطأ بالعربية
+- [ ] التوثيق: OpenAPI spec (مؤقت)
