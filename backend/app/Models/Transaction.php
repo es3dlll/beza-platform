@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Transaction extends Model
 {
@@ -14,6 +15,7 @@ class Transaction extends Model
         'type',
         'status',
         'idempotency_key',
+        'reference_number',
         'note',
     ];
 
@@ -22,5 +24,15 @@ class Transaction extends Model
         return [
             'amount' => 'integer',
         ];
+    }
+
+    public function senderWallet(): BelongsTo
+    {
+        return $this->belongsTo(Wallet::class, 'sender_wallet_id');
+    }
+
+    public function receiverWallet(): BelongsTo
+    {
+        return $this->belongsTo(Wallet::class, 'receiver_wallet_id');
     }
 }

@@ -4,6 +4,7 @@ namespace App\Modules\Wallet\Services;
 
 use App\Models\User;
 use App\Models\Wallet;
+use Illuminate\Database\Eloquent\Collection;
 
 class WalletService
 {
@@ -26,7 +27,7 @@ class WalletService
         ];
     }
 
-    public function getUserWallets(int $userId): \Illuminate\Database\Eloquent\Collection
+    public function getUserWallets(int $userId): Collection
     {
         return Wallet::where('user_id', $userId)->get();
     }
