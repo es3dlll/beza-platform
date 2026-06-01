@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-منسق المهام — Task Orchestrator v3.0
+منسق المهام — Task Orchestrator v4.0
 =====================================
-يدير تدفق العمل عبر 7 وكلاء في نظام عقد مترابطة.
+يدير تدفق العمل عبر 9 وكلاء في نظام عقد مترابطة.
 
 التدفق الافتراضي:
-  CEO → LEAD → [BACKEND, FRONTEND, FLUTTER, UI/UX] بالتوازي → DOC
+  CEO → LEAD → UI/UX → [BACKEND, FRONTEND, FLUTTER]
+    → QA-UI (اختبار واجهات) + QA-API (اختبار APIs)
+    → DOC (توثيق)
 
 التبعيات:
   - UI/UX → Frontend, Flutter (التصميم قبل البرمجة)
   - Lead → Backend, Frontend, Flutter, UI/UX (توجيه تقني)
-  - Doc → ALL (توثيق بعد الإنجاز)
+  - QA-UI → Frontend, Flutter (اختبار بعد البرمجة)
+  - QA-API → Backend (اختبار بعد البرمجة)
+  - Doc → ALL (توثيق بعد الاختبارات)
 """
 
 from session_manager import SessionManager
@@ -18,11 +22,12 @@ from file_manager import parse_and_save_output
 from agent_profiles import AGENT_PROFILES, list_agent_repos
 
 # التدفق الافتراضي — CEO يقرر الترتيب حسب المهمة
-DEFAULT_FLOW = ["ceo", "lead", "uiux", "backend", "frontend", "flutter", "doc"]
+DEFAULT_FLOW = ["ceo", "lead", "uiux", "backend", "frontend", "flutter", "qa_ui", "qa_api", "doc"]
 
 # المهام المتوازية (يمكن تشغيلها معاً)
 PARALLEL_GROUPS = {
     "dev": ["backend", "frontend", "flutter"],
+    "qa": ["qa_ui", "qa_api"],
     "design_chain": ["uiux", "frontend", "flutter"],
 }
 

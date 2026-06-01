@@ -64,7 +64,7 @@ def main():
             emoji = a.get('emoji', '  ')
             repo = a.get('repo', '') or '(main)'
             print(f"  {emoji} {a['id']:<10} {a['role']:<45} {repo}")
-        print("\nهرم التواصل: CEO → Lead → [Backend, Frontend, Flutter, UI/UX] ← Doc")
+        print("\nهرم التواصل: CEO → Lead → UI/UX + Backend + Frontend + Flutter → QA-UI + QA-API → Doc")
         return
 
     mgr = SessionManager()

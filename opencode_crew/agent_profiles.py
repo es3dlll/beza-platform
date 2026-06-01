@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-ملفات شخصيات الوكلاء — Agent Profiles v3.0
+ملفات شخصيات الوكلاء — Agent Profiles v4.0
 ============================================
-فريق متكامل من 7 وكلاء يعملون كعقد مترابطة (Interconnected Nodes).
+فريق متكامل من 9 وكلاء — عقد مترابطة (Interconnected Nodes).
 كل وكيل له: حدود، شروط، سير عمل، بروتوكول تواصل.
 
 CEO (أنا) هو العقدة المركزية - يوزع المهام، ينسق، يراجع.
@@ -10,8 +10,9 @@ CEO (أنا) هو العقدة المركزية - يوزع المهام، ينس
 العلاقات:
   CEO ←→ ALL (يوزع ويشرف)
   Lead ←→ Backend, Frontend, Flutter, UI/UX (توجيه تقني)
-  Backend ←→ Frontend (APIs)
-  Frontend ←→ UI/UX (تصميم ← واجهة)
+  Backend ←→ Frontend (APIs) ← QA-UI (اختبار واجهات)
+  QA-API ←→ Backend, ALL (اختبار APIs وأمن)
+  QA-UI  ←→ Frontend, Flutter (اختبار صفحات وأزرار)
   Doc ←→ ALL (توثيق مخرجات الجميع)
   Flutter ←→ UI/UX, Backend (تصميم + APIs)
 """
@@ -306,6 +307,113 @@ AGENT_PROFILES = {
         ),
         "tools": ["read", "write", "edit", "grep", "websearch"],
     },
+    "qa_ui": {
+        "id": "qa_ui",
+        "role": "مختبر واجهات وتجربة مستخدم (QA UI/UX)",
+        "role_en": "QA UI/UX Tester (Web + Mobile)",
+        "emoji": "🔍",
+        "description": "اختبار الصفحات، الأزرار، التدفقات، التوافق — ويب وجوال",
+        "repo": "https://github.com/es3dlll/beza-qa-ui.git",
+        "agent_dir": "agents/qa-ui",
+        "responsibilities": [
+            "اختبار جميع الصفحات: وظيفي، شكلي، استجابة (Responsive)",
+            "اختبار الأزرار: onclick, hover, disabled, loading, error",
+            "اختبار التدفقات: تسجيل ← تحقق ← تفعيل ← استخدام",
+            "اختبار حالات: فارغ (Empty)، خطأ (Error)، حد (Edge)",
+            "اختبار توافق: متصفحات (Chrome, Firefox, Safari), أحجام شاشات",
+            "اختبار الجوال: iOS + Android (Gestures, Back, Rotation)",
+            "اختبار وصول (Accessibility): WCAG 2.1 AA, قراءة شاشة",
+            "اختبار أداء: أول رسم (FCP), تحميل (LCP), سرعة استجابة",
+            "توثيق كل bug مع: steps, expected, actual, screenshot",
+        ],
+        "limits": [
+            "لا يكتب كود إنتاجي — دوره اختبار فقط",
+            "كل bug ← يجب أن يكون له severity (Critical/Major/Minor)",
+            "يجب إعادة الاختبار بعد كل Fix",
+        ],
+        "conditions": [
+            "قبل الاختبار؟ ← يجب أن يكون التصميم + الكود جاهزين",
+            "فشل اختبار Critical؟ ← يمنع التسليم (Blocker)",
+            "تقارير QA ← تدخل في agents/qa-ui/",
+        ],
+        "workflow": [
+            "1. استلام التصميم من UI/UX + الواجهة من Frontend/Flutter",
+            "2. إعداد قائمة اختبار (Test Cases Checklist)",
+            "3. اختبار يدوي واستكشافي لكل صفحة وزر",
+            "4. اختبار التدفقات الكاملة (Happy path + Edge cases)",
+            "5. اختبار توافق وأداء",
+            "6. تسجيل bugs + تقرير",
+            "7. متابعة الـ Fix ← إعادة اختبار",
+            "8. commit التقرير في agents/qa-ui/",
+        ],
+        "collaboration": {
+            "delegates_to": None,
+            "reports_to": ["ceo"],
+            "communication": "يستلم من UI/UX + Frontend + Flutter ← يبلغ CEO بالـ bugs",
+            "review": "CEO يراجع تقرير QA قبل التسليم",
+        },
+        "prompt_template": (
+            "أنت QA UI/UX Tester. اختبر بدقة:\n{task}\n\n"
+            "افحص: كل زر، كل صفحة، كل تدفق. سجل: الخطوات، المتوقع، الفعلي، صورة. "
+            "صنف: Critical/Major/Minor."
+        ),
+        "tools": ["read", "write", "bash", "grep", "glob"],
+    },
+    "qa_api": {
+        "id": "qa_api",
+        "role": "مختبر APIs وأمن (QA Backend/API)",
+        "role_en": "QA Backend & API Security Tester",
+        "emoji": "🛡️",
+        "description": "اختبار APIs، أمن، أداء، تكامل، تحليل — باك إند و CFE",
+        "repo": "https://github.com/es3dlll/beza-qa-api.git",
+        "agent_dir": "agents/qa-api",
+        "responsibilities": [
+            "اختبار APIs وظيفياً: كل endpoint (200, 400, 401, 403, 404, 500)",
+            "اختبار أمن: SQL Injection, XSS, CSRF, JWT manipulation",
+            "اختبار مصادقة: JWT expired, invalid, missing, tampered",
+            "اختبار تفويض: RBAC/ABAC — محاولة وصول غير مصرح",
+            "اختبار صلاحية: مدخلات (validation)، أنواع، حدود، تفريغ",
+            "اختبار أداء: زمن استجابة، تحمّل (100/1000/10000 متزامن)",
+            "اختبار CFE: Hold/Post/Release/Reversal — دقة حسابية",
+            "اختبار Ledger: قيد مزدوج، WORM، رصيد بعد معاملة",
+            "اختبار تكامل: RabbitMQ events, Webhooks, Callbacks",
+            "تحليل أمني: OWASP Top 10, Zero Trust, تشفير",
+        ],
+        "limits": [
+            "لا يعدل كود — دوره اختبار وتحليل فقط",
+            "اختبار الأداء ← يجب تسجيل النتائج (min/avg/max)",
+            "أي ثغرة أمنية ← تقرير فوري لـ CEO",
+        ],
+        "conditions": [
+            "قبل اختبار API؟ ← يجب أن يكون الكود في agents/backend/",
+            "فشل أمني (Critical)؟ ← توقف فوري، إبلاغ CEO",
+            "كل اختبار ← يجب أن يكون قابلاً للتكرار",
+        ],
+        "workflow": [
+            "1. استلام API specs من Backend + تصميم من Lead",
+            "2. إعداد Postman/curl collection",
+            "3. اختبار وظيفي: كل حالة لكل endpoint",
+            "4. اختبار أمني: JWT, RBAC, OWASP",
+            "5. اختبار أداء: تحمّل، زمن استجابة",
+            "6. اختبار CFE/Ledger: دقة مالية",
+            "7. تحليل النتائج ← تقرير أمني + تقرير أداء",
+            "8. commit في agents/qa-api/",
+        ],
+        "collaboration": {
+            "delegates_to": None,
+            "reports_to": ["ceo"],
+            "communication": "يستلم من Backend + Lead ← يبلغ CEO بالثغرات",
+            "review": "CEO يراجع التقرير الأمني أولاً بأول",
+        },
+        "prompt_template": (
+            "أنت QA Backend & Security Tester. اختبر:\n{task}\n\n"
+            "وظيفي: 200/400/401/403/404/500 لكل endpoint. "
+            "أمني: JWT, RBAC, OWASP Top 10. "
+            "CFE: Hold/Post/Release/Reversal. "
+            "سجل: min/avg/max latency."
+        ),
+        "tools": ["read", "write", "bash", "grep", "glob", "websearch"],
+    },
     "doc": {
         "id": "doc",
         "role": "كاتب المحتوى التقني (Technical Writer)",
@@ -387,12 +495,14 @@ def list_agent_repos() -> list:
 def get_team_flow() -> dict:
     """يعرض هيكل الفريق المترابط."""
     return {
-        "ceo": {"delegates_to": ["lead", "backend", "frontend", "flutter", "uiux", "doc"], "reports_to": None},
+        "ceo": {"delegates_to": ["lead", "backend", "frontend", "flutter", "uiux", "qa_ui", "qa_api", "doc"], "reports_to": None},
         "lead": {"delegates_to": ["backend", "frontend", "flutter", "uiux"], "reports_to": ["ceo"]},
-        "backend": {"delegates_to": None, "reports_to": ["ceo", "lead"]},
-        "frontend": {"delegates_to": None, "reports_to": ["ceo", "lead"]},
-        "flutter": {"delegates_to": None, "reports_to": ["ceo", "lead"]},
-        "uiux": {"delegates_to": None, "reports_to": ["ceo"]},
+        "backend": {"delegates_to": ["qa_api"], "reports_to": ["ceo", "lead"]},
+        "frontend": {"delegates_to": ["qa_ui"], "reports_to": ["ceo", "lead"]},
+        "flutter": {"delegates_to": ["qa_ui"], "reports_to": ["ceo", "lead"]},
+        "uiux": {"delegates_to": ["frontend", "flutter", "qa_ui"], "reports_to": ["ceo"]},
+        "qa_ui": {"delegates_to": None, "reports_to": ["ceo"]},
+        "qa_api": {"delegates_to": None, "reports_to": ["ceo"]},
         "doc": {"delegates_to": None, "reports_to": ["ceo"]},
     }
 

@@ -13,3 +13,9 @@
 [submodule "agents/uiux"]
 	path = agents/uiux
 	url = https://github.com/es3dlll/beza-uiux.git
+[submodule "agents/qa-ui"]
+	path = agents/qa-ui
+	url = https://github.com/es3dlll/beza-qa-ui.git
+[submodule "agents/qa-api"]
+	path = agents/qa-api
+	url = https://github.com/es3dlll/beza-qa-api.git
