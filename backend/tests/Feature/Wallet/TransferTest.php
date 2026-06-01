@@ -88,6 +88,23 @@ class TransferTest extends TestCase
         $this->assertEquals(50000, $this->receiverWallet->balance);
     }
 
+    public function test_transfer_creates_audit_log(): void
+    {
+        $this->postJson('/api/v1/transfer', [
+            'receiver_phone' => '0922222222',
+            'amount' => 15000,
+            'currency' => 'SYP',
+            'idempotency_key' => $this->idempotencyKey,
+        ], $this->authHeader($this->sender));
+
+        $this->assertDatabaseHas('audit_logs', [
+            'user_id' => $this->sender->id,
+            'method' => 'POST',
+            'path' => '/api/v1/transfer',
+            'fingerprint' => $this->idempotencyKey,
+        ]);
+    }
+
     public function test_transfer_fires_completed_event(): void
     {
         Event::fake();
