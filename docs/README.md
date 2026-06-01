@@ -1,7 +1,7 @@
 # Beza Platform — فهرس التوثيق المركزي
 
-> **منصة بيزا:** نظام تشغيل مالي رقمي وطني للجمهورية العربية السورية  
-> **الهيكل:** Modular Monolith (Laravel 13) + React 19 Admin + Flutter 3.29 Mobile  
+> **منصة بيزا:** نظام تشغيل مالي رقمي وطني للجمهورية العربية السورية
+> **الهيكل:** Modular Monolith (Laravel ^13.8) + React 19.2.4 Admin + Flutter 3.41+ Mobile
 > **الهدف:** تمكين 22 مليون مقيم و6 ملايين مغترب من خدمات مالية آمنة، شفافة، ومتوافقة
 
 ---
@@ -10,193 +10,167 @@
 
 | #  | القسم | المحتوى |
 |----|-------|---------|
-| 01 | [🔷 العمارة](#-architecture-العمارة) | مبادئ، وحدات، تواصل، جودة، ADRs |
-| 02 | [🖥️ الخلفي](#-backend-الخلفي) | Laravel 13 API، هيكل الوحدات، Core Layer |
-| 03 | [🎨 الأمامي](#-frontend-الأمامي) | React 19 Admin + Flutter 3.29 Mobile + Design System |
-| 04 | [📋 الامتثال](#-compliance-الامتثال) | سياسات الأمان، AML/KYC، حماية البيانات، CBS |
-| 05 | [🔗 API](#-api-wallet--cfe) | مواصفات OpenAPI، مصفوفة النقاط، Postman |
-| 06 | [⚙️ البنية التحتية](#-infrastructure-البنية-التحتية) | Docker، نشر، إصدارات، نسخ احتياطي |
-| 07 | [📦 المنتج والتخطيط](#-product--planning-المنتج-والتخطيط) | PRD، خارطة طريق، جلسات تخطيط |
-| 08 | [🔄 العمليات](#-operations-العمليات) | Runbooks، إصدارات، مراقبة، إشعارات |
-| 09 | [🗂️ الأرشيف](#-archive-الأرشيف) | وثائق تاريخية، خطط بناء سابقة |
+| 01 | [دليل عام](01-guide/) | نظرة عامة على المنصة، مسرد مصطلحات |
+| 02 | [العمارة](02-architecture/) | مبادئ، 31 وحدة نمطية، تواصل، جودة، ADRs |
+| 03 | [الخلفي](03-backend/) | Laravel API، هيكل الوحدات، Core Layer |
+| 04 | [الأمامي](04-frontend/) | React 19 Admin + Flutter 3.41 Mobile + Design System |
+| 05 | [API](05-api/) | مواصفات OpenAPI 3.1، مصفوفة النقاط، Postman |
+| 06 | [الامتثال](06-compliance/) | سياسات أمان، AML/KYC، حماية بيانات، CBS |
+| 07 | [البنية التحتية](07-infrastructure/) | Docker، نشر، إصدارات، نسخ احتياطي |
+| 08 | [العمليات](08-operations/) | Releases، Runbooks، مراقبة، إشعارات |
+| 09 | [الأمن](09-security/) | تقارير اختراق، تدقيق أمني |
+| 90 | [الأرشيف](90-archive/) | وثائق تاريخية، تحليلات سابقة، خطط بناء |
 
 ---
 
-## 🔷 Architecture — العمارة
+## 01-guide — دليل عام
 
 | الملف | الوصف |
 |-------|-------|
-| [`PRINCIPLES.md`](architecture/PRINCIPLES.md) | المبادئ المعمارية الأساسية: 7 قواعد غير قابلة للتفاوض |
-| [`MODULES.md`](architecture/MODULES.md) | دليل الـ 31 وحدة نمطية مع التبعيات والمسؤوليات |
-| [`COMMUNICATION.md`](architecture/COMMUNICATION.md) | قواعد التواصل بين الوحدات: Event Bus |
-| [`QUALITY.md`](architecture/QUALITY.md) | معايير الجودة: اختبارات، عتبات التغطية، أدوات التحليل |
-| [`QUICKSTART.md`](architecture/QUICKSTART.md) | دليل البدء السريع: تشغيل البيئة محلياً |
-| [`ADRs/`](architecture/ADRs/) | قرارات معمارية موثقة (Architecture Decision Records) |
-| [`testing/`](architecture/testing/) | أنماط الاختبار وبيانات الاختبار (Shared) |
-| [`prd/`](architecture/prd/) | متطلبات المنتج (PRD v1.1.0) |
+| [`overview.md`](01-guide/overview.md) | نظرة عامة على المنصة — الرؤية، المكدس التقني، الجمهور |
+| [`glossary.md`](01-guide/glossary.md) | مسرد المصطلحات المالية والتقنية |
 
----
-
-## 🖥️ Backend — الخلفي
+## 02-architecture — العمارة
 
 | الملف | الوصف |
 |-------|-------|
-| [`OVERVIEW.md`](backend/OVERVIEW.md) | Laravel 13 Modular Monolith: Core Layer، Middleware Stack |
-| [`MODULE_STRUCTURE.md`](backend/MODULE_STRUCTURE.md) | الهيكل الإلزامي لكل وحدة (16 مجلداً) مع Core Layer و Events |
-| [`README.md`](backend/README.md) | نظرة عامة على قسم الخلفي |
+| [`PRINCIPLES.md`](02-architecture/PRINCIPLES.md) | المبادئ المعمارية الأساسية: 7 قواعد غير قابلة للتفاوض |
+| [`MODULES.md`](02-architecture/MODULES.md) | دليل الـ 31 وحدة نمطية مع التبعيات والمسؤوليات |
+| [`COMMUNICATION.md`](02-architecture/COMMUNICATION.md) | قواعد التواصل بين الوحدات: Event Bus |
+| [`QUALITY.md`](02-architecture/QUALITY.md) | معايير الجودة: اختبارات، عتبات التغطية، أدوات التحليل |
+| [`QUICKSTART.md`](02-architecture/QUICKSTART.md) | دليل البدء السريع: تشغيل البيئة محلياً |
+| [`ADRs/`](02-architecture/ADRs/) | قرارات معمارية موثقة (Architecture Decision Records) |
+| [`testing/`](02-architecture/testing/) | أنماط الاختبار وبيانات الاختبار (Shared) |
+| [`prd/`](02-architecture/prd/) | متطلبات المنتج (PRD v1.1.0) |
 
----
-
-## 🎨 Frontend — الأمامي
+## 03-backend — الخلفي
 
 | الملف | الوصف |
 |-------|-------|
-| [`ADMIN.md`](frontend/ADMIN.md) | لوحة تحكم الإدارة React 19: Feature-Sliced Design |
-| [`MOBILE.md`](frontend/MOBILE.md) | تطبيق المحفظة Flutter 3.29: Clean Architecture، Offline-First |
-| [`design-system/`](frontend/design-system/) | نظام التصميم الموحد: العلامة التجارية، المكونات، الحركة |
-| [`README.md`](frontend/README.md) | نظرة عامة على قسم الأمامي |
+| [`OVERVIEW.md`](03-backend/OVERVIEW.md) | Laravel 13 Modular Monolith: Core Layer، Middleware Stack |
+| [`MODULE_STRUCTURE.md`](03-backend/MODULE_STRUCTURE.md) | الهيكل الإلزامي لكل وحدة (16 مجلداً) مع Core Layer و Events |
 
----
+## 04-frontend — الأمامي
 
-## 📋 Compliance — الامتثال
+| الملف | الوصف |
+|-------|-------|
+| [`ADMIN.md`](04-frontend/ADMIN.md) | لوحة تحكم الإدارة React 19: Feature-Sliced Design |
+| [`MOBILE.md`](04-frontend/MOBILE.md) | تطبيق المحفظة Flutter 3.41: Clean Architecture، Offline-First |
+| [`design-system/`](04-frontend/design-system/) | نظام التصميم الموحد: العلامة التجارية، المكونات، الحركة |
+
+## 05-api — واجهات البرمجة
+
+| الملف | الوصف |
+|-------|-------|
+| [`openapi-v1.yaml`](05-api/openapi-v1.yaml) | مواصفات OpenAPI 3.1 (جميع نقاط API) |
+| [`endpoint-matrix.md`](05-api/endpoint-matrix.md) | مصفوفة نقاط API حسب الوحدة والطريقة والصلاحيات |
+| [`postman-collection/`](05-api/postman-collection/) | مجموعة Postman للاختبارات اليدوية |
+
+## 06-compliance — الامتثال
 
 | القسم | المحتوى |
 |-------|---------|
-| [`security-policies/`](compliance/security-policies/) | سياسات الأمان: المصادقة (JWT)، التفويض (RBAC+ABAC)، التشفير (AES-256) |
-| [`aml-kyc/`](compliance/aml-kyc/) | مكافحة غسل الأموال (AML)، اعرف عميلك (KYC)، الشريعة الإسلامية |
-| [`data-protection/`](compliance/data-protection/) | حماية البيانات: التصنيف، الاحتفاظ، الملكية |
-| [`cbs-regulations/`](compliance/cbs-regulations/) | متطلبات المصرف المركزي السوري |
-| [`kyc-tiers.md`](compliance/kyc-tiers.md) | مستويات التحقق T1-T3: الحدود، المتطلبات، السلوك التلقائي |
+| [`security-policies/`](06-compliance/security-policies/) | سياسات الأمان: المصادقة (JWT)، التفويض (RBAC+ABAC)، التشفير (AES-256) |
+| [`aml-kyc/`](06-compliance/aml-kyc/) | مكافحة غسل الأموال (AML)، اعرف عميلك (KYC)، الشريعة الإسلامية |
+| [`data-protection/`](06-compliance/data-protection/) | حماية البيانات: التصنيف، الاحتفاظ، الملكية |
+| [`cbs-regulations/`](06-compliance/cbs-regulations/) | متطلبات المصرف المركزي السوري |
+| [`kyc-tiers.md`](06-compliance/kyc-tiers.md) | مستويات التحقق T1-T3: الحدود، المتطلبات، السلوك التلقائي |
 
----
-
-## 🔗 API — واجهات البرمجة
+## 07-infrastructure — البنية التحتية
 
 | الملف | الوصف |
 |-------|-------|
-| [`openapi-v1.yaml`](api/openapi-v1.yaml) | مواصفات OpenAPI 3.1 (جميع نقاط API) |
-| [`endpoint-matrix.md`](api/endpoint-matrix.md) | مصفوفة نقاط API حسب الوحدة والطريقة والصلاحيات |
-| [`postman-collection/`](api/postman-collection/) | مجموعة Postman للاختبارات اليدوية |
+| [`CURRENT_VERSIONS.md`](07-infrastructure/CURRENT_VERSIONS.md) | إصدارات التقنيات الحالية (PHP، Laravel، Flutter، Node) |
+| [`DEPLOYMENT.md`](07-infrastructure/DEPLOYMENT.md) | Docker Compose، بيئات النشر، النسخ الاحتياطي |
+| [`UPGRADE_LOG_20260531.md`](07-infrastructure/UPGRADE_LOG_20260531.md) | سجل تحديث الحزم والتبعيات |
 
----
-
-## ⚙️ Infrastructure — البنية التحتية
+## 08-operations — العمليات
 
 | الملف | الوصف |
 |-------|-------|
-| [`CURRENT_VERSIONS.md`](infrastructure/CURRENT_VERSIONS.md) | إصدارات التقنيات الحالية (PHP، Laravel، Flutter، Node) |
-| [`DEPLOYMENT.md`](infrastructure/DEPLOYMENT.md) | Docker Compose، بيئات النشر، النسخ الاحتياطي |
-| [`UPGRADE_LOG_20260531.md`](infrastructure/UPGRADE_LOG_20260531.md) | سجل تحديث الحزم والتبعيات |
-| [`README.md`](infrastructure/README.md) | نظرة عامة على قسم البنية التحتية |
+| [`INDEX.md`](08-operations/INDEX.md) | فهرس العمليات: الإصدارات، Runbooks |
+| [`QUICK_REFERENCE_OPERATORS.md`](08-operations/QUICK_REFERENCE_OPERATORS.md) | دليل سريع للمشغلين وأوامر الصيانة |
+| [`BETA_RETROSPECTIVE_v1.1.0.md`](08-operations/BETA_RETROSPECTIVE_v1.1.0.md) | ملخص النسخة التجريبية والدروس المستفادة |
+| [`RUNBOOK.md`](08-operations/RUNBOOK.md) | دليل استخدام Runbooks |
+| [`FEEDBACK_FORM.md`](08-operations/FEEDBACK_FORM.md) | نموذج التغذية الراجعة |
+| [`releases/`](08-operations/releases/) | الإصدارات: Changelog، خطط النشر، قوائم التدقيق |
+| [`runbooks/`](08-operations/runbooks/) | أدلة الطوارئ (5 سيناريوهات) |
+| [`runbooks/user-journeys/`](08-operations/runbooks/user-journeys/) | رحلات المستخدم (9 مسارات) |
+| [`notifications/`](08-operations/notifications/) | الإشعارات: Push، SMS، Email |
+| [`observability/`](08-operations/observability/) | المراقبة: تسجيل، مقاييس، تنبيهات، KPIs |
 
----
-
-## 📦 Product & Planning — المنتج والتخطيط
-
-| الملف | الوصف |
-|-------|-------|
-| [`PRD_v1.1.0.md`](architecture/prd/PRD_v1.1.0.md) | وثيقة متطلبات المنتج الكاملة v1.1.0 |
-
-> ملفات خارطة الطريق وجلسات التخطيط موجودة في الأرشيف: [`docs/operations/archive/planning/`](operations/archive/planning/)
-
----
-
-## 🔄 Operations — العمليات
+## 09-security — الأمن
 
 | الملف | الوصف |
 |-------|-------|
-| [`INDEX.md`](operations/INDEX.md) | فهرس العمليات: الإصدارات، Runbooks |
-| [`QUICK_REFERENCE_OPERATORS.md`](operations/QUICK_REFERENCE_OPERATORS.md) | دليل سريع للمشغلين وأوامر الصيانة |
-| [`BETA_RETROSPECTIVE_v1.1.0.md`](operations/BETA_RETROSPECTIVE_v1.1.0.md) | ملخص النسخة التجريبية والدروس المستفادة |
-| [`README.md`](operations/README.md) | نظرة عامة على قسم العمليات |
-| [`notifications/`](operations/notifications/) | الإشعارات: Push، SMS، Email |
-| [`observability/`](operations/observability/) | المراقبة: تسجيل، مقاييس، تنبيهات، KPIs |
+| [`audits/SEC-001/`](09-security/audits/SEC-001/) | تقارير اختراق SEC-001: 4 ثغرات حرجة |
 
-### Releases — الإصدارات
+## 90-archive — الأرشيف
 
-| الملف | الوصف |
-|-------|-------|
-| [`CHANGELOG.md`](operations/releases/CHANGELOG.md) | سجل التغييرات الكامل |
-| [`DEPLOYMENT_PRODUCTION_v1.0.0.md`](operations/releases/DEPLOYMENT_PRODUCTION_v1.0.0.md) | دليل النشر للإنتاج v1.0.0 |
-| [`PUBLIC_RELEASE_PLAN_v1.1.0.md`](operations/releases/PUBLIC_RELEASE_PLAN_v1.1.0.md) | خطة الإطلاق العامة v1.1.0 |
-| [`BETA_RELEASE_CHECKLIST_v1.1.0.md`](operations/releases/BETA_RELEASE_CHECKLIST_v1.1.0.md) | قائمة تدقيق الإصدار التجريبي v1.1.0 |
-
-### Runbooks — أدلة الطوارئ
-
-| الملف | الوصف |
-|-------|-------|
-| [`01-agent-cash.md`](operations/runbooks/01-agent-cash.md) | مشاكل السيولة النقدية للوكلاء |
-| [`02-fx-feed.md`](operations/runbooks/02-fx-feed.md) | انقطاع تغذية أسعار الصرف |
-| [`03-settlement-failure.md`](operations/runbooks/03-settlement-failure.md) | فشل التسوية اليومية |
-| [`04-ledger-incident.md`](operations/runbooks/04-ledger-incident.md) | حوادث دفتر الأستاذ المالي |
-| [`05-aml-backlog.md`](operations/runbooks/05-aml-backlog.md) | تراكم طابور فحص AML |
-
-### User Journeys — رحلات المستخدم
-
-| المسار | الوصف |
-|--------|-------|
-| [`first-time-user.md`](operations/runbooks/user-journeys/first-time-user.md) | رحلة المستخدم الجديد |
-| [`kyc.md`](operations/runbooks/user-journeys/kyc.md) | رحلة التوثيق T1/T2/T3 |
-| [`first-transfer.md`](operations/runbooks/user-journeys/first-transfer.md) | رحلة أول تحويل مالي |
-| [`remittance-receive.md`](operations/runbooks/user-journeys/remittance-receive.md) | رحلة استلام حوالة دولية |
-| [`agent-cashout.md`](operations/runbooks/user-journeys/agent-cashout.md) | رحلة السحب النقدي عبر وكيل |
-| [`merchant-payment.md`](operations/runbooks/user-journeys/merchant-payment.md) | رحلة الدفع QR |
-| [`payroll-employee.md`](operations/runbooks/user-journeys/payroll-employee.md) | رحلة استلام الراتب |
-| [`fraud-review.md`](operations/runbooks/user-journeys/fraud-review.md) | رحلة مراجعة الاحتيال |
-| [`dispute-resolution.md`](operations/runbooks/user-journeys/dispute-resolution.md) | رحلة حل النزاع |
-
----
-
-## 🗂️ Archive — الأرشيف
-
-| الملف | الوصف |
-|-------|-------|
-| [`README.md`](operations/archive/README.md) | فهرس الأرشيف (مرجع تاريخي فقط) |
-| [`planning/`](operations/archive/planning/) | خارطة الطريق، جلسات التخطيط، استبيانات |
-| [`marketing/`](operations/archive/marketing/) | حملة الإطلاق والمواد التسويقية |
-| [`engineering/`](operations/archive/engineering/) | مصفوفات فنية، معايير بناء، قوائم تدقيق |
+| القسم | المحتوى |
+|-------|---------|
+| [`engineering/`](90-archive/engineering/) | مصفوفات فنية، معايير بناء، قوائم تدقيق |
+| [`planning/`](90-archive/planning/) | خارطة الطريق، جلسات التخطيط، استبيانات |
+| [`product/`](90-archive/product/) | نطاقات الإصدارات السابقة (v1–v4) |
+| [`plans/`](90-archive/plans/) | خطط بناء Beza (v0–v5) |
+| [`marketing/`](90-archive/marketing/) | حملة الإطلاق والمواد التسويقية |
+| [`tasks/`](90-archive/tasks/) | مهام سابقة: backend، security، qa، devops، ai |
+| [`workflows/`](90-archive/workflows/) | سير عمل الوكلاء (4 مراحل) |
+| [`analysis/`](90-archive/analysis/) | تحليل شامل للمنصة + مواصفات + أمثلة + مهام تفصيلية |
+| [`README.md`](90-archive/README.md) | فهرس الأرشيف |
 
 > الأرشيف يحتوي على وثائق من مراحل التطوير السابقة. يُحتفظ بها كمرجع تاريخي فقط.
 
 ---
 
-## 🗺️ خريطة العلاقات بين الوثائق
+## خريطة العلاقات بين الوثائق
 
 ```
-ARCHITECTURE.md (المعمارية الكاملة — المرجع الوحيد)
+docs/README.md (الفهرس المركزي — SSOT)
 │
-├── docs/architecture/         ← المبادئ والوحدات والتواصل والجودة
-│   ├── ADRs/                  ← القرارات المعمارية
-│   ├── testing/               ← أنماط الاختبار
-│   └── prd/                   ← متطلبات المنتج
+├── 01-guide/                ← أدلة عامة
+├── 02-architecture/         ← مبادئ، وحدات، تواصل، جودة
+│   ├── ADRs/                ← قرارات معمارية
+│   ├── testing/             ← أنماط الاختبار
+│   └── prd/                 ← متطلبات المنتج
 │
-├── docs/backend/              ← Laravel 13 + هيكل الوحدات
-├── docs/frontend/             ← React 19 + Flutter 3.29 + Design System
+├── 03-backend/              ← Laravel 13 + هيكل الوحدات
+├── 04-frontend/             ← React 19 + Flutter 3.41 + Design System
+├── 05-api/                  ← OpenAPI + مصفوفة النقاط
 │
-├── docs/compliance/           ← الامتثال والأمان (موحد)
-│   ├── security-policies/     ← المصادقة والتفويض والتشفير
-│   ├── aml-kyc/               ← AML/KYC/Sharia
-│   ├── data-protection/       ← حماية البيانات
-│   └── cbs-regulations/       ← متطلبات المصرف المركزي
+├── 06-compliance/           ← الامتثال والأمان
+│   ├── security-policies/   ← مصادقة، تفويض، تشفير
+│   ├── aml-kyc/             ← AML/KYC/Sharia
+│   ├── data-protection/     ← حماية البيانات
+│   └── cbs-regulations/     ← متطلبات المصرف المركزي
 │
-├── docs/api/                  ← مواصفات OpenAPI ومصفوفة النقاط
+├── 07-infrastructure/       ← النشر والبنية التحتية
 │
-├── docs/infrastructure/       ← النشر والبنية التحتية
+├── 08-operations/           ← العمليات والتشغيل
+│   ├── releases/            ← الإصدارات والنشر
+│   ├── runbooks/            ← الاستجابة للحوادث
+│   ├── notifications/       ← الإشعارات
+│   └── observability/       ← المراقبة
 │
-├── docs/operations/           ← العمليات والتشغيل اليومي
-│   ├── releases/              ← الإصدارات والنشر
-│   ├── runbooks/              ← الاستجابة للحوادث + رحلات المستخدم
-│   ├── notifications/         ← الإشعارات
-│   ├── observability/         ← المراقبة والمقاييس
-│   └── archive/               ← وثائق تاريخية
+├── 09-security/             ← تقارير اختراق
+│   └── audits/              ← تدقيق أمني
+│
+├── 90-archive/              ← أرشيف تاريخي
+│
+├── SOP-workflow.md          ← إجراءات التشغيل الموحدة
+└── reports/                 ← تقارير مرحلية
 ```
 
 ---
 
-## 📌 مبادئ التوثيق
+## مبادئ التوثيق
 
 1. **Arabic-First:** جميع التوثيق يبدأ بالعربية مع دعم الإنجليزي
 2. **Single Source of Truth:** كل موضوع في مكان واحد، والباقي يشير إليه
 3. **Layered Detail:** الفهرس → نظرة عامة → تفاصيل لكل قسم
 4. **Cross-References:** روابط واضحة بين الوثائق المترابطة
 5. **Versioned:** كل وثيقة رئيسية تحمل رقم إصدار وحالة (مسودة/معتمدة)
+
+---
+
+**آخر تحديث:** 2026-05-31 | **الفرع:** `feature/phase5-deploy-wap-admin`

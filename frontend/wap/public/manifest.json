@@ -1,0 +1,16 @@
+{
+  "name": "بيزا — محفظة رقمية",
+  "short_name": "بيزا",
+  "description": "تطبيق ويب خفيف وسريع لإدارة محفظتك الرقمية",
+  "start_url": "/wap/login",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#3b82f6",
+  "dir": "rtl",
+  "lang": "ar",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
