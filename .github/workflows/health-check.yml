@@ -1,0 +1,62 @@
+name: Health Check
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_run:
+    workflows: ["Deploy"]
+    types:
+      - completed
+
+jobs:
+  health-check:
+    name: Check staging health
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.beza-platform.com
+
+    steps:
+      - name: Check API health endpoint
+        id: api-check
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            --connect-timeout 10 \
+            --max-time 30 \
+            https://staging.beza-platform.com/api/ping)
+          if [ "$response" != "200" ]; then
+            echo "status=failure" >> "$GITHUB_OUTPUT"
+            echo "API returned HTTP $response (expected 200)"
+            exit 1
+          fi
+          echo "status=success" >> "$GITHUB_OUTPUT"
+          echo "API health check passed (HTTP $response)"
+
+      - name: Check database connection
+        id: db-check
+        run: |
+          response=$(curl -s --connect-timeout 10 --max-time 30 \
+            https://staging.beza-platform.com/api/ping)
+          if echo "$response" | grep -q '"status":"ok"'; then
+            echo "status=success" >> "$GITHUB_OUTPUT"
+            echo "Database connection check passed"
+          else
+            echo "status=failure" >> "$GITHUB_OUTPUT"
+            echo "Unexpected API response: $response"
+            exit 1
+          fi
+
+      - name: Report status
+        if: always()
+        run: |
+          echo "=== Staging Health Report ==="
+          echo "API:       ${{ steps.api-check.outputs.status || 'skipped' }}"
+          echo "Database:  ${{ steps.db-check.outputs.status || 'skipped' }}"
+          echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::warning::Staging health check failed at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "Workflow: ${{ github.run_id }}"

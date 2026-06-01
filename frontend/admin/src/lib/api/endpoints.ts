@@ -7,4 +7,11 @@ export const ENDPOINTS = {
   ADMIN_WAP_QUEUE: "/admin/wap/queue",
   ADMIN_WAP_ROUTES: "/admin/wap/routes",
   ADMIN_WAP_ROUTE_UPDATE: (id: number) => `/admin/wap/routes/${id}`,
+  ADMIN_AGENTS: "/admin/agents",
+  ADMIN_AGENT_DETAIL: (id: number) => `/admin/agents/${id}`,
+  ADMIN_AGENT_APPROVE: (id: number) => `/admin/agents/${id}/approve`,
+  ADMIN_AGENT_SUSPEND: (id: number) => `/admin/agents/${id}/suspend`,
+  ADMIN_AGENT_COMMISSIONS: "/admin/agents/commissions",
+  ADMIN_AGENT_SETTLEMENTS: "/admin/agents/settlements",
+  ADMIN_AGENT_FRAUD_ALERTS: "/admin/agents/fraud-alerts",
 } as const;

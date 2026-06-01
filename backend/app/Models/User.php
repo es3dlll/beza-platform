@@ -36,7 +36,19 @@ class User extends Authenticatable
     public function hasPermission(string $permission): bool
     {
         $permissions = [
-            'admin' => ['manage_wap', 'manage_users', 'manage_wallets', 'view_reports'],
+            'admin' => [
+                'manage_wap',
+                'manage_users',
+                'manage_wallets',
+                'view_reports',
+                'agents:view',
+                'agents:commissions',
+                'commissions:approve',
+                'agents:finance',
+                'finance:approve',
+                'security:view',
+                'security:resolve',
+            ],
         ];
 
         return in_array($permission, $permissions[$this->role] ?? []);

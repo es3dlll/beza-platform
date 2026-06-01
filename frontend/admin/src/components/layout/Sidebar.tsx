@@ -6,6 +6,9 @@ import { usePathname } from "next/navigation";
 const navItems = [
   { label: "الرئيسية", href: "/", icon: "📊" },
   { label: "إدارة WAP", href: "/wap", icon: "📱" },
+  { label: "الوكلاء", href: "/agents", icon: "🏧" },
+  { label: "العمولات", href: "/agents/commissions", icon: "💰" },
+  { label: "التنبيهات", href: "/agents/fraud", icon: "🚨" },
 ];
 
 export default function Sidebar() {
