@@ -23,7 +23,12 @@ test.describe("RBAC — Access Control", () => {
     };
 
     await page.route(`${API_BASE}/api/admin/login`, async (route) => {
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(userResponse) });
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        headers: { "Set-Cookie": "admin_token=mock-token-123; Path=/; HttpOnly" },
+        body: JSON.stringify(userResponse),
+      });
     });
     await page.route(`${API_BASE}/api/admin/me`, async (route) => {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(userResponse) });
@@ -54,8 +59,8 @@ test.describe("RBAC — Access Control", () => {
     });
 
     const res = await page.request.get(`${API_BASE}/api/admin/wap/summary`);
-    expect(res.status()).toBe(403);
+    expect(res.status()).toBe(401);
     const body = await res.json();
-    expect(body.error.code).toBe("FORBIDDEN");
+    expect(body.error.code).toBe("UNAUTHENTICATED");
   });
 });

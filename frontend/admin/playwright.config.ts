@@ -11,6 +11,12 @@ export default defineConfig({
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },
+  webServer: {
+    command: "npm run dev",
+    port: 3000,
+    reuseExistingServer: true,
+    timeout: 60000,
+  },
   projects: [
     {
       name: "chromium",

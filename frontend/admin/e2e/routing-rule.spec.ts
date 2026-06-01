@@ -21,7 +21,12 @@ const routesResponse = {
 test.describe("Update WAP Routing Rule", () => {
   test.beforeEach(async ({ page }) => {
     await page.route(`${API_BASE}/api/admin/login`, async (route) => {
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(adminLoginResponse) });
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        headers: { "Set-Cookie": "admin_token=mock-token-123; Path=/; HttpOnly" },
+        body: JSON.stringify(adminLoginResponse),
+      });
     });
     await page.route(`${API_BASE}/api/admin/me`, async (route) => {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(adminLoginResponse) });

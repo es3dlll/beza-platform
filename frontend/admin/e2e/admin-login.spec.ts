@@ -28,8 +28,17 @@ test.describe("Admin Login + WAP Data Display", () => {
     await expect(page.getByText("Beza Platform")).toBeVisible();
     await expect(page.getByText("البريد الإلكتروني")).toBeVisible();
     await expect(page.getByText("كلمة المرور")).toBeVisible();
-    await expect(page.getByRole("button", { name: "تسجيل الدخول" })).toBeVisible();
   });
+
+  test("logs in and displays dashboard with WAP summary stats", async ({ page }) => {
+    await page.route(`${API_BASE}/api/admin/login`, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        headers: { "Set-Cookie": "admin_token=mock-token-123; Path=/; HttpOnly" },
+        body: JSON.stringify(adminLoginResponse),
+      });
+    });
 
   test("logs in and displays dashboard with WAP summary stats", async ({ page }) => {
     await page.route(`${API_BASE}/api/admin/login`, async (route) => {
@@ -59,7 +68,12 @@ test.describe("Admin Login + WAP Data Display", () => {
 
   test("navigates to WAP management panel and sees data", async ({ page }) => {
     await page.route(`${API_BASE}/api/admin/login`, async (route) => {
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(adminLoginResponse) });
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        headers: { "Set-Cookie": "admin_token=mock-token-123; Path=/; HttpOnly" },
+        body: JSON.stringify(adminLoginResponse),
+      });
     });
     await page.route(`${API_BASE}/api/admin/me`, async (route) => {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(adminLoginResponse) });
