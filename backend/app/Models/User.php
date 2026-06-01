@@ -32,4 +32,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(Wallet::class);
     }
+
+    public function hasPermission(string $permission): bool
+    {
+        $permissions = [
+            'admin' => ['manage_wap', 'manage_users', 'manage_wallets', 'view_reports'],
+        ];
+
+        return in_array($permission, $permissions[$this->role] ?? []);
+    }
 }

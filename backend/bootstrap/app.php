@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Middleware\AdminAuth;
 use App\Http\Middleware\ApiWapAuth;
+use App\Http\Middleware\CheckAdminPermission;
 use App\Http\Middleware\CheckWapRole;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -22,12 +24,18 @@ return Application::configure(basePath: dirname(__DIR__))
 
             Route::middleware('api')
                 ->group(base_path('routes/api-wap.php'));
+
+            Route::middleware('api')
+                ->prefix('api')
+                ->group(base_path('app/Modules/Admin/routes/api.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
+            'auth.admin' => AdminAuth::class,
             'auth.wap' => ApiWapAuth::class,
             'wap.role' => CheckWapRole::class,
+            'admin.permission' => CheckAdminPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
