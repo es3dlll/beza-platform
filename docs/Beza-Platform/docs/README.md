@@ -69,4 +69,47 @@ npm install && npm run dev
 | User Frontend | http://localhost:5174 |
 | Landing Page | http://localhost:3000 |
 
+---
+
+### 🔗 المراجع المعمارية الخارجية
+
+| القسم | الملف المرجعي | الوصف |
+|-------|--------------|-------|
+| العمارة | [`docs/architecture/PRINCIPLES.md`](../../architecture/PRINCIPLES.md) | المبادئ المعمارية الأساسية — 7 قواعد غير قابلة للتفاوض |
+| العمارة | [`docs/architecture/MODULES.md`](../../architecture/MODULES.md) | دليل الوحدات النمطية والتبعيات |
+| العمارة | [`docs/architecture/COMMUNICATION.md`](../../architecture/COMMUNICATION.md) | قواعد التواصل بين الوحدات عبر Event Bus |
+| العمارة | [`docs/architecture/QUALITY.md`](../../architecture/QUALITY.md) | معايير الجودة والاختبارات |
+| العمارة | [`docs/architecture/ADRs/`](../../architecture/ADRs/) | قرارات معمارية موثقة |
+| العمارة | [`docs/architecture/prd/PRD_v1.1.0.md`](../../architecture/prd/PRD_v1.1.0.md) | وثيقة متطلبات المنتج الكاملة |
+| الباك إند | [`docs/backend/OVERVIEW.md`](../../backend/OVERVIEW.md) | نظرة عامة على Laravel 13 Modular Monolith |
+| الباك إند | [`docs/backend/MODULE_STRUCTURE.md`](../../backend/MODULE_STRUCTURE.md) | الهيكل الإلزامي لكل وحدة |
+| الواجهات | [`docs/frontend/ADMIN.md`](../../frontend/ADMIN.md) | لوحة تحكم الإدارة React 19 |
+| الواجهات | [`docs/frontend/MOBILE.md`](../../frontend/MOBILE.md) | تطبيق المحفظة Flutter 3.29 |
+| الواجهات | [`docs/frontend/design-system/`](../../frontend/design-system/) | نظام التصميم الموحد |
+| الامتثال | [`docs/compliance/security-policies/`](../../compliance/security-policies/) | سياسات المصادقة والتفويض والتشفير |
+| الامتثال | [`docs/compliance/aml-kyc/`](../../compliance/aml-kyc/) | AML/KYC والشريعة الإسلامية |
+| الامتثال | [`docs/compliance/data-protection/`](../../compliance/data-protection/) | تصنيف البيانات والاحتفاظ |
+| API | [`docs/api/openapi-v1.yaml`](../../api/openapi-v1.yaml) | مواصفات OpenAPI 3.1 الكاملة |
+| API | [`docs/api/endpoint-matrix.md`](../../api/endpoint-matrix.md) | مصفوفة نقاط API حسب الوحدة |
+| البنية التحتية | [`docs/infrastructure/DEPLOYMENT.md`](../../infrastructure/DEPLOYMENT.md) | Docker Compose وبيئات النشر |
+| العمليات | [`docs/operations/runbooks/`](../../operations/runbooks/) | أدلة الطوارئ والاستجابة للحوادث |
+
+---
+
+### 📌 حالة التطوير v1.1.0 — أولوية مدفوعات التجار
+
+| المجموعة | المهمة | الحالة | ملاحظات |
+|---------|--------|-------|---------|
+| 🔑 المصادقة | A1-A5 | ✅ جاهز | جميع عمليات المصادقة مكتملة |
+| 👛 المحفظة | W1-W3 | ✅ جاهز | محفظة مزدوجة SYP/USD |
+| 🔄 التحويلات | T1-T10 | ✅ جاهز | تشمل QR وطلب مال ووكيل |
+| 🏪 **التجار** | **M1-M6** | **🔧 قيد التطوير** | **أولوية الإصدار 1.1.0** |
+| 💳 البطاقات | C1-C4 | ⏸️ معلق | بعد إطلاق التجار |
+| 🤝 الوكلاء | AG1-AG4 | ✅ جاهز | السحب والإيداع النقدي |
+| 📊 المشرف | AD1-AD6 | ✅ جاهز | لوحة الإدارة كاملة |
+| 🔒 الأمان | SE1-SE3 | ✅ جاهز | 2FA، كشف احتيال، سجل تدقيق |
+| 🧪 الاختبارات | TST1-TST3 | ✅ جاهز | Laravel + Flutter + K6 |
+
+**ملاحظة:** يتم تطوير مهام التجار M1-M6 ضمن مجلد `tasks/05-merchants/`. راجع ملف المواصفات في `specs/MERCHANT-API-SPEC.md` للتفاصيل التقنية.
+
 </div>
