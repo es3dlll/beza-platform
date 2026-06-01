@@ -22,7 +22,7 @@ test.describe("RBAC — Access Control", () => {
       },
     };
 
-    await page.route(`${API_BASE}/api/admin/login`, async (route) => {
+    await page.route(`${API_BASE}/api/v1/admin/login`, async (route) => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -30,7 +30,7 @@ test.describe("RBAC — Access Control", () => {
         body: JSON.stringify(userResponse),
       });
     });
-    await page.route(`${API_BASE}/api/admin/me`, async (route) => {
+    await page.route(`${API_BASE}/api/v1/admin/me`, async (route) => {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(userResponse) });
     });
 
@@ -43,11 +43,11 @@ test.describe("RBAC — Access Control", () => {
     await page.click('a[href="/wap"]');
     await page.waitForURL("/wap");
 
-    await expect(page.getByText("إدارة WAP")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "إدارة WAP" })).toBeVisible();
   });
 
   test("shows forbidden error for non-admin API access", async ({ page }) => {
-    await page.route(`${API_BASE}/api/admin/wap/summary`, async (route) => {
+    await page.route(`${API_BASE}/api/v1/admin/wap/summary`, async (route) => {
       await route.fulfill({
         status: 403,
         contentType: "application/json",
@@ -58,7 +58,7 @@ test.describe("RBAC — Access Control", () => {
       });
     });
 
-    const res = await page.request.get(`${API_BASE}/api/admin/wap/summary`);
+    const res = await page.request.get(`${API_BASE}/api/v1/admin/wap/summary`);
     expect(res.status()).toBe(401);
     const body = await res.json();
     expect(body.error.code).toBe("UNAUTHENTICATED");

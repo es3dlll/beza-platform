@@ -31,7 +31,7 @@ test.describe("Admin Login + WAP Data Display", () => {
   });
 
   test("logs in and displays dashboard with WAP summary stats", async ({ page }) => {
-    await page.route(`${API_BASE}/api/admin/login`, async (route) => {
+    await page.route(`${API_BASE}/api/v1/admin/login`, async (route) => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -39,15 +39,10 @@ test.describe("Admin Login + WAP Data Display", () => {
         body: JSON.stringify(adminLoginResponse),
       });
     });
-
-  test("logs in and displays dashboard with WAP summary stats", async ({ page }) => {
-    await page.route(`${API_BASE}/api/admin/login`, async (route) => {
+    await page.route(`${API_BASE}/api/v1/admin/me`, async (route) => {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(adminLoginResponse) });
     });
-    await page.route(`${API_BASE}/api/admin/me`, async (route) => {
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(adminLoginResponse) });
-    });
-    await page.route(`${API_BASE}/api/admin/wap/summary`, async (route) => {
+    await page.route(`${API_BASE}/api/v1/admin/wap/summary`, async (route) => {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(wapSummaryResponse) });
     });
 
@@ -67,7 +62,7 @@ test.describe("Admin Login + WAP Data Display", () => {
   });
 
   test("navigates to WAP management panel and sees data", async ({ page }) => {
-    await page.route(`${API_BASE}/api/admin/login`, async (route) => {
+    await page.route(`${API_BASE}/api/v1/admin/login`, async (route) => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -75,13 +70,13 @@ test.describe("Admin Login + WAP Data Display", () => {
         body: JSON.stringify(adminLoginResponse),
       });
     });
-    await page.route(`${API_BASE}/api/admin/me`, async (route) => {
+    await page.route(`${API_BASE}/api/v1/admin/me`, async (route) => {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(adminLoginResponse) });
     });
-    await page.route(`${API_BASE}/api/admin/wap/summary`, async (route) => {
+    await page.route(`${API_BASE}/api/v1/admin/wap/summary`, async (route) => {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(wapSummaryResponse) });
     });
-    await page.route(`${API_BASE}/api/admin/wap/devices`, async (route) => {
+    await page.route(`${API_BASE}/api/v1/admin/wap/devices`, async (route) => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -94,7 +89,7 @@ test.describe("Admin Login + WAP Data Display", () => {
         }),
       });
     });
-    await page.route(`${API_BASE}/api/admin/wap/queue`, async (route) => {
+    await page.route(`${API_BASE}/api/v1/admin/wap/queue`, async (route) => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -109,7 +104,7 @@ test.describe("Admin Login + WAP Data Display", () => {
         }),
       });
     });
-    await page.route(`${API_BASE}/api/admin/wap/routes`, async (route) => {
+    await page.route(`${API_BASE}/api/v1/admin/wap/routes`, async (route) => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -132,13 +127,13 @@ test.describe("Admin Login + WAP Data Display", () => {
     await page.click('a[href="/wap"]');
     await page.waitForURL("/wap");
 
-    await expect(page.getByText("إدارة WAP")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "إدارة WAP" })).toBeVisible();
     await expect(page.getByText("حالة طابور المعالجة")).toBeVisible();
     await expect(page.getByText("الأجهزة المسجلة")).toBeVisible();
     await expect(page.getByText("قواعد التوجيه / الصلاحيات")).toBeVisible();
     await expect(page.getByText("abc123")).toBeVisible();
     await expect(page.getByText("/api/v1/wap/auth/login")).toBeVisible();
-    await expect(page.getByText("5")).toBeVisible();
+    await expect(page.getByText("5", { exact: true })).toBeVisible();
     await expect(page.getByText("3400")).toBeVisible();
   });
 

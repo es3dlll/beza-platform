@@ -20,7 +20,7 @@ const routesResponse = {
 
 test.describe("Update WAP Routing Rule", () => {
   test.beforeEach(async ({ page }) => {
-    await page.route(`${API_BASE}/api/admin/login`, async (route) => {
+    await page.route(`${API_BASE}/api/v1/admin/login`, async (route) => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -28,19 +28,19 @@ test.describe("Update WAP Routing Rule", () => {
         body: JSON.stringify(adminLoginResponse),
       });
     });
-    await page.route(`${API_BASE}/api/admin/me`, async (route) => {
+    await page.route(`${API_BASE}/api/v1/admin/me`, async (route) => {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(adminLoginResponse) });
     });
-    await page.route(`${API_BASE}/api/admin/wap/summary`, async (route) => {
+    await page.route(`${API_BASE}/api/v1/admin/wap/summary`, async (route) => {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ success: true, data: {} }) });
     });
-    await page.route(`${API_BASE}/api/admin/wap/devices`, async (route) => {
+    await page.route(`${API_BASE}/api/v1/admin/wap/devices`, async (route) => {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ success: true, data: [] }) });
     });
-    await page.route(`${API_BASE}/api/admin/wap/queue`, async (route) => {
+    await page.route(`${API_BASE}/api/v1/admin/wap/queue`, async (route) => {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ success: true, data: { counts: { pending: 0, completed: 0, failed: 0 }, recent: [] } }) });
     });
-    await page.route(`${API_BASE}/api/admin/wap/routes`, async (route) => {
+    await page.route(`${API_BASE}/api/v1/admin/wap/routes`, async (route) => {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(routesResponse) });
     });
   });
@@ -56,13 +56,13 @@ test.describe("Update WAP Routing Rule", () => {
 
     const routeCard = page.getByText("/api/v1/wap/auth/login");
     await expect(routeCard).toBeVisible();
-    await expect(page.getByText("فعال")).toBeVisible();
+    await expect(page.getByText("فعال").first()).toBeVisible();
   });
 
   test("toggles a routing rule from active to inactive and back", async ({ page }) => {
     let currentRoutes = [...routesResponse.data];
 
-    await page.route(`${API_BASE}/api/admin/wap/routes/${1}`, async (route) => {
+    await page.route(`${API_BASE}/api/v1/admin/wap/routes/${1}`, async (route) => {
       currentRoutes = currentRoutes.map((r) =>
         r.id === 1 ? { ...r, is_active: false } : r
       );
@@ -73,7 +73,7 @@ test.describe("Update WAP Routing Rule", () => {
       });
     });
 
-    await page.route(`${API_BASE}/api/admin/wap/routes`, async (route) => {
+    await page.route(`${API_BASE}/api/v1/admin/wap/routes`, async (route) => {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ success: true, data: currentRoutes }) });
     });
 
