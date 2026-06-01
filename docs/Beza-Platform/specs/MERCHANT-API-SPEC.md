@@ -22,10 +22,11 @@
 | 10 | إرجاع/مرتجع | POST | `/api/v1/merchant/payment/refund` | ⬜ عنوان فارغ |
 | 11 | توليد رمز QR | POST | `/api/v1/merchant/qr/generate` | ✅ موثقة |
 | 12 | التحقق من رمز QR | POST | `/api/v1/merchant/qr/verify` | ✅ موثقة |
-| 13 | سرد التسويات | GET | `/api/v1/merchant/settlements` | ⬜ عنوان فارغ |
-| 14 | تفاصيل التسوية | GET | `/api/v1/merchant/settlements/{id}` | ⬜ عنوان فارغ |
+| 13 | سرد التسويات | GET | `/api/v1/merchant/settlements` | ✅ موثقة |
+| 14 | تفاصيل التسوية | GET | `/api/v1/merchant/settlements/{id}` | ✅ موثقة |
 | 15 | تقارير المبيعات | GET | `/api/v1/merchant/reports/sales` | ⬜ عنوان فارغ |
 | 16 | تقارير طرق الدفع | GET | `/api/v1/merchant/reports/payment-methods` | ⬜ عنوان فارغ |
+| 17 | طلب تسوية يدوية | POST | `/api/v1/merchant/settlements/request-manual` | ✅ موثقة |
 
 ---
 
@@ -341,13 +342,110 @@
 
 ## 13. التسوية — سرد التسويات
 
-> ⬜ **قيد التعبئة** — عرض سجل التسويات اليومية للتاجر مع المبالغ والعمولات.
+### GET /api/v1/merchant/settlements
+
+عرض سجل التسويات اليومية للتاجر مع المبالغ والعمولات. يتطلب Bearer Token للتاجر.
+
+#### المعاملات (Query Parameters)
+
+| الحقل | النوع | الإلزام | الوصف |
+|-------|-------|--------|-------|
+| `page` | integer | اختياري | رقم الصفحة (الافتراضي 1) |
+| `per_page` | integer | اختياري | عدد النتائج لكل صفحة (20، حد أقصى 100) |
+| `status` | enum | اختياري | تصفية حسب الحالة: pending, processing, successful, failed, pending_review, cancelled |
+| `from` | date | اختياري | بداية فترة التسوية (Y-m-d) |
+| `to` | date | اختياري | نهاية فترة التسوية (Y-m-d) |
+
+#### الاستجابة (200)
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "stl_20260531_merch_a1b2",
+      "merchant_id": "merch_a1b2",
+      "period_start": "2026-05-30T00:00:00Z",
+      "period_end": "2026-05-31T00:00:00Z",
+      "gross_amount": 50000,
+      "total_fees": 2637,
+      "withheld_amount": 2500,
+      "tax_amount": 187,
+      "net_amount": 44863,
+      "currency": "USD",
+      "status": "successful",
+      "transaction_count": 40,
+      "transferred_at": "2026-05-31T01:00:00Z"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 20,
+    "total": 15,
+    "last_page": 1
+  }
+}
+```
+
+#### رموز الحالة
+
+| الرمز | المعنى |
+|-------|--------|
+| 200 | نجاح — تم جلب اللائحة |
+| 401 | غير مصرح — التوكن منتهي |
+| 422 | معاملات غير صالحة |
 
 ---
 
 ## 14. التسوية — تفاصيل التسوية
 
-> ⬜ **قيد التعبئة** — تفاصيل تسوية محددة: المعاملات المضمنة، الرسوم، صافي المبلغ.
+### GET /api/v1/merchant/settlements/{id}
+
+تفاصيل تسوية محددة: المعاملات المضمنة، الرسوم، صافي المبلغ.
+
+#### الاستجابة (200)
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "stl_20260531_merch_a1b2",
+    "merchant_id": "merch_a1b2",
+    "period_start": "2026-05-30T00:00:00Z",
+    "period_end": "2026-05-31T00:00:00Z",
+    "gross_amount": 50000,
+    "percent_fee": 1250,
+    "fixed_fee": 1200,
+    "network_fee": 0,
+    "total_fees": 2450,
+    "withheld_amount": 2500,
+    "tax_amount": 187,
+    "net_amount": 44863,
+    "currency": "USD",
+    "status": "successful",
+    "transaction_count": 40,
+    "transactions": [
+      {
+        "id": "txn_a1b2c3d4",
+        "amount": 2500,
+        "fee": 92,
+        "status": "completed",
+        "paid_at": "2026-05-30T14:30:00Z"
+      }
+    ],
+    "transferred_at": "2026-05-31T01:00:00Z",
+    "audit_log_id": "aud_20260531_001"
+  }
+}
+```
+
+#### رموز الحالة
+
+| الرمز | المعنى |
+|-------|--------|
+| 200 | نجاح — تم جلب التفاصيل |
+| 401 | غير مصرح — التوكن منتهي |
+| 404 | التسوية غير موجودة أو لا تتبع هذا التاجر |
 
 ---
 
@@ -360,3 +458,40 @@
 ## 16. التقارير — تقارير طرق الدفع
 
 > ⬜ **قيد التعبئة** — توزيع المدفوعات حسب طريقة الدفع (محفظة، بطاقة، QR).
+
+---
+
+## 17. التسوية — طلب تسوية يدوية
+
+### POST /api/v1/merchant/settlements/request-manual
+
+طلب تسوية يدوية عاجلة خارج دورة الجدولة العادية. يُراجع الطلب من قبل الإدارة خلال 24 ساعة عمل.
+
+#### المدخلات
+
+| الحقل | النوع | الإلزام | الوصف |
+|-------|-------|--------|-------|
+| `note` | string(256) | اختياري | ملاحظة من التاجر توضح سبب الطلب العاجل |
+
+#### الاستجابة (201 Created)
+
+```json
+{
+  "success": true,
+  "data": {
+    "request_id": "req_manual_a1b2",
+    "status": "pending_review",
+    "message": "تم استلام طلب التسوية اليدوية. سيتم معالجتها خلال 24 ساعة عمل.",
+    "estimated_at": "2026-06-01T12:00:00Z"
+  }
+}
+```
+
+#### رموز الحالة
+
+| الرمز | المعنى |
+|-------|--------|
+| 201 | تم استلام الطلب — قيد المراجعة |
+| 400 | خطأ في المدخلات |
+| 401 | غير مصرح — التوكن منتهي |
+| 409 | تعارض — يوجد طلب تسوية يدوية معلق سابقاً لم تتم معالجته بعد |
