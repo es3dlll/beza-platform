@@ -57,10 +57,14 @@ def main():
         return
 
     if args.agents:
-        print(f"\nالوكلاء المتاحون ({len(list_agents())}):\n")
+        print(f"\nفريق العمل — {len(list_agents())} وكلاء:\n")
+        print(f"{'':<4} {'الوكيل':<12} {'الدور':<45} {'Repo'}")
+        print("    " + "-" * 100)
         for a in list_agents():
-            print(f"  {a['id']:<10} {a['role']}")
-        print("\nاستخدم agent_profiles.get_profile(id) للحصول على التفاصيل.")
+            emoji = a.get('emoji', '  ')
+            repo = a.get('repo', '') or '(main)'
+            print(f"  {emoji} {a['id']:<10} {a['role']:<45} {repo}")
+        print("\nهرم التواصل: CEO → Lead → [Backend, Frontend, Flutter, UI/UX] ← Doc")
         return
 
     mgr = SessionManager()

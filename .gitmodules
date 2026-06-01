@@ -10,3 +10,6 @@
 [submodule "agents/docs"]
 	path = agents/docs
 	url = https://github.com/es3dlll/beza-docs.git
+[submodule "agents/uiux"]
+	path = agents/uiux
+	url = https://github.com/es3dlll/beza-uiux.git
