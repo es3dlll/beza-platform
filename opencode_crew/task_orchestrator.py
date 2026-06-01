@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-منسق المهام — Task Orchestrator v5.0
+منسق المهام — Task Orchestrator v6.0
 =====================================
-يدير دورة حياة المهمة عبر 9 وكلاء، كل وكيل يمر بـ 6 مراحل إلزامية:
+يدير دورة حياة المهمة عبر 9 وكلاء × 6 مراحل × تفكير خبير.
+كل وكيل يمر بـ 6 مراحل إلزامية مع تحليل خبير (40+ سنة خبرة):
   1. فحص 🔎    2. اختبار أولي 🧪    3. فحص موسع 🔬
   4. تطوير ⚒️   5. اختبار نهائي ✅   6. تأكيد 🏁
 
@@ -18,6 +19,16 @@ from agent_profiles import (
     list_agent_repos,
     get_stage_for_agent,
     list_stages,
+    enrich_stage_with_expertise,
+    format_prompt,
+)
+from expert_knowledge import (
+    get_expert_knowledge,
+    get_latest_tech,
+    get_best_practices,
+    get_anti_patterns,
+    get_wisdom,
+    get_research_protocol,
 )
 
 # التدفق الافتراضي
@@ -132,43 +143,64 @@ class Workflow:
         return self.agent_trackers.get(aid)
 
     def get_stage_prompt(self, agent_id: str, context: str = "") -> str:
-        """توليد prompt للمرحلة الحالية للوكيل."""
+        """توليد prompt للمرحلة الحالية مع تفكير خبير 40+ سنة."""
         profile = AGENT_PROFILES.get(agent_id)
         if not profile:
             return ""
 
         tracker = self.agent_trackers.get(agent_id)
         stage_id = tracker.current_stage()
-        stage_info = tracker.current_stage_info()
 
         self.session["current_task"] = f"{agent_id}/{stage_id}"
         self._session_mgr.save_session(self.session)
 
-        prompt = (
-            f"# {profile.get('emoji', '')} دور: {profile['role']}\n"
-            f"**{profile['description']}**\n\n"
-            f"## المرحلة: {stage_info.get('icon', '')} {stage_info.get('name', stage_id)}\n"
-            f"**الهدف:** {stage_info.get('objective', '')}\n\n"
+        # استخدم format_prompt مع enrich_stage_with_expertise
+        prompt = format_prompt(agent_id, self.user_request, context, stage_id)
+
+        # إضافة رأس المرحلة
+        stage_info = VERIFICATION_STAGES.get(stage_id, {})
+        expert_knowledge = get_expert_knowledge(agent_id)
+
+        header = (
+            f"# {profile.get('emoji', '')} {profile['role']}\n"
+            f"{profile['description']}\n"
+            f"--- {stage_info.get('icon', '')} المرحلة {stage_info.get('name', stage_id)} ---\n"
+            f"الهدف: {stage_info.get('objective', '')}\n"
         )
 
-        if stage_info.get("conditions"):
-            prompt += "**الشروط:**\n" + "\n".join(f"- {c}" for c in stage_info["conditions"]) + "\n\n"
+        if expert_knowledge:
+            header += (
+                f"👴 خبرة: {expert_knowledge.get('expertise_years', '40+')} سنة في "
+                f"{expert_knowledge.get('specialty', '')}\n"
+            )
 
-        if stage_info.get("actions"):
-            prompt += "**الإجراءات:**\n" + "\n".join(f"- {a}" for a in stage_info["actions"]) + "\n\n"
+        # أضف بروتوكول البحث في المرحلة 2 (اختبار أولي)
+        if stage_id == "2_initial_test":
+            research = get_research_protocol(agent_id)
+            if research:
+                header += "\n📡 بروتوكول البحث عن آخر التحديثات:\n" + "\n".join(f"  {r}" for r in research)
 
-        if stage_info.get("commands"):
-            prompt += "**الأوامر:**\n" + "\n".join(f"- `{c}`" for c in stage_info["commands"]) + "\n\n"
+        # أضف anti-patterns في المرحلة 3 (فحص موسع)
+        if stage_id == "3_extended_check":
+            anti = get_anti_patterns(agent_id)
+            if anti:
+                header += "\n⚠️ Anti-Patterns للفحص:\n" + "\n".join(f"  ❌ {a}" for a in anti)
 
-        if stage_info.get("success_criteria"):
-            prompt += "**معايير النجاح:**\n" + "\n".join(f"- [ ] {c}" for c in stage_info["success_criteria"]) + "\n\n"
+        # أضف أفضل الممارسات في المرحلة 4 (تطوير)
+        if stage_id == "4_development":
+            best = get_best_practices(agent_id)
+            if best:
+                header += "\n✨ أفضل الممارسات:\n" + "\n".join(f"  ✓ {b}" for b in best)
 
-        prompt += profile["prompt_template"].format(task=self.user_request)
+        # أضف الحكمة في نهاية الـ prompt
+        wisdom = get_wisdom(agent_id)
+        if wisdom and stage_id in ("6_confirmation", "1_check"):
+            header += f"\n💡 حكمة خبير:\n{wisdom}"
 
         if context:
-            prompt += f"\n\n**السياق:**\n{context}"
+            header += f"\n\n**السياق:**\n{context}"
 
-        return prompt
+        return header + "\n\n" + prompt
 
     def start_agent_stage(self, agent_id: str, context: str = "") -> str:
         """بدء المرحلة الحالية للوكيل. يرجع الـ prompt."""

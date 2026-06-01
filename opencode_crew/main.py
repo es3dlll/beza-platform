@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-OpenCode AI Crew v5.0
+OpenCode AI Crew v6.0
 ======================
-OpenCode هو المحرك — 9 وكلاء × 6 مراحل إلزامية.
-لا حاجة لمفاتيح API خارجية.
+OpenCode هو المحرك — 9 وكلاء × 6 مراحل × تفكير خبير (40+ سنة).
+كل وكيل يخطط كخبير، يبحث عن آخر التحديثات، ينفذ بدقة، يراجع بعمق.
 
 الاستخدام:
   python main.py --new "وصف المهمة"              # جلسة جديدة
@@ -27,22 +27,47 @@ if sys.stdout.encoding and sys.stdout.encoding.upper() != "UTF-8":
 
 from session_manager import SessionManager
 from agent_profiles import list_agents, get_profile, VERIFICATION_STAGES, list_stages
+from expert_knowledge import get_expert_knowledge, get_latest_tech, get_wisdom
 
-VERSION = "5.0.0"
+VERSION = "6.0.0"
 
 
 def print_pipeline_overview():
     """طباعة نظرة عامة على الـ 6 مراحل."""
-    print("\nنظام الـ 6 مراحل — Verification Pipeline:")
-    print("-" * 60)
+    print("\nنظام الـ 6 مراحل — Verification Pipeline (بتفكير خبير):")
+    print("-" * 65)
     for sid in list_stages():
         info = VERIFICATION_STAGES[sid]
         print(f"  {info['icon']} {info['name']:<12} — {info['description']}")
     print()
 
 
+def print_expert_info(agent_id: str):
+    """طباعة معلومات الخبير للوكيل."""
+    expert = get_expert_knowledge(agent_id)
+    if not expert:
+        return
+    print(f"     👴 خبرة: {expert.get('expertise_years', '40+')} سنة — {expert.get('specialty', '')}")
+
+    tech = get_latest_tech(agent_id)
+    if tech:
+        print(f"     📡 آخر التقنيات 2026:")
+        for k, v in list(tech.items())[:3]:
+            print(f"        {k}: {v}")
+
+    wisdom = get_wisdom(agent_id)
+    if wisdom:
+        print(f"     💡 حكمة: {wisdom[:100]}...")
+
+    anti = expert.get("anti_patterns", [])
+    if anti:
+        print(f"     ⚠️ Anti-Patterns:")
+        for a in anti[:2]:
+            print(f"        {a}")
+
+
 def print_agent_with_stages(agent: dict):
-    """طباعة وكيل واحد مع مراحله."""
+    """طباعة وكيل واحد مع مراحله وخبرته."""
     emoji = agent.get('emoji', '  ')
     profile = get_profile(agent["id"])
     pipeline = profile.get("pipeline", {}) if profile else {}
@@ -51,6 +76,9 @@ def print_agent_with_stages(agent: dict):
     repo = agent.get('repo', '') or '(main)'
     print(f"     Repo: {repo}")
     print(f"     {agent.get('description', '')}")
+
+    # معلومات الخبير
+    print_expert_info(agent["id"])
 
     if pipeline:
         for sid in list_stages():
@@ -167,10 +195,20 @@ def main():
         print(f"\nجلسة جديدة: {s['session_id']}")
         print(f"الطلب: {args.new}")
 
-        # عرض مسار العمل
-        print(f"\n=== مسار العمل ===")
-        print(f"سأبدأ كـ 👑 CEO — وسأمر أنا وكل وكيل بـ 6 مراحل إلزامية:")
-        print(f"  🔎 فحص → 🧪 اختبار أولي → 🔬 فحص موسع → ⚒️ تطوير → ✅ اختبار نهائي → 🏁 تأكيد")
+        # عرض مسار العمل بتفكير خبير
+        print(f"\n=== مسار العمل — بتفكير خبير (40+ سنة) ===")
+        print(f"سأبدأ كـ 👑 CEO — أنا وكل وكيل نمر بـ 6 مراحل تفكير خبير:")
+        print(f"  🔎 فحص (بتحليل عميق)")
+        print(f"  🧪 اختبار أولي (مع بحث عن آخر التحديثات 2026)")
+        print(f"  🔬 فحص موسع (مع مسح anti-patterns)")
+        print(f"  ⚒️ تطوير (بأفضل الممارسات)")
+        print(f"  ✅ اختبار نهائي (مع تحليل خبير)")
+        print(f"  🏁 تأكيد (مع حكمة 40 سنة)")
+
+        print(f"\nكل وكيل يبحث عن أحدث التقنيات قبل أن يبدأ.")
+        print(f"كل وكيل يفحص anti-patterns قبل أن يكتب سطراً.")
+        print(f"كل وكيل ينهي بـ commit + push في repo الخاص به.")
+
         print(f"\nاستخدم: workflow = create_workflow(args.new)")
         print(f"ثم: workflow.start_agent_stage('agent_id') لكل مرحلة")
         return

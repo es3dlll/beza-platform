@@ -79,6 +79,81 @@ def list_stages() -> list:
 
 
 # ============================================================
+# دوال التفكير الخبير — Expert Thinking Helpers
+# ============================================================
+
+def enrich_stage_with_expertise(stage_content: dict, expert_knowledge: dict, stage_id: str) -> dict:
+    """
+    إثراء محتوى المرحلة بمعرفة الخبراء.
+    تضيف expert_analysis, latest_tech_check, anti_pattern_scan.
+    """
+    enriched = dict(stage_content)
+
+    if not expert_knowledge:
+        return enriched
+
+    # إضافة تحليل خبير للمرحلة
+    if stage_id == "1_check":
+        enriched.setdefault("expert_analysis", [
+            "ما هي assumptions التي قد نندم عليها لاحقاً؟",
+            "هل هذه المشكلة تستحق الحل الآن أم يمكن تأجيلها؟",
+            "ما هو الـ MVP (Minimum Viable Product) لهذه المهمة؟",
+        ])
+    elif stage_id == "2_initial_test":
+        tech = expert_knowledge.get("latest_tech_2026", {})
+        if tech:
+            tech_summary = []
+            for k, v in tech.items():
+                tech_summary.append(f"  - {k}: {v}")
+            enriched["latest_tech_check"] = (
+                "آخر التحديثات 2026:\n" + "\n".join(tech_summary)
+            )
+        enriched.setdefault("expert_analysis", [
+            "هل استخدمنا أحدث إصدار مستقر؟",
+            "هل هناك breaking changes نحتاج لمعالجتها؟",
+            "هل البيئة متوافقة مع الإصدارات الجديدة؟",
+        ])
+    elif stage_id == "3_extended_check":
+        anti = expert_knowledge.get("anti_patterns", [])
+        if anti:
+            enriched["anti_pattern_scan"] = "افحص الـ Anti-Patterns التالية:\n" + "\n".join(f"  - {a}" for a in anti)
+        enriched.setdefault("expert_analysis", [
+            "أين نقاط الفشل المحتملة؟",
+            "ماذا لو تضاعفت الأحمال 10x؟",
+            "هل أخذنا الـ edge cases في الاعتبار؟",
+        ])
+    elif stage_id == "4_development":
+        enriched.setdefault("expert_analysis", [
+            "هل هذا الحل هو الأبسط الذي يعمل؟",
+            "هل اتبعنا SOLID و DRY و KISS؟",
+            "هل المخرجات قابلة للاختبار؟",
+        ])
+    elif stage_id == "5_final_test":
+        enriched.setdefault("expert_analysis", [
+            "هل كل الـ edge cases مغطاة؟",
+            "هل الأداء مقبول تحت الضغط؟",
+            "هل هناك تسريب للذاكرة أو موارد؟",
+        ])
+    elif stage_id == "6_confirmation":
+        enriched.setdefault("expert_analysis", [
+            "هل الكود/المخرجات واضحة لشخص آخر؟",
+            "هل التقرير يشرح ماذا ولماذا وليس فقط ماذا؟",
+            "ما الدروس المستفادة من هذه المهمة؟",
+        ])
+
+    # إضافة حكمة الخبير
+    wisdom = expert_knowledge.get("wisdom", "")
+    if wisdom:
+        enriched["expert_wisdom"] = wisdom
+
+    best = expert_knowledge.get("best_practices", [])
+    if best:
+        enriched["best_practices"] = best[:5]
+
+    return enriched
+
+
+# ============================================================
 # شخصيات الوكلاء — Agent Profiles
 # ============================================================
 
@@ -1536,24 +1611,55 @@ def get_team_flow() -> dict:
 
 
 def format_prompt(agent_id: str, task: str, context: str = "", stage_id: str = None) -> str:
-    """توليد prompt للوكيل مع إمكانية تحديد المرحلة."""
+    """توليد prompt للوكيل مع إمكانية تحديد المرحلة وخبرة الخبير."""
+    from expert_knowledge import get_expert_knowledge, get_wisdom
+
     profile = get_profile(agent_id)
     if not profile:
         return task
     template = profile["prompt_template"]
     prompt = template.format(task=task)
 
-    # إذا كانت مرحلة محددة، أضف تعليمات المرحلة
+    # إضافة حكمة الخبير
+    wisdom = get_wisdom(agent_id)
+    if wisdom:
+        prompt += f"\n\n💡 حكمة خبير ({profile.get('role', agent_id)}):\n{wisdom}"
+
+    # إذا كانت مرحلة محددة، أضف تعليمات المرحلة + تحليل خبير
     if stage_id:
         stage_info = VERIFICATION_STAGES.get(stage_id, {})
         stage_pipeline = get_stage_for_agent(agent_id, stage_id)
-        if stage_info and stage_pipeline:
+        expert_knowledge = get_expert_knowledge(agent_id)
+        enriched = enrich_stage_with_expertise(stage_pipeline, expert_knowledge, stage_id)
+
+        if stage_info and enriched:
             prompt += (
-                f"\n\n--- المرحلة: {stage_info['icon']} {stage_info['name']} — {stage_info['objective']} ---"
-                f"\nالإجراءات: {', '.join(stage_pipeline.get('actions', []))}"
-                f"\nالشروط: {'; '.join(stage_pipeline.get('conditions', []))}"
-                f"\nمعايير النجاح: {'; '.join(stage_pipeline.get('success_criteria', []))}"
+                f"\n\n--- {stage_info['icon']} المرحلة: {stage_info['name']} — {stage_info['objective']} ---"
             )
+
+            # الإجراءات
+            if enriched.get("actions"):
+                prompt += "\n\n📋 الإجراءات:\n" + "\n".join(f"  • {a}" for a in enriched["actions"])
+
+            # تحليل خبير
+            if enriched.get("expert_analysis"):
+                prompt += "\n\n🧠 تحليل خبير (40+ سنة خبرة):\n" + "\n".join(f"  ❓ {a}" for a in enriched["expert_analysis"])
+
+            # أحدث التقنيات
+            if enriched.get("latest_tech_check"):
+                prompt += f"\n\n📡 آخر التحديثات 2026:\n{enriched['latest_tech_check']}"
+
+            # Anti-patterns
+            if enriched.get("anti_pattern_scan"):
+                prompt += f"\n\n⚠️ افحص الـ Anti-Patterns:\n{enriched['anti_pattern_scan']}"
+
+            # معايير النجاح
+            if enriched.get("success_criteria"):
+                prompt += "\n\n✅ معايير النجاح:\n" + "\n".join(f"  [ ] {c}" for c in enriched["success_criteria"])
+
+            # الشروط
+            if enriched.get("conditions"):
+                prompt += "\n\n⚠️ الشروط:\n" + "\n".join(f"  ⚠ {c}" for c in enriched["conditions"])
     else:
         # أضف كل المراحل كتذكير
         stages_summary = []
