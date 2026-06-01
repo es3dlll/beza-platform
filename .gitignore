@@ -54,3 +54,11 @@ plan.md
 *~
 # Stubborn empty directory  
 frontend/  
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Generated
+opencode_crew/sessions/
+opencode_crew/generated/

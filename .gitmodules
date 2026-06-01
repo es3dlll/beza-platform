@@ -1,0 +1,12 @@
+[submodule "agents/backend"]
+	path = agents/backend
+	url = https://github.com/es3dlll/beza-backend.git
+[submodule "agents/frontend"]
+	path = agents/frontend
+	url = https://github.com/es3dlll/beza-frontend.git
+[submodule "agents/flutter"]
+	path = agents/flutter
+	url = https://github.com/es3dlll/beza-flutter.git
+[submodule "agents/docs"]
+	path = agents/docs
+	url = https://github.com/es3dlll/beza-docs.git

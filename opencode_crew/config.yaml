@@ -1,0 +1,17 @@
+# OpenCode AI Crew — إعدادات النظام
+crew:
+  version: "2.0.0"
+  engine: "opencode"  # OpenCode هو المحرك، لا حاجة لـ API خارجي
+  description: "نظام وكلاء يعمل من خلال OpenCode مباشرة"
+
+workflow:
+  default_flow:
+    - ceo
+    - lead
+    - backend
+    - frontend
+    - flutter
+    - doc
+  
+  session_dir: "sessions"
+  output_dir: "generated"
