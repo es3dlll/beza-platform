@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-OpenCode AI Crew v6.0
+OpenCode AI Crew v6.1
 ======================
-OpenCode هو المحرك — 9 وكلاء × 6 مراحل × تفكير خبير (40+ سنة).
+OpenCode هو المحرك — 10 وكلاء × 6 مراحل × تفكير خبير (40+ سنة).
 كل وكيل يخطط كخبير، يبحث عن آخر التحديثات، ينفذ بدقة، يراجع بعمق.
 
 الاستخدام:
@@ -29,7 +29,7 @@ from session_manager import SessionManager
 from agent_profiles import list_agents, get_profile, VERIFICATION_STAGES, list_stages
 from expert_knowledge import get_expert_knowledge, get_latest_tech, get_wisdom
 
-VERSION = "6.0.0"
+VERSION = "6.1.0"
 
 
 def print_pipeline_overview():
@@ -103,7 +103,7 @@ def print_agent_with_stages(agent: dict):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="OpenCode AI Crew v5 — 9 وكلاء × 6 مراحل",
+        description="OpenCode AI Crew v6 — 10 وكلاء × 6 مراحل",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "أمثلة:\n"
