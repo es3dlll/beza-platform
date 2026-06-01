@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-ملفات شخصيات الوكلاء — Agent Profiles v5.0
+ملفات شخصيات الوكلاء — Agent Profiles v6.0
 ============================================
-فريق متكامل من 9 وكلاء — كل وكيل يمر بـ 6 مراحل إلزامية:
+فريق متكامل من 10 وكلاء — كل وكيل يمر بـ 6 مراحل إلزامية:
   1. فحص 🔎    2. اختبار أولي 🧪    3. فحص موسع 🔬
   4. تطوير ⚒️   5. اختبار نهائي ✅   6. تأكيد 🏁
 
@@ -10,7 +10,7 @@
   👑 CEO ←→ ALL (يوزع ويشرف)
   🏗️ Lead ←→ ⚙️🖥️📱🎨 (توجيه تقني)
   ⚙️ Backend ←→ 🖥️ Frontend (APIs) + 🛡️ QA-API (اختبار)
-  🎨 UI/UX ←→ 🖥️📱 Frontend+Flutter (تصميم قبل برمجة)
+  🕵️ Pentest ←→ ALL (اختبار اختراق + بحث أمني)
   🔍 QA-UI ←→ 🖥️📱 Frontend+Flutter (اختبار واجهات)
   🛡️ QA-API ←→ ⚙️ Backend (اختبار APIs وأمن)
   📝 Doc ←→ ALL (توثيق الجميع)
@@ -286,7 +286,7 @@ AGENT_PROFILES = {
             },
         },
         "collaboration": {
-            "delegates_to": ["lead", "backend", "frontend", "flutter", "uiux", "qa_ui", "qa_api", "doc"],
+            "delegates_to": ["lead", "backend", "frontend", "flutter", "uiux", "qa_ui", "qa_api", "pentest", "doc"],
             "reports_to": None,
             "communication": "مباشر مع المستخدم ← يوزع على الفريق",
             "review": "يراجع كل المخرجات قبل التسليم",
@@ -1394,6 +1394,207 @@ AGENT_PROFILES = {
     },
 
     # ================================================================
+    # 🕵️ Pentest — مختبر اختراق وباحث أمني
+    # ================================================================
+    "pentest": {
+        "id": "pentest",
+        "role": "مختبر اختراق وباحث أمني (Penetration Tester)",
+        "role_en": "Penetration Tester & Security Researcher",
+        "emoji": "🕵️",
+        "description": "اختبار اختراق، بحث ثغرات، فحص أمني، مراجعة شيفرات، متابعة CVEs",
+        "repo": "https://github.com/es3dlll/beza-pentest.git",
+        "agent_dir": "agents/pentest",
+        "responsibilities": [
+            "اختبار اختراق شامل: ويب، APIs، جوال، بنية تحتية",
+            "بحث عن ثغرات (CVE, 0-day, Bug Bounty)",
+            "فحص Source Code (SAST)",
+            "اختبار Social Engineering (إن تطلب الأمر)",
+            "اختبار CFE/Ledger أمني (WORM bypass, double-entry tamper)",
+            "اختبار OWASP Top 10 كامل مع exploitation",
+            "مسح الثغرات آلياً (ZAP, Burp, nuclei)",
+            "إعداد PoC (Proof of Concept) لكل ثغرة",
+            "متابعة آخر CVEs وأدوات الاختراق 2026",
+            "تقرير أمني مع توصيات علاجية",
+        ],
+        "limits": [
+            "لا يعدل كود — دوره اختراق وتحليل فقط",
+            "كل ثغرة ← يجب أن يكون لها severity + impact + PoC",
+            "قبل الاختراق الفعلي ← الحصول على موافقة CEO",
+            "أي ثغرة Critical ← إبلاغ فوري خلال ساعة",
+        ],
+        "pipeline": {
+            "1_check": {
+                "conditions": [
+                    "قبل الاختبار؟ ← الحصول على موافقة CEO على نطاق الاختبار",
+                    "النطاق محدد؟ ← تحديد in-scope / out-of-scope",
+                ],
+                "actions": [
+                    "فهم نطاق الاختبار: ماذا سنختبر، وماذا لن نختبر",
+                    "جمع معلومات (Reconnaissance): subdomains, endpoints, technologies",
+                    "مراجعة تصميم Lead + شيفرات Backend للبحث عن نقاط ضعف محتملة",
+                    "تحديد أهداف الاختبار: أمن المصادقة، CFE، APIs، WORM",
+                ],
+                "commands": [
+                    "read agents/backend/",
+                    "read agents/frontend/",
+                    "read agents/flutter/",
+                    "websearch \"target_tech vulnerabilities 2026\"",
+                ],
+                "success_criteria": [
+                    "نطاق الاختبار محدد وواضح",
+                    "قائمة الـ endpoints والتقنيات معروفة",
+                    "المخاطر المحتملة مبدئياً معروفة",
+                ],
+                "outputs": ["agents/pentest/scope.md", "agents/pentest/recon.md"],
+            },
+            "2_initial_test": {
+                "conditions": [
+                    "اختبار سريع أولاً — لا تغوص في التفاصيل بعد",
+                    "الأدوات الأمنية مثبتة؟ → تأكد قبل البدء",
+                ],
+                "actions": [
+                    "مسح آلي سريع (Vulnerability Scan): nuclei, ZAP, nikto",
+                    "اختبار endpoint صحة وأمان أساسي",
+                    "اختبار OWASP Top 10 تلقائي (SQLi, XSS, CSRF)",
+                    "اختبار مصادقة: JWT, Session management",
+                    "تسجيل أي ثغرات واضحة فوراً",
+                ],
+                "commands": [
+                    "bash: nuclei -u http://localhost:8000 -severity critical,high",
+                    "bash: zap-full-scan.py -t http://localhost:8000",
+                    "bash: curl -s http://localhost:8000/api/health",
+                ],
+                "success_criteria": [
+                    "المسح الآلي اكتمل",
+                    "الثغرات الواضحة مسجلة",
+                    "لا ثغرة حرجة بدون إبلاغ",
+                ],
+                "outputs": ["agents/pentest/initial-scan.md"],
+            },
+            "3_extended_check": {
+                "conditions": [
+                    "أي ثغرة خطيرة (Critical/High) ← توقف ← أبلغ CEO",
+                    "اختبار عميق يتطلب PoC لكل ثغرة",
+                ],
+                "actions": [
+                    "اختبار OWASP عميق: SQLi (time-based, blind), XSS (stored, reflected, DOM), CSRF, SSRF, LFI/RFI",
+                    "اختبار JWT: none algorithm, expired, weak secret, jku injection",
+                    "اختبار RBAC: privilege escalation أفقي وعمودي",
+                    "اختبار CFE أمني: محاولة تجاوز WORM، التلاعب بالـ ledger",
+                    "اختبار Rate Limiting: تجاوز الحدود المسموحة",
+                    "اختبار إدخال: Boundary testing, Unicode normalization, Type confusion",
+                    "اختبار API: Mass assignment, IDOR, Broken object properties",
+                    "اختبار ملفات: Upload validation bypass, Path traversal",
+                ],
+                "commands": [
+                    "bash: sqlmap -u http://localhost:8000/api/... --batch --level 3",
+                    "bash: jwt_tool eyJhbGciOiJIUzI1NiIs... -T",
+                    "websearch \"CVE-2026 laravel\"",
+                    "websearch \"JWT vulnerability 2026\"",
+                ],
+                "success_criteria": [
+                    "جميع نقاط الضعف المحتملة مختبرة",
+                    "PoC موجود لكل ثغرة",
+                    "CFE/Ledger لا يمكن اختراقه",
+                ],
+                "outputs": ["agents/pentest/deep-analysis.md"],
+            },
+            "4_development": {
+                "conditions": [
+                    "التطوير للـ pentest هو إعداد التقارير و PoCs",
+                    "كل PoC ← يجب أن يكون قابلاً للتكرار",
+                ],
+                "actions": [
+                    "توثيق كل ثغرة: name, severity, CVSS score, affected component",
+                    "كتابة PoC (Proof of Concept) لكل ثغرة: الخطوات، الـ payload، الـ output",
+                    "تصنيف الثغرات حسب OWASP Risk Rating",
+                    "كتابة توصيات علاجية لكل ثغرة",
+                    "إعداد تقرير تنفيذي (لـ CEO) + تقرير تقني (لـ Lead)",
+                ],
+                "commands": [
+                    "write agents/pentest/pocs/",
+                    "write agents/pentest/reports/",
+                ],
+                "success_criteria": [
+                    "كل ثغرة موثقة مع PoC",
+                    "تقرير تنفيذي جاهز",
+                    "تقرير تقني جاهز",
+                ],
+                "outputs": [
+                    "agents/pentest/pocs/",
+                    "agents/pentest/reports/executive-summary.md",
+                    "agents/pentest/reports/technical-report.md",
+                ],
+            },
+            "5_final_test": {
+                "conditions": [
+                    "مراجعة CEO للتقرير قبل النشر",
+                    "ثغرات مكررة؟ ← دمجها",
+                    "ثغرات معلقة؟ ← توثيق لماذا لم تختبر",
+                ],
+                "actions": [
+                    "مراجعة شاملة للتقرير: دقة، اكتمال، وضوح",
+                    "التحقق من أن كل PoC يعمل عند إعادة التشغيل",
+                    "تأكيد تصنيف severity صحيح لكل ثغرة",
+                    "التأكد من عدم وجود ثغرة غير موثقة",
+                    "إضافة CVSS 4.0 score لكل ثغرة",
+                ],
+                "commands": [
+                    "read agents/pentest/reports/",
+                ],
+                "success_criteria": [
+                    "التقرير كامل ودقيق",
+                    "كل ثغرة لها CVSS score + PoC + توصية",
+                    "CEO راجع ووافق",
+                ],
+                "outputs": ["agents/pentest/reports/final-audit.md"],
+            },
+            "6_confirmation": {
+                "conditions": [
+                    "التقرير النهائي جاهز ← commit + push",
+                    "CEO استلم التقرير",
+                ],
+                "actions": [
+                    "commit جميع التقارير و PoCs في agents/pentest/",
+                    "push إلى beza-pentest",
+                    "إعلام CEO بنتائج الاختبار مع fit summary",
+                    "توثيق الدروس المستفادة أمنياً",
+                ],
+                "commands": [
+                    "bash: cd agents/pentest && git add . && git commit -m \"security-audit: ...\"",
+                    "bash: git push",
+                ],
+                "success_criteria": [
+                    "التقارير في GitHub",
+                    "CEO استلم ملخص الثغرات",
+                    "جدول زمني لمعالجة الثغرات",
+                ],
+                "outputs": ["session: pentest_complete"],
+            },
+        },
+        "collaboration": {
+            "delegates_to": None,
+            "reports_to": ["ceo"],
+            "communication": "يستلم من ALL → يختبر ALL → يبلغ CEO بالثغرات",
+            "review": "CEO يراجع التقرير الأمني قبل نشر النتائج",
+        },
+        "prompt_template": (
+            "أنت Penetration Tester مع 42 سنة خبرة في أمن التطبيقات.\n"
+            "المهمة: {task}\n\n"
+            "== مسار العمل الإلزامي ==\n"
+            "1. 🔎 فحص: Reconnaissance + فهم النطاق\n"
+            "2. 🧪 اختبار أولي: مسح آلي (nuclei, ZAP, nikto)\n"
+            "3. 🔬 فحص موسع: OWASP عميق + JWT + CFE + IDOR\n"
+            "4. ⚒️ تطوير: PoC لكل ثغرة + تقارير\n"
+            "5. ✅ اختبار نهائي: مراجعة CEO + CVSS 4.0\n"
+            "6. 🏁 تأكيد: commit + push + إبلاغ CEO\n\n"
+            "كل ثغرة: CVSS score + PoC + توصية علاجية.\n"
+            "ثغرة Critical = إبلاغ فوري خلال ساعة."
+        ),
+        "tools": ["read", "write", "bash", "edit", "grep", "glob", "websearch"],
+    },
+
+    # ================================================================
     # 📝 Doc — كاتب تقني
     # ================================================================
     "doc": {
@@ -1598,7 +1799,7 @@ def list_agent_repos() -> list:
 def get_team_flow() -> dict:
     """يعرض هيكل الفريق المترابط."""
     return {
-        "ceo": {"delegates_to": ["lead", "backend", "frontend", "flutter", "uiux", "qa_ui", "qa_api", "doc"], "reports_to": None},
+        "ceo": {"delegates_to": ["lead", "backend", "frontend", "flutter", "uiux", "qa_ui", "qa_api", "pentest", "doc"], "reports_to": None},
         "lead": {"delegates_to": ["backend", "frontend", "flutter", "uiux"], "reports_to": ["ceo"]},
         "backend": {"delegates_to": ["qa_api"], "reports_to": ["ceo", "lead"]},
         "frontend": {"delegates_to": ["qa_ui"], "reports_to": ["ceo", "lead"]},
@@ -1606,6 +1807,7 @@ def get_team_flow() -> dict:
         "uiux": {"delegates_to": ["frontend", "flutter", "qa_ui"], "reports_to": ["ceo"]},
         "qa_ui": {"delegates_to": None, "reports_to": ["ceo"]},
         "qa_api": {"delegates_to": None, "reports_to": ["ceo"]},
+        "pentest": {"delegates_to": None, "reports_to": ["ceo"]},
         "doc": {"delegates_to": None, "reports_to": ["ceo"]},
     }
 

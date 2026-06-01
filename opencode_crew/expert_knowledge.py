@@ -345,6 +345,54 @@ EXPERT_KNOWLEDGE = {
     },
 
     # ================================================================
+    # 🕵️ Pentest — Penetration Testing & Security Research
+    # ================================================================
+    "pentest": {
+        "expertise_years": 42,
+        "specialty": "اختبار اختراق، بحث ثغرات، تحليل شيفرات، أمن تطبيقات ويب وجوال وAPIs",
+        "latest_tech_2026": {
+            "scanners": "nuclei 3.3, OWASP ZAP 3, nikto 2.5, wpscan, Acunetix",
+            "exploitation": "Metasploit 7, Burp Suite Pro 2026, SQLMap 1.9, BeEF",
+            "fuzzing": "ffuf, wfuzz, libFuzzer, AFL++",
+            "jwt_tools": "jwt_tool, john, hashcat, JWT Editor (Burp)",
+            "recon": "Subfinder, Amass, Httpx, Shodan, Censys, Katana",
+            "cve_feeds": "NVD NIST, MITRE CVE, Exploit-DB, CVE.org API, GitHub Security Advisories",
+            "mobile_pentest": "MobSF, Frida, Objection, APKTool, Jadx",
+            "api_sec": "42Crunch, Salt Security, Escape, Akamai API Security",
+            "trends": "AI-powered pentesting, LLM security testing, Cloud Security Posture Management (CSPM), Zero Trust validation, API Security Testing Automation",
+        },
+        "best_practices": [
+            "OWASP Testing Guide v5 كـ إطار عمل منهجي",
+            "PTES (Penetration Testing Execution Standard) للتقارير",
+            "CVSS 4.0 لكل ثغرة (Base + Temporal + Environmental)",
+            "الاختبار في بيئة Staging أولاً، Production بعد الموافقة",
+            "توثيق كل خطوة: الأمر، النتيجة، التحليل",
+            "إعادة اختبار بعد التصحيح (Remediation Testing)",
+        ],
+        "anti_patterns": [
+            "❌ اختبار آلي فقط بدون يدوي — 60% من الثغرات تحتاج عين بشرية",
+            "❌ تجاهل الـ Business Logic — أشد الثغرات خطراً في fintech",
+            "❌ إبلاغ بدون PoC — الثغرة بدون إثبات = مجرد ادعاء",
+            "❌ اختبار في Production بدون خطة تراجع",
+            "❌ تجاهل Client-Side (DOM-based XSS, CSRF, Clickjacking)",
+            "❌ الاعتماد على ماسح واحد فقط (استخدم 3+ أدوات)",
+        ],
+        "wisdom": (
+            "المخترق الجيد لا يبحث عن الثغرات — بل يفكر كالمطور الذي ارتكب الخطأ."
+            "الثغرة الحقيقية ليست في الكود — بل في الافتراضات التي بني عليها."
+            "كل نظام يمكن اختراقه. السؤال: كم من الوقت والمهارة تحتاج؟"
+            "في fintech، خطأ أمني واحد = فقدان ثقة إلى الأبد."
+        ),
+        "research_protocol": [
+            "1. ابحث عن أحدث CVEs للـ tech stack المستخدم (Laravel, PHP, React, Flutter)",
+            "2. راجع Exploit-DB و Packet Storm لآخر exploits",
+            "3. اقرأ OWASP Top 10 2025 + WSTG v5",
+            "4. تابع: Twitter/X security researchers, GitHub Advisory Database",
+            "5. راجع أحدث أدوات pentest (nuclei templates, Burp extensions)",
+        ],
+    },
+
+    # ================================================================
     # 📝 Doc — Technical Writing
     # ================================================================
     "doc": {

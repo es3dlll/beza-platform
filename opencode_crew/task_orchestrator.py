@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-منسق المهام — Task Orchestrator v6.0
+منسق المهام — Task Orchestrator v6.1
 =====================================
-يدير دورة حياة المهمة عبر 9 وكلاء × 6 مراحل × تفكير خبير.
+يدير دورة حياة المهمة عبر 10 وكلاء × 6 مراحل × تفكير خبير.
 كل وكيل يمر بـ 6 مراحل إلزامية مع تحليل خبير (40+ سنة خبرة):
   1. فحص 🔎    2. اختبار أولي 🧪    3. فحص موسع 🔬
   4. تطوير ⚒️   5. اختبار نهائي ✅   6. تأكيد 🏁
 
 التدفق الافتراضي:
-  CEO → LEAD → UI/UX → [BACKEND, FRONTEND, FLUTTER] → [QA-UI, QA-API] → DOC
+  CEO → LEAD → UI/UX → [BACKEND, FRONTEND, FLUTTER]
+    → [QA-UI, QA-API, PENTEST] → DOC
 """
 
 from session_manager import SessionManager
@@ -32,12 +33,12 @@ from expert_knowledge import (
 )
 
 # التدفق الافتراضي
-DEFAULT_FLOW = ["ceo", "lead", "uiux", "backend", "frontend", "flutter", "qa_ui", "qa_api", "doc"]
+DEFAULT_FLOW = ["ceo", "lead", "uiux", "backend", "frontend", "flutter", "qa_ui", "qa_api", "pentest", "doc"]
 
 # المهام المتوازية
 PARALLEL_GROUPS = {
     "dev": ["backend", "frontend", "flutter"],
-    "qa": ["qa_ui", "qa_api"],
+    "qa": ["qa_ui", "qa_api", "pentest"],
     "design_chain": ["uiux", "frontend", "flutter"],
 }
 

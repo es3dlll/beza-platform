@@ -139,7 +139,7 @@ def main():
 
         print("هرم التواصل:")
         print("  👑 CEO → 🏗️ Lead → 🎨 UI/UX + ⚙️ Backend + 🖥️ Frontend + 📱 Flutter")
-        print("         → 🔍 QA-UI + 🛡️ QA-API")
+        print("         → 🔍 QA-UI + 🛡️ QA-API + 🕵️ Pentest")
         print("         → 📝 Doc")
         print()
         print("التدفق: الفحص → اختبار أولي → فحص موسع → تطوير → اختبار نهائي → تأكيد")

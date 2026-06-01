@@ -19,3 +19,6 @@
 [submodule "agents/qa-api"]
 	path = agents/qa-api
 	url = https://github.com/es3dlll/beza-qa-api.git
+[submodule "agents/pentest"]
+	path = agents/pentest
+	url = https://github.com/es3dlll/beza-pentest.git
